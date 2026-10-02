@@ -1,3 +1,0 @@
-{
-  "rewrites": [{ "source": "/((?!api/|models/|mediapipe/|assets/).*)", "destination": "/index.html" }]
-}

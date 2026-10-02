@@ -34,7 +34,7 @@ Useful URLs:
 
 ```sh
 cd frontend && npm test     # 78 Vitest tests
-cd backend && pytest        # 18 API tests
+cd backend && pytest        # 18 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
 The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping and sports screening analysis. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, and counting at 4 fps.
@@ -61,11 +61,18 @@ frontend/public/models/pose_landmarker_lite.task   self-hosted model
 backend/app/          FastAPI + SQLModel (SQLite), alerts.py (recovery intelligence), seed.py
 ```
 
-## Deploy
+## Deploy to Vercel
 
-- **Frontend:** Vercel (`frontend/vercel.json`) or Netlify (`public/_redirects`). Build with `npm run build` and set `VITE_API_URL=https://<backend>/api`.
-- **Backend:** Render (`render.yaml`). Set `FRONTEND_ORIGINS` to the frontend URL. SQLite is reseeded on a fresh instance; set `DATABASE_URL` to Postgres to keep data.
-- A service worker caches the app shell and pose model, so the app reopens offline after the first visit.
+The repo deploys as **one Vercel project**: the React app is served as static files and the FastAPI backend runs as a Python function at `/api` (`vercel.json`, `api/index.py`). The frontend calls `/api` on the same domain, so no API URL or CORS setup is needed.
+
+1. Go to https://vercel.com/new and import the `Recover-Lens-` GitHub repository. Leave the framework preset as **Other** and the root directory as the repo root; `vercel.json` sets the build.
+2. Click **Deploy**. The app works immediately with seeded demo data.
+3. **Add a database before demoing across devices.** Without one, the API stores data in `/tmp` on each serverless instance, so a session saved on a phone may not show on the laptop. In the project, open **Storage → Create Database → Neon (Postgres)** and connect it to the project. This sets `DATABASE_URL`/`POSTGRES_URL`; then **redeploy**. The tables are created and seeded on first request.
+4. Open the HTTPS URL on a phone: the camera needs HTTPS, which Vercel provides.
+
+To reset the demo data: `curl -X POST https://<your-app>.vercel.app/api/seed` (set `ENABLE_SEED_ENDPOINT=false` to disable this).
+
+Other hosts: the frontend also works on Netlify (`public/_redirects`, with `VITE_API_URL` pointing at the API) and the backend on Render (`render.yaml`).
 
 ## Where this build differs from the spec
 

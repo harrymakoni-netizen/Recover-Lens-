@@ -6,16 +6,19 @@ from typing import Any, Optional
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db import make_engine
+from .db import make_engine, resolve_database_url
 from .routes import alerts, patients, screenings, sessions
 from .seed import reset_and_seed, seed_if_empty
 
 
 def create_app(database_url: Optional[str] = None, seed: bool = True) -> FastAPI:
-    url = database_url or os.environ.get("DATABASE_URL", "sqlite:///recoverlens.db")
-    engine = make_engine(url)
+    engine = make_engine(resolve_database_url(database_url))
     if seed:
-        seed_if_empty(engine)
+        try:
+            seed_if_empty(engine)
+        except Exception:  # noqa: BLE001
+            # Two serverless instances can cold-start at once; one seeds, the other carries on.
+            pass
 
     app = FastAPI(title="RecoverLens API", version="2.0.0")
     app.state.engine = engine

@@ -13,3 +13,6 @@ __pycache__/
 .venv/
 backend/*.db
 backend/*.db-journal
+
+# Vercel CLI local build output
+.vercel/

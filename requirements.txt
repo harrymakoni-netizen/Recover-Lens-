@@ -1,0 +1,4 @@
+# Python dependencies for the Vercel function in api/ (the backend in backend/).
+fastapi>=0.115
+sqlmodel>=0.0.22
+psycopg[binary]>=3.2

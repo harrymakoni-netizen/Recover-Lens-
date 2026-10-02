@@ -268,9 +268,9 @@ def seed_if_empty(engine: Engine) -> None:
 
 
 if __name__ == "__main__":
-    import os
-
     from .db import make_engine
 
-    reset_and_seed(make_engine(os.environ.get("DATABASE_URL", "sqlite:///recoverlens.db")))
+    from .db import resolve_database_url
+
+    reset_and_seed(make_engine(resolve_database_url()))
     print("Seeded demo data.")

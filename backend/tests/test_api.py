@@ -1,5 +1,6 @@
 """Backend tests (SPEC §12): upsert idempotency, pain alert, seeded patients, and more."""
 
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -7,11 +8,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from app.seed import reset_and_seed
 
 
 @pytest.fixture()
 def client(tmp_path):
-    app = create_app(f"sqlite:///{tmp_path / 'test.db'}")
+    # TEST_DATABASE_URL=postgresql://... runs the suite against Postgres (as deployed on Vercel).
+    url = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{tmp_path / 'test.db'}"
+    app = create_app(url)
+    if os.environ.get("TEST_DATABASE_URL"):
+        reset_and_seed(app.state.engine)  # a shared database: start every test from the same data
     with TestClient(app) as c:
         yield c
 
