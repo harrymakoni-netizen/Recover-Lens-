@@ -21,7 +21,7 @@ The spec is `docs/SPEC.md`. Reference sections in commits (e.g. "SPEC §5.4").
 # frontend (from frontend/)
 npm install
 npm run dev          # http://localhost:5173, proxies /api to :8000
-npm test             # Vitest
+npm test             # Vitest (pose engine, voice, screening)
 npm run build        # typecheck + production build
 
 # backend (from backend/)
@@ -31,3 +31,9 @@ pytest
 ```
 
 Before committing: `npm test`, `npm run build` (frontend) and `pytest` (backend) must pass.
+
+## Notes
+
+- Front-view knee exercises use 3D knee angles (`AngleSpec.depth`); see README "Where this build differs".
+- EMA smoothing is time-based (`alphaFor` in `pose/smoothing.ts`); always pass `dtMs`.
+- The `?debug=1` panel records landmark fixtures for `pose/__tests__/replay.test.ts`.

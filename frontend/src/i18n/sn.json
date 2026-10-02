@@ -1,0 +1,15 @@
+{
+  "nav.home": "Kumba",
+  "nav.caregiver": "Mubatsiri",
+  "nav.caregiver_short": "Mubatsiri",
+  "nav.sports": "Kuongororwa kwemitambo",
+  "nav.sports_short": "Mitambo",
+  "nav.clinician": "Chiremba",
+  "nav.clinician_short": "Chiremba",
+  "nav.coach": "Murairidzi",
+  "nav.coach_short": "Murairidzi",
+  "welcome_back": "Mauya zvakare, {name}",
+  "todays_program": "Zvekuita nhasi",
+  "start_exercise": "Tanga kurovedza",
+  "language": "Mutauro"
+}

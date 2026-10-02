@@ -1,5 +1,6 @@
 // Movement score 0–100 (SPEC §5.6).
 import { clamp } from './geometry';
+import { alphaFor } from './smoothing';
 
 export const FAULT_PENALTY = 15;
 
@@ -26,8 +27,9 @@ export class DisplayScore {
 
   constructor(private readonly alpha = 0.2) {}
 
-  update(score: number): number {
-    this.value = this.value === null ? score : this.alpha * score + (1 - this.alpha) * this.value;
+  update(score: number, dtMs?: number): number {
+    const a = alphaFor(this.alpha, dtMs);
+    this.value = this.value === null ? score : a * score + (1 - a) * this.value;
     return this.value;
   }
 

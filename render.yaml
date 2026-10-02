@@ -1,0 +1,15 @@
+# Render blueprint for the backend (SPEC §2). SQLite lives on the instance disk and is reseeded
+# on a fresh start, which is fine for a demo; set DATABASE_URL to Postgres for persistence.
+services:
+  - type: web
+    name: recoverlens-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: FRONTEND_ORIGINS
+        value: "*"
+      - key: ENABLE_SEED_ENDPOINT
+        value: "true"

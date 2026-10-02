@@ -1,0 +1,15 @@
+{
+  "nav.home": "Ekhaya",
+  "nav.caregiver": "Umsizi",
+  "nav.caregiver_short": "Umsizi",
+  "nav.sports": "Ukuhlolwa kwemidlalo",
+  "nav.sports_short": "Imidlalo",
+  "nav.clinician": "Udokotela",
+  "nav.clinician_short": "Udokotela",
+  "nav.coach": "Umqeqeshi",
+  "nav.coach_short": "Umqeqeshi",
+  "welcome_back": "Wamukelekile futhi, {name}",
+  "todays_program": "Okwenziwa lamuhla",
+  "start_exercise": "Qala ukuzivocavoca",
+  "language": "Ulimi"
+}

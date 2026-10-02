@@ -216,6 +216,8 @@ export class SessionEngine {
 
   private startMs: number | null = null;
   private lastMs = 0;
+  private prevFrameMs: number | null = null;
+  private dtMs: number | undefined;
   private readonly faultFrameCounts = new Map<FaultRuleId, number>();
   private readonly alignSamples: number[] = [];
   private readonly symSamples: number[] = [];
@@ -293,6 +295,9 @@ export class SessionEngine {
     world?: Landmark[] | null,
   ): EngineFrame {
     const events: EngineEvent[] = [];
+    const dtMs = this.prevFrameMs === null ? undefined : Math.min(1000, Math.max(0, tMs - this.prevFrameMs));
+    this.prevFrameMs = tMs;
+    this.dtMs = dtMs;
     this.lastMs = tMs;
     const required = this.requiredFor(landmarks);
     const visibility =
@@ -425,7 +430,7 @@ export class SessionEngine {
       'hipDrop', 'midHipX', 'midHipY', 'hipWidth', 'bodyHeight', 'heelLY', 'heelRY', 'ankleLY', 'ankleRY',
       'shoulderForward',
     ];
-    for (const k of keys) out[k] = this.smooth.update(k, raw ? raw[k] : null);
+    for (const k of keys) out[k] = this.smooth.update(k, raw ? raw[k] : null, this.dtMs);
     return out;
   }
 
@@ -442,7 +447,7 @@ export class SessionEngine {
       const b = this.baseline;
       if (!b || b.midHipY === null || !b.bodyHeight) return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
       const rise = (y: number | null) => (y === null ? null : ((b.midHipY! - y) / b.bodyHeight!) * 100);
-      const smoothed = this.primarySmooth.update('hip', rise(raw?.midHipY ?? null));
+      const smoothed = this.primarySmooth.update('hip', rise(raw?.midHipY ?? null), this.dtMs);
       return { primaryRaw: rise(raw?.midHipY ?? null), primaryAngle: smoothed, symmetryPct: null };
     }
     const key = (side: Side): MetricKey => `${spec.joint}${side === 'left' ? 'L' : 'R'}` as MetricKey;
@@ -528,7 +533,7 @@ export class SessionEngine {
         symmetry: symmetryPct ?? 100,
         activeFaults: active.length,
       });
-      this.display.update(score);
+      this.display.update(score, this.dtMs);
       this.recordMovementFrame(m, symmetryPct, active);
       this.trackExtremes(m, symmetryPct, this.baseline);
     }
@@ -623,7 +628,7 @@ export class SessionEngine {
         symmetry: 100,
         activeFaults: active.length,
       });
-      this.display.update(score);
+      this.display.update(score, this.dtMs);
       this.holdFrames += 1;
       this.holdScoreSum += score;
       if (active.length) this.holdFaultFrames += 1;

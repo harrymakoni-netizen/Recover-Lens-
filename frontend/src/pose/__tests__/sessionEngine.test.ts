@@ -221,3 +221,25 @@ describe('single-leg balance (hold)', () => {
     expect(d.last.faults).toContain('pelvis_drop');
   });
 });
+
+describe('slow devices', () => {
+  it('still counts reps when detection runs at only 4 fps', () => {
+    // Same movement as a 30 fps test, sampled every 250 ms (a slow phone or no GPU).
+    const engine = new SessionEngine(getLiveExercise('shoulder_abduction'), { targetReps: 3, sets: 1 });
+    const rand = seeded(3);
+    let t = 0;
+    const at = (pose: Pose, seconds: number) => {
+      for (let i = 0; i < seconds * 4; i++) {
+        const p = makePose(pose, 2, rand);
+        engine.update(p.landmarks, t, W, H, p.world);
+        t += 250;
+      }
+    };
+    at({}, 5);
+    for (let i = 0; i < 3; i++) {
+      at({ armL: 90, armR: 90 }, 1.5);
+      at({ armL: 15, armR: 15 }, 1.5);
+    }
+    expect(engine.summary().reps).toBe(3);
+  });
+});

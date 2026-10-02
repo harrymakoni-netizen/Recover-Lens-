@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+/* Room for the full two-panel HUD: wide enough AND tall enough (landscape phones are not). */
+@custom-variant roomy (@media (min-width: 640px) and (min-height: 520px));
+
+@theme {
+  --font-sans: 'Outfit', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-navy: #1f2a44;
+  --color-navy-soft: #4a5672;
+  --color-teal: #159a82;
+  --color-teal-dark: #117d69;
+  --color-teal-soft: #e3f4f0;
+  --color-alert: #c0392b;
+  --color-alert-soft: #fbeae8;
+  --color-care: #e07a10;
+  --color-care-soft: #fdf0e1;
+  --color-good: #4ade80;
+  --color-warn: #f5b83d;
+  --color-page: #f5f7fa;
+  --color-line: #e3e7ee;
+  --color-hud: rgba(10, 12, 16, 0.72);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-navy);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid #159a82;
+  outline-offset: 2px;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.hud-panel {
+  background: var(--color-hud);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@keyframes rep-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+    color: #4ade80;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.rep-pop {
+  display: inline-block;
+  animation: rep-pop 450ms ease-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eceff4 0px, #f6f8fb 80px, #eceff4 160px);
+  background-size: 400px 100%;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: 8px;
+}
+
+input[type='range'] {
+  accent-color: #159a82;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rep-pop,
+  .skeleton {
+    animation: none;
+  }
+}
