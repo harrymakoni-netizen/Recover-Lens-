@@ -1,0 +1,122 @@
+// Movement-screen tests used by Sports Screening (SPEC §8.4).
+import { FULL_BODY } from '../pose/landmarks';
+import type { ExerciseConfig } from './types';
+
+export const squatScreen: ExerciseConfig = {
+  tracking: 'live',
+  id: 'squat_screen',
+  name: 'Bodyweight Squat Screen',
+  region: 'full_body',
+  kind: 'reps',
+  cameraView: 'front',
+  description: 'Five bodyweight squats facing the camera.',
+  steps: [
+    'Face the camera, feet shoulder-width apart, arms forward.',
+    'Squat down as far as is comfortable.',
+    'Stand back up. Do 5 squats.',
+  ],
+  requiredLandmarks: FULL_BODY,
+  primaryAngle: { joint: 'knee', depth: true },
+  side: 'both',
+  startAngle: 170,
+  targetAngle: 100,
+  defaultSets: 1,
+  defaultReps: 5,
+  minRepSeconds: 0.8,
+  faultRules: ['knee_valgus', 'heel_rise', 'asymmetry', 'torso_lean'],
+  angleLabel: 'Knee',
+  screeningOnly: true,
+  cues: {
+    intro: 'screen_squat_intro',
+    onRaising: 'squat_down',
+    onTop: 'squat_up',
+    onLowering: 'squat_up',
+    onRep: 'rep_of',
+    faults: {
+      knee_valgus: 'knees_over_toes',
+      heel_rise: 'keep_heels_down',
+      asymmetry: 'weight_even',
+      torso_lean: 'chest_up',
+    },
+    onSetComplete: 'test_complete',
+    onSessionComplete: 'test_complete',
+  },
+};
+
+export const singleLegSquat: ExerciseConfig = {
+  tracking: 'live',
+  id: 'single_leg_squat',
+  name: 'Single-Leg Squat',
+  region: 'full_body',
+  kind: 'reps',
+  cameraView: 'front',
+  description: 'Five shallow squats standing on one leg.',
+  steps: [
+    'Face the camera and stand on the leg shown.',
+    'Bend the standing knee a little, keeping it over your toes.',
+    'Stand back up. Do 5 squats.',
+  ],
+  requiredLandmarks: FULL_BODY,
+  primaryAngle: { joint: 'knee', depth: true },
+  // Overridden per test with the standing leg.
+  side: 'left',
+  startAngle: 170,
+  targetAngle: 140,
+  defaultSets: 1,
+  defaultReps: 5,
+  minRepSeconds: 0.8,
+  faultRules: ['knee_valgus', 'pelvis_drop', 'torso_lean'],
+  angleLabel: 'Knee',
+  screeningOnly: true,
+  cues: {
+    intro: 'screen_sls_intro',
+    onRaising: 'squat_down',
+    onTop: 'squat_up',
+    onLowering: 'squat_up',
+    onRep: 'rep_of',
+    faults: {
+      knee_valgus: 'knee_over_toes_single',
+      pelvis_drop: 'keep_hips_level',
+      torso_lean: 'chest_up',
+    },
+    onSetComplete: 'test_complete',
+    onSessionComplete: 'test_complete',
+  },
+};
+
+export const jumpLanding: ExerciseConfig = {
+  tracking: 'live',
+  id: 'jump_landing',
+  name: 'Vertical Jump Landing',
+  region: 'full_body',
+  kind: 'reps',
+  cameraView: 'front',
+  description: 'Three vertical jumps, landing softly on both feet.',
+  steps: [
+    'Face the camera with plenty of space around you.',
+    'Jump straight up as high as you can.',
+    'Land softly, bending your knees. Do 3 jumps.',
+  ],
+  requiredLandmarks: FULL_BODY,
+  // Hip rise as a percentage of standing body height.
+  primaryAngle: { metric: 'hipRise' },
+  side: 'both',
+  startAngle: 0,
+  targetAngle: 6, // TUNE:
+  defaultSets: 1,
+  defaultReps: 3,
+  minRepSeconds: 0.2,
+  faultRules: ['knee_valgus'],
+  angleLabel: 'Knee',
+  screeningOnly: true,
+  cues: {
+    intro: 'screen_jump_intro',
+    onRaising: 'none',
+    onTop: 'none',
+    onLowering: 'land_softly',
+    onRep: 'jump_of',
+    faults: { knee_valgus: 'knees_over_toes' },
+    onSetComplete: 'test_complete',
+    onSessionComplete: 'test_complete',
+  },
+};
