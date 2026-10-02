@@ -1,0 +1,87 @@
+# RecoverLens — Fix & Enhancement Prompt
+
+Paste this into the Replit Agent chat to fix the current build's UI/navigation issues and add the missing feature pieces.
+
+---
+
+I need several fixes and additions to the current RecoverLens app. Go through these one at a time and verify each works on both desktop and mobile before moving to the next.
+
+## 1. Fix mobile navigation (critical)
+
+Right now there's no way to switch between Home, Caregiver Assist, Sports Screening, and the Clinician Portal on mobile — the nav is missing or inaccessible on small screens. Fix this:
+
+- Add a hamburger menu icon (three lines) in the top-right on screens narrower than ~768px that opens a slide-out or dropdown menu listing every main section: Home, Rehab Mirror, Caregiver Assist, Sports Screening, Clinician Portal, and account/logout.
+- Alternatively (or in addition), add a fixed bottom tab bar on mobile with icons for the 3-4 most-used sections (Home, Rehab Mirror, Caregiver, Sports) — bottom nav bars are the standard mobile pattern and easiest to hit with a thumb.
+- Test that every route is reachable from a phone-width viewport with no dead ends.
+- Keep the existing top nav bar for desktop widths, just hidden/replaced below the breakpoint.
+
+## 2. Live instruction text above the "AI Rehab Mirror" panel
+
+Add a line of live, plain-language coaching instruction directly above the AI Rehab Mirror video/overlay area — not inside the bottom-left status panel, but as its own text sitting above the whole camera view. This should update in real time alongside the STATUS label, but phrased as a direct instruction rather than a status word, e.g.:
+
+- When STATUS is "IMPROVE FORM" → instruction text reads "Straighten your torso and try again"
+- When STATUS is "KEEP TORSO CENTERED" → instruction text reads "Keep your body facing forward, don't lean"
+- When STATUS is "RAISING" → instruction text reads "Raise your arm slowly and evenly"
+- When STATUS is "CORRECT FORM" / "GOOD REP" → instruction text reads "Great — keep going" / "Nice rep!"
+
+Make this the single largest, most readable text on the screen — this is what the patient should be reading while mid-exercise, glancing up from their form. Bold, high-contrast, centered above the camera view.
+
+## 3. Make the Rehab Mirror overlay fully responsive across devices
+
+The current bottom-left and bottom-right data panels need to resize and reflow properly on every screen size — right now they need to be checked against real device widths (small phones ~360px, standard phones ~390-430px, tablets ~768px, laptops, and large desktop monitors). Requirements:
+
+- On narrow phone screens, the two overlay panels (status/rep-count on bottom-left, live movement data on bottom-right) should either shrink proportionally, stack vertically, or condense to only the most essential fields (Status + Rep Count on one, Movement Score + Symmetry on the other) — whichever keeps every field fully readable without overflowing or getting cut off at the screen edge.
+- Text must never clip, wrap awkwardly, or run off-screen on any device.
+- The camera feed itself should fill the available viewport (respecting safe areas on notched phones) with the overlay panels as translucent layers on top, not separate scrollable sections that push the camera feed off-screen.
+- Use relative units (vh/vw, %, clamp()) rather than fixed pixel values for the overlay panels so they scale with the viewport instead of breaking at specific widths.
+- Test explicitly at these breakpoints and confirm everything is visible and legible at each: 360px, 390px, 430px, 768px, 1024px, 1440px+.
+
+## 4. Home screen: exercise selection
+
+Add a section on the Home screen (before entering the camera view) where the patient can browse and select which exercise they want to do:
+
+- A card or list view of available exercises (start with the shoulder and knee rehab exercises), each showing the exercise name, target body area, and prescribed sets/reps if they have an assigned program.
+- Selecting an exercise takes them into the Rehab Mirror view already configured for that exercise (correct target angle, correct status-label logic, correct exercise name shown in the overlay).
+- If the patient has no assigned program yet, show a sensible default set of exercises they can try, with a note that their clinician can assign a personalized program.
+
+## 5. Caregiver-Assisted Mode: visual differentiation
+
+Right now Caregiver-Assisted Mode should look distinctly different from the main patient interface so nobody confuses which mode they're in. Add:
+
+- A different accent color for this mode (e.g. a warm teal or amber instead of the main navy/red palette) applied consistently across buttons, headers, and highlights.
+- A persistent small badge or banner at the top of every screen while in this mode, e.g. "CAREGIVER MODE" with an icon, so it's unmistakable at a glance.
+- Larger touch targets and text sizing carried through consistently on every screen in this mode, not just the camera view.
+- A clearly different visual treatment on the toggle itself (e.g. a colored switch/pill rather than a plain checkbox) so turning it on/off feels like a deliberate, obvious action.
+
+## 6. Sports Screening: sport selection + sport-specific exercises
+
+Currently Sports Screening only offers a generic squat assessment. Add a sport-selection step before the screening:
+
+- A "Choose Your Sport" screen with options — start with Football/Soccer, Basketball, Running/Athletics, and General Fitness — each with an icon.
+- Based on the sport chosen, show a relevant screening and exercise set:
+  - **Football/Soccer**: use the FIFA 11+ program structure (running exercises, strength/plyometric/balance exercises, squat and jump assessments) — this is already documented in the exercise library JSON provided separately; wire the screening logic to pull from it.
+  - **Basketball**: emphasize jump-landing mechanics (vertical jump landing, lateral cuts) and knee valgus detection, reusing the same pose-tracking engine.
+  - **Running/Athletics**: emphasize single-leg balance, hip stability, and running-gait-relevant screening (e.g. single-leg squat, hip drop).
+  - **General Fitness**: keep the current generic squat assessment as the default.
+- After screening, show the same risk-flag summary card format already built, but tailor the recommendation text to the sport (e.g. football recommendation references FIFA 11+ specific exercises to add to warm-up).
+- Store which sport the athlete is associated with on their profile so future screenings and the coach dashboard can filter/group by sport.
+
+## 7. Clinician Portal: Add Patient
+
+Add an "Add Patient" flow to the Clinician Portal:
+
+- A button (e.g. top-right of the patient table, or a prominent "+ Add Patient" card) that opens a form to add a new patient: name, contact info (email or phone), condition/diagnosis, and initial exercise program assignment (pick from the exercise library).
+- On submit, the new patient appears in the clinician's patient table immediately with zero sessions logged yet and an "Awaiting first session" state instead of showing empty/broken data.
+- If patient accounts require their own login, generate a simple invite link or code the clinician can share, rather than requiring the clinician to set the patient's password directly.
+
+## Priority order for this pass
+
+1. Mobile navigation fix (this currently blocks anyone testing on a phone — do this first)
+2. Responsive overlay panels on the Rehab Mirror
+3. Live instruction text above the Rehab Mirror
+4. Home screen exercise selection
+5. Add Patient flow on Clinician Portal
+6. Caregiver Mode visual differentiation
+7. Sports Screening sport selection + sport-specific logic
+
+Go through each fix, confirm it renders correctly on both a mobile-width and desktop-width preview before moving to the next item, and don't regress anything that's currently working (especially the skeleton overlay color-switching and the Session Complete summary card, which already match the target design).
