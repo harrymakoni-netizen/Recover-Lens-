@@ -11,21 +11,31 @@ import traceback
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-try:
-    from app.main import app  # noqa: E402,F401
-except Exception as exc:  # noqa: BLE001
-    traceback.print_exc()  # full trace goes to the Vercel function logs
-    _error = {
-        "status": "error",
-        "error": f"{type(exc).__name__}: {exc}"[:500],
-        "hint": "The RecoverLens API could not start. Check DATABASE_URL / POSTGRES_URL and the function logs.",
-    }
 
-    from fastapi import FastAPI
-    from fastapi.responses import JSONResponse
+def _load_app():
+    try:
+        from app.main import app as backend_app
 
-    app = FastAPI()
+        return backend_app
+    except Exception as exc:  # noqa: BLE001
+        traceback.print_exc()  # full trace goes to the Vercel function logs
+        error = {
+            "status": "error",
+            "error": f"{type(exc).__name__}: {exc}"[:500],
+            "hint": "The RecoverLens API could not start. Check DATABASE_URL / POSTGRES_URL and the function logs.",
+        }
 
-    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-    def startup_failed(path: str) -> JSONResponse:
-        return JSONResponse(_error, status_code=503)
+        from fastapi import FastAPI
+        from fastapi.responses import JSONResponse
+
+        fallback = FastAPI()
+
+        @fallback.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+        def startup_failed(path: str) -> JSONResponse:
+            return JSONResponse(error, status_code=503)
+
+        return fallback
+
+
+# Vercel's Python builder looks for a top-level `app`.
+app = _load_app()

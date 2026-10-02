@@ -1,43 +1,52 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "installCommand": "npm install --prefix frontend",
-  "buildCommand": "npm run build --prefix frontend",
-  "outputDirectory": "frontend/dist",
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "backend/app/**",
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
-      "source": "/((?!api/|models/|mediapipe/|assets/).*)",
-      "destination": "/index.html"
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": "backend/app/**",
+        "excludeFiles": "{frontend/**,docs/**,backend/tests/**}"
+      }
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/models/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=604800"
-        }
-      ]
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
     },
     {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
+      "src": "/sw\\.js",
+      "headers": {
+        "Cache-Control": "no-cache"
+      },
+      "dest": "/frontend/sw.js"
+    },
+    {
+      "src": "/models/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=604800"
+      },
+      "dest": "/frontend/models/$1"
+    },
+    {
+      "src": "/(assets|mediapipe)/(.*)",
+      "dest": "/frontend/$1/$2"
+    },
+    {
+      "src": "/(favicon\\.svg|manifest\\.webmanifest|robots\\.txt)",
+      "dest": "/frontend/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/index.html"
     }
   ]
 }
