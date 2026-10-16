@@ -19,7 +19,8 @@ export const squatScreen: ExerciseConfig = {
   primaryAngle: { joint: 'knee', depth: true },
   side: 'both',
   startAngle: 170,
-  targetAngle: 100,
+  targetAngle: 110, // TUNE: 60° of bend from the person's own standing angle
+  relativeRange: true,
   defaultSets: 1,
   defaultReps: 5,
   minRepSeconds: 0.8,
@@ -62,6 +63,7 @@ export const singleLegSquat: ExerciseConfig = {
   side: 'left',
   startAngle: 170,
   targetAngle: 140,
+  relativeRange: true,
   defaultSets: 1,
   defaultReps: 5,
   minRepSeconds: 0.8,

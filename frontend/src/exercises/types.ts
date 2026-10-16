@@ -46,6 +46,12 @@ export interface ExerciseConfig {
   side: 'left' | 'right' | 'both' | 'auto';
   startAngle: number;
   targetAngle: number;
+  /**
+   * Measure the rep from the person's own resting angle, captured at the end of the countdown:
+   * start = measured angle, target = start + (targetAngle - startAngle). Needed where the measured
+   * angle has a per-person offset (e.g. 3D knee angles read ~160° on a straight leg).
+   */
+  relativeRange?: boolean;
   /** Pause at top (reps) or total hold (hold). */
   holdSeconds?: number;
   defaultSets: number;

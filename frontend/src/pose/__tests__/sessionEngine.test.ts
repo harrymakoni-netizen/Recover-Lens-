@@ -243,3 +243,94 @@ describe('slow devices', () => {
     expect(engine.summary().reps).toBe(3);
   });
 });
+
+describe('real-world calibration (measured on real people with MediaPipe)', () => {
+  it('counts squats when a straight leg reads ~160° instead of 180°', () => {
+    // Real 3D knee angles read 157–164° on a straight leg. Model that as a slight resting bend.
+    const d = make('mini_squat', { targetReps: 3, sets: 1 });
+    const rest: Pose = { kneeFlexL: 20, kneeFlexR: 20 };
+    const down: Pose = { kneeFlexL: 60, kneeFlexR: 60 };
+    d.calibrate(rest);
+    for (let i = 0; i < 3; i++) {
+      d.move(rest, down, 1);
+      d.frames(down, 0.3);
+      d.move(down, rest, 1);
+      d.frames(rest, 0.4);
+    }
+    expect(d.last.reps).toBe(3);
+  });
+
+  it('does not count a squat that is too shallow, even from a bent resting knee', () => {
+    const d = make('mini_squat', { targetReps: 3, sets: 1 });
+    const rest: Pose = { kneeFlexL: 20, kneeFlexR: 20 };
+    const shallow: Pose = { kneeFlexL: 35, kneeFlexR: 35 };
+    d.calibrate(rest);
+    d.move(rest, shallow, 1);
+    d.move(shallow, rest, 1);
+    d.frames(rest, 0.4);
+    expect(d.last.reps).toBe(0);
+  });
+
+  it('counts abduction when one arm reads 15° lower at shoulder height (as on a real person)', () => {
+    // Real arms held level read 83° and 98°.
+    const d = make('shoulder_abduction', { targetReps: 2, sets: 1 });
+    d.calibrate({});
+    for (let i = 0; i < 2; i++) {
+      d.move({ armL: 15, armR: 15 }, { armL: 72, armR: 88 }, 1.2);
+      d.frames({ armL: 72, armR: 88 }, 0.5);
+      d.move({ armL: 72, armR: 88 }, { armL: 15, armR: 15 }, 1.2);
+      d.frames({}, 0.4);
+    }
+    expect(d.last.reps).toBe(2);
+    expect(d.engine.summary().topFault).not.toBe('asymmetry');
+  });
+});
+
+describe('visibility flicker during a set', () => {
+  it('keeps counting when ankle visibility dips to 0.5 (below the 0.6 calibration bar)', () => {
+    const engine = new SessionEngine(getLiveExercise('shoulder_abduction'), { targetReps: 2, sets: 1 });
+    const rand = seeded(5);
+    let t = 0;
+    const frame = (pose: Pose, dim: boolean) => {
+      const p = makePose(pose, 2, rand);
+      if (dim) for (const i of [27, 28]) p.landmarks[i].visibility = 0.5;
+      const f = engine.update(p.landmarks, t, W, H, p.world);
+      t += FRAME_MS;
+      return f;
+    };
+    for (let i = 0; i < 150; i++) frame({}, false); // calibrate + countdown with good light
+    let paused = false;
+    for (let rep = 0; rep < 2; rep++) {
+      for (let i = 0; i < 40; i++) paused ||= frame({ armL: 15 + (75 * i) / 40, armR: 15 + (75 * i) / 40 }, true).phase === 'paused';
+      for (let i = 0; i < 40; i++) paused ||= frame({ armL: 90 - (75 * i) / 40, armR: 90 - (75 * i) / 40 }, true).phase === 'paused';
+      for (let i = 0; i < 12; i++) frame({}, true);
+    }
+    expect(paused).toBe(false);
+    expect(engine.summary().reps).toBe(2);
+  });
+});
+
+describe('single-arm shoulder abduction', () => {
+  it('counts reps with only the chosen arm raised', () => {
+    const d = make('shoulder_abduction', { targetReps: 2, sets: 1, side: 'right' });
+    d.calibrate({});
+    for (let i = 0; i < 2; i++) {
+      d.move({ armL: 15, armR: 15 }, { armL: 15, armR: 90 }, 1.2);
+      d.frames({ armL: 15, armR: 90 }, 0.3);
+      d.move({ armL: 15, armR: 90 }, { armL: 15, armR: 15 }, 1.2);
+      d.frames({}, 0.4);
+    }
+    expect(d.last.reps).toBe(2);
+    expect(d.last.trackedSide).toBe('right');
+    expect(d.engine.summary().topFault).toBeNull();
+  });
+
+  it('does not count when both arms are expected and only one rises', () => {
+    const d = make('shoulder_abduction', { targetReps: 2, sets: 1 });
+    d.calibrate({});
+    d.move({ armL: 15, armR: 15 }, { armL: 15, armR: 90 }, 1.2);
+    d.move({ armL: 15, armR: 90 }, { armL: 15, armR: 15 }, 1.2);
+    d.frames({}, 0.4);
+    expect(d.last.reps).toBe(0);
+  });
+});

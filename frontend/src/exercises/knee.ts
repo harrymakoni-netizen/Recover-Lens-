@@ -17,8 +17,11 @@ export const miniSquat: ExerciseConfig = {
   requiredLandmarks: FULL_BODY,
   primaryAngle: { joint: 'knee', depth: true },
   side: 'both',
+  // 3D knee angles read ~157–164° on a real straight leg, so depth is counted from the person's
+  // own standing angle: 35° of bend.
   startAngle: 170,
   targetAngle: 135,
+  relativeRange: true,
   defaultSets: 3,
   defaultReps: 10,
   minRepSeconds: 0.8,

@@ -4,7 +4,7 @@ import { ArrowLeft, RefreshCw, Square, Volume2, VolumeX } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import type { ExerciseConfig } from '../../exercises/types';
 import { useCamera } from '../../hooks/useCamera';
-import { usePoseLandmarker } from '../../hooks/usePoseLandmarker';
+import { loadPoseLandmarker, usePoseLandmarker } from '../../hooks/usePoseLandmarker';
 import { useSession } from '../../hooks/useSession';
 import { useApp } from '../../lib/appContext';
 import type { EngineOptions, SessionSummary } from '../../pose/sessionEngine';
@@ -32,10 +32,12 @@ interface Props {
   onBack: () => void;
   /** Replace the camera with this (e.g. the summary card). */
   overlay?: ReactNode;
+  /** Run on a recorded video file instead of the camera (?source=file). */
+  fileMode?: boolean;
 }
 
 export function MirrorSession({
-  config, options, caregiver, sessionKey, debug, title, steps, onComplete, onStop, onBack, overlay,
+  config, options, caregiver, sessionKey, debug, title, steps, onComplete, onStop, onBack, overlay, fileMode,
 }: Props) {
   const { lang } = useApp();
   const camera = useCamera();
@@ -68,7 +70,7 @@ export function MirrorSession({
 
   // If the user already tapped Start on Home, speech is unlocked: open the camera directly.
   useEffect(() => {
-    if (!startedRef.current && voice.unlocked) start();
+    if (!startedRef.current && voice.unlocked && !fileMode) start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -220,7 +222,19 @@ export function MirrorSession({
           exerciseName={config.name}
           steps={steps ?? config.steps}
           onStart={start}
-          onRetry={start}
+          onRetry={fileMode ? camera.reset : start}
+          onFile={
+            fileMode
+              ? (file) => {
+                  voice.unlock();
+                  startedRef.current = true;
+                  // Start playback only once the model is ready, so no movement is missed.
+                  void loadPoseLandmarker()
+                    .then(() => camera.startFile(file))
+                    .catch(() => camera.startFile(file));
+                }
+              : undefined
+          }
           caregiver={caregiver}
           modelError={pose.error}
         />

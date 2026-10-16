@@ -11,11 +11,45 @@ export function useCamera() {
   const [facingMode, setFacingMode] = useState<FacingMode>('user');
   const [error, setError] = useState<string | null>(null);
 
+  const fileUrlRef = useRef<string | null>(null);
+
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    if (fileUrlRef.current) {
+      URL.revokeObjectURL(fileUrlRef.current);
+      fileUrlRef.current = null;
+    }
   }, []);
+
+  /**
+   * Play a recorded video through the same pipeline instead of the live camera (testing, or a
+   * demo backup when the venue camera or lighting fails). Not mirrored.
+   */
+  const startFile = useCallback(
+    async (file: File) => {
+      stop();
+      const video = videoRef.current;
+      if (!video) return;
+      setStatus('starting');
+      const url = URL.createObjectURL(file);
+      fileUrlRef.current = url;
+      video.srcObject = null;
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
+      try {
+        await video.play();
+        setFacingMode('environment');
+        setStatus('ready');
+      } catch (err) {
+        setStatus('error');
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [stop],
+  );
 
   const start = useCallback(
     async (facing: FacingMode = facingMode) => {
@@ -60,5 +94,13 @@ export function useCamera() {
 
   useEffect(() => stop, [stop]);
 
-  return { videoRef, status, facingMode, error, start, stop, switchCamera };
+  /** Stop and go back to the not-started state (e.g. to pick another video). */
+  const reset = useCallback(() => {
+    stop();
+    videoRef.current?.removeAttribute('src');
+    setError(null);
+    setStatus('idle');
+  }, [stop]);
+
+  return { videoRef, status, facingMode, error, start, startFile, stop, reset, switchCamera };
 }

@@ -33,19 +33,50 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 78 Vitest tests
+cd frontend && npm test     # 87 Vitest tests
 cd backend && pytest        # 18 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
-The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping and sports screening analysis. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, and counting at 4 fps.
+The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping and sports screening analysis. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
 
-### Recorded-landmarks fixture
+### Recorded-landmarks fixtures
 
-`frontend/src/pose/__tests__/replay.test.ts` replays every `fixtures/*_<N>reps.json` file through the full engine and requires exactly N reps. The bundled fixture is **synthetic** (made by the test simulator), not a real recording. Before the final:
+`frontend/src/pose/__tests__/replay.test.ts` replays every `fixtures/*_<N>reps.json` file through the full engine and requires exactly N reps (files named `*leaning*` must also flag the lean on every rep). Bundled now:
 
-1. Open `/mirror/shoulder_abduction?reps=10&debug=1` on a phone.
-2. Tap **Record landmarks**, do 10 reps, then tap **Stop & download**.
-3. Save the file as `frontend/src/pose/__tests__/fixtures/recorded_shoulder_abduction_10reps.json` and run `npm test`.
+- `synthetic_…`: made by the test simulator.
+- `realperson_…` and `realperson-leaning_…`: real MediaPipe output on the reference photos of a real person (`docs/reference`), stitched into a video. Real landmarks, but the movement between poses is instant.
+
+Neither is a real person moving. Add real recordings (next section) before the final.
+
+## Testing the computer vision on real people
+
+Three ways, all running the same counting engine as the app:
+
+1. **In the app, from a video file:** open `/mirror/<exercise>?source=file&reps=5&debug=1` and pick a clip. The live pipeline (skeleton, HUD, voice, counting) runs on it, with no countdown. Also a demo backup if the venue camera or lighting fails.
+2. **In the app, live:** add `&debug=1`, tap **Record landmarks**, do the set, then tap **Stop & download**.
+3. **From any phone video, offline:**
+   ```sh
+   pip install mediapipe opencv-python-headless
+   python tools/extract_landmarks.py clip.mp4 --exercise mini_squat --reps 5
+   cd frontend && npm run eval -- ../recorded_mini_squat_5reps.json
+   ```
+   `npm run eval` prints every rep (time, top angle, quality, form faults), calibration problems and pauses.
+
+Save good recordings as `frontend/src/pose/__tests__/fixtures/recorded_<exercise>_<N>reps.json` so they become regression tests.
+
+**What to record** (phone on a stand at waist height, 2–3 m away, whole body in frame, about 5 s standing still first):
+
+| Clip | Exercise id | What to do |
+|---|---|---|
+| 1 | `shoulder_abduction` | 10 reps, pause at the top on some |
+| 2 | `shoulder_abduction` | 5 reps leaning sideways (should be flagged) |
+| 3 | `shoulder_abduction` | 5 reps with one arm only (run with `--side left`/`right`) |
+| 4 | `mini_squat` | 10 small squats |
+| 5 | `squat_screen` | 5 deep squats, knees caving in on 3 of them |
+| 6 | `sit_to_stand` | 5 reps, side-on to the camera |
+| 7 | `single_leg_balance` | 30 s on each leg |
+
+Record each with 2–3 different people, in normal and dim light, and in fitted and baggy clothes if you can.
 
 ## Layout
 
@@ -58,6 +89,8 @@ frontend/src/voice/   voiceEngine (priorities and cooldowns), phrases (en/sn/nd)
 frontend/src/hooks/   useCamera, usePoseLandmarker, useSession, useApi
 frontend/src/api/     fetch client (5 s timeout), IndexedDB offline queue, sync status
 frontend/public/models/pose_landmarker_lite.task   self-hosted model
+frontend/scripts/eval-recording.ts   replay a recording and print what the engine saw (npm run eval)
+tools/extract_landmarks.py           phone video → landmark recording, using the app's pose model
 backend/app/          FastAPI + SQLModel (SQLite), alerts.py (recovery intelligence), seed.py
 ```
 
@@ -83,9 +116,13 @@ Other hosts: the frontend also works on Netlify (`public/_redirects`, with `VITE
 - **Side-view exercises track whichever side faces the camera** (`side: 'auto'`).
 - **Guided timer mode** covers shoulder rotations, pendulum, quad set, straight leg raise, heel slide and step-up.
 - **Range-of-motion alerts know direction:** a deeper squat (smaller angle) is progress, not a drop.
+- **Squat depth is measured from each person's own standing angle.** Real 3D knee angles read about 157–164° on a straight leg, not 180°, so a fixed 170°→135° range never let a rep finish. The resting angle is captured at the end of the countdown (`relativeRange`).
+- **Thresholds retuned on real MediaPipe output** (reference photos of a real person): abduction counts at 80° (arms held level read 83° and 98°), symmetry warns below 78% (level arms read 84%), elbow warns below 145°.
+- **Counting continues down to 40% landmark visibility** once a set has started; calibration still needs 60%.
+- **Abduction can be done with one arm** (arm choice in the check-in, or `?side=left|right`), as most shoulder rehab is.
 
 ## Still to do before the final
 
-- Record a real landmark fixture (above) and tune the `// TUNE:` thresholds on 3–5 people.
+- Record the clips in "Testing the computer vision on real people" and tune the `// TUNE:` thresholds on 3–5 people. Squats are the least proven: their thresholds have not yet been checked on a real person squatting.
 - Have native speakers check the Shona and Ndebele phrases (`frontend/src/voice/phrases.ts`, `src/i18n/`).
 - Test on iPhone Safari and Android Chrome over HTTPS (camera, speech unlock, GPU→CPU fallback).

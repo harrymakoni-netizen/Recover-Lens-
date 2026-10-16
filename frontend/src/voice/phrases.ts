@@ -46,6 +46,10 @@ const en: Record<string, string> = {
   abd_raising: 'Raise your arms slowly out to the side.',
   abd_top: 'Hold at shoulder height.',
   abd_raise_higher: 'Try to reach shoulder height.',
+  // Single-arm variants (used when one side is chosen)
+  abd_intro_one: 'Stand tall, arms by your sides. Raise your {side} arm out to the side, up to shoulder height.',
+  abd_raising_one: 'Raise your {side} arm slowly out to the side.',
+  keep_elbows_straight_one: 'Keep your elbow straight.',
 
   // Shoulder flexion
   flex_intro: 'Stand side-on to the camera. Raise your arm forward and up, keeping your back straight.',
@@ -123,6 +127,9 @@ const en: Record<string, string> = {
   'cg.abd_raising': 'Ask them to raise their arms slowly out to the side.',
   'cg.abd_top': 'Ask them to hold at shoulder height.',
   'cg.abd_raise_higher': 'Help them raise their arm a little higher.',
+  'cg.abd_intro_one': 'Ask them to raise their {side} arm out to the side, up to shoulder height.',
+  'cg.abd_raising_one': 'Ask them to raise their {side} arm slowly out to the side.',
+  'cg.keep_elbows_straight_one': 'Ask them to keep their elbow straight.',
   'cg.flex_intro': 'Turn them side-on to the camera. Ask them to raise their arm forward and up.',
   'cg.flex_raising': 'Ask them to raise their arm forward and up.',
   'cg.flex_raise_higher': 'Help them raise their arm a little higher.',
@@ -141,6 +148,8 @@ const en: Record<string, string> = {
 // Short pill text for long phrases (the pill holds ~40 characters).
 const pillEn: Record<string, string> = {
   abd_intro: 'Raise both arms to shoulder height',
+  abd_intro_one: 'Raise your {side} arm to shoulder height',
+  'cg.abd_intro_one': '{side} arm out to shoulder height',
   flex_intro: 'Raise your arm forward and up',
   squat_intro: 'Bend your knees slightly, then stand',
   sts_intro: 'Stand up fully, then sit down slowly',
@@ -216,6 +225,11 @@ export function phrase(
     }
   }
   return '';
+}
+
+/** True if a phrase key exists (in English, for either mode). */
+export function hasPhrase(key: string): boolean {
+  return PHRASES.en[key] !== undefined || PHRASES.en[`cg.${key}`] !== undefined;
 }
 
 /** Short text for the on-screen pill. Falls back to the spoken phrase. */

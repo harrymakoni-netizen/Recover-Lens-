@@ -38,7 +38,14 @@ export default function Mirror() {
   const [startedAt] = useState(() => new Date().toISOString());
   const [summary, setSummary] = useState<SessionSummary | null>(null);
   const backTo = caregiver ? '/caregiver' : '/';
-  const options = useMemo(() => ({ targetReps: reps, sets }), [reps, sets]);
+  const sideParam = params.get('side');
+  const side: 'left' | 'right' | undefined = sideParam === 'left' || sideParam === 'right' ? sideParam : undefined;
+  // A recorded video cannot wait for the 3-2-1 countdown: start counting as soon as the person is in view.
+  const fileMode = params.get('source') === 'file';
+  const options = useMemo(
+    () => ({ targetReps: reps, sets, side, ...(fileMode ? { countdownMs: 0, calibrationHoldMs: 300 } : {}) }),
+    [reps, sets, side, fileMode],
+  );
 
   if (!exercise) {
     return (
@@ -89,6 +96,7 @@ export default function Mirror() {
       caregiver={caregiver}
       sessionKey={sessionId}
       debug={debug}
+      fileMode={fileMode}
       onComplete={setSummary}
       onStop={(s) => (s ? setSummary(s) : navigate(backTo))}
       onBack={() => navigate(backTo)}

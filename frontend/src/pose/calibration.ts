@@ -80,10 +80,21 @@ export function checkCalibration(
   return { ok: true, issue: null, bodyHeight };
 }
 
+/**
+ * Visibility needed to keep counting once a set has started. Lower than the calibration bar
+ * (hysteresis): real ankle/knee visibility flickers in ordinary rooms, and pausing on every dip
+ * would interrupt a person who is clearly in view.
+ */
+export const MIN_IN_SET_VISIBILITY = 0.4; // TUNE:
+
 /** True when the required landmarks are visible (used mid-set to pause/resume). */
-export function requiredVisible(landmarks: Landmark[] | null | undefined, required: number[]): boolean {
+export function requiredVisible(
+  landmarks: Landmark[] | null | undefined,
+  required: number[],
+  minVisibility = MIN_CALIBRATION_VISIBILITY,
+): boolean {
   if (!landmarks || landmarks.length < 33) return false;
-  return required.every((i) => visibilityOf(landmarks[i]) >= MIN_CALIBRATION_VISIBILITY);
+  return required.every((i) => visibilityOf(landmarks[i]) >= minVisibility);
 }
 
 /** Requires the calibration check to pass continuously for `holdMs` before reporting ready. */

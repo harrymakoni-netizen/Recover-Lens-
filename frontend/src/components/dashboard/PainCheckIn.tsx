@@ -9,18 +9,23 @@ export interface CheckInResult {
   pain: number;
   redFlags: boolean;
   confirmedByPatient: boolean;
+  /** One arm chosen for a two-arm exercise; undefined = both. */
+  side?: 'left' | 'right';
 }
 
 export function PainCheckIn({
   open,
   exerciseName,
   caregiver,
+  armChoice,
   onStart,
   onClose,
 }: {
   open: boolean;
   exerciseName: string;
   caregiver?: boolean;
+  /** Offer Both / Left / Right (shoulder rehab is usually one arm). */
+  armChoice?: boolean;
   onStart: (r: CheckInResult) => void;
   onClose: () => void;
 }) {
@@ -28,13 +33,20 @@ export function PainCheckIn({
   const [redFlags, setRedFlags] = useState<boolean | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [advise, setAdvise] = useState(false);
+  const [arm, setArm] = useState<'both' | 'left' | 'right'>('both');
 
   const close = () => {
     setAdvise(false);
     onClose();
   };
 
-  const start = () => onStart({ pain, redFlags: !!redFlags, confirmedByPatient: !caregiver || confirmed });
+  const start = () =>
+    onStart({
+      pain,
+      redFlags: !!redFlags,
+      confirmedByPatient: !caregiver || confirmed,
+      side: armChoice && arm !== 'both' ? arm : undefined,
+    });
 
   const next = () => {
     if (pain >= 8 || redFlags) setAdvise(true);
@@ -60,6 +72,33 @@ export function PainCheckIn({
         </div>
       ) : (
         <div className="space-y-5">
+          {armChoice && (
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium text-navy-soft">Which arm?</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    ['both', 'Both arms'],
+                    ['left', caregiver ? 'Their left' : 'Left arm'],
+                    ['right', caregiver ? 'Their right' : 'Right arm'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={arm === value}
+                    onClick={() => setArm(value)}
+                    className={cn(
+                      'min-h-12 rounded-xl border text-sm font-medium',
+                      arm === value ? 'border-teal bg-teal-soft text-teal-dark' : 'border-line bg-white',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
           <PainSlider value={pain} onChange={setPain} label={caregiver ? 'Their pain right now' : 'Your pain right now'} />
           <fieldset>
             <legend className="mb-2 text-sm font-medium text-navy-soft">Any swelling, numbness or sharp pain?</legend>

@@ -62,3 +62,13 @@ describe('cue mapping (SPEC §6.2)', () => {
     );
   });
 });
+
+describe('single-arm abduction', () => {
+  it('uses single-arm wording when one side is chosen', () => {
+    const c = ctx('shoulder_abduction', { side: 'left' });
+    expect(cuesForEvents([{ type: 'start' }], c)[0].text).toBe(
+      'Stand tall, arms by your sides. Raise your left arm out to the side, up to shoulder height.',
+    );
+    expect(cuesForEvents([{ type: 'fault', id: 'elbow_bend' }], c)[0].text).toBe('Keep your elbow straight.');
+  });
+});

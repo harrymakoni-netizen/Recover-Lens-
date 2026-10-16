@@ -1,4 +1,4 @@
-import { Camera, CameraOff, Lock, ShieldCheck } from 'lucide-react';
+import { Camera, CameraOff, Film, Lock, ShieldCheck } from 'lucide-react';
 import type { CameraStatus } from '../../hooks/useCamera';
 import { Button } from '../ui';
 
@@ -11,6 +11,7 @@ export function CameraMessage({
   exerciseName,
   steps,
   onStart,
+  onFile,
   onRetry,
   caregiver,
   modelError,
@@ -22,6 +23,8 @@ export function CameraMessage({
   onRetry?: () => void;
   caregiver?: boolean;
   modelError?: string | null;
+  /** Test/demo mode: pick a recorded video instead of starting the camera. */
+  onFile?: (file: File) => void;
 }) {
   const accent = caregiver ? 'text-care' : 'text-good';
   return (
@@ -53,6 +56,19 @@ export function CameraMessage({
               <p className="mt-5 flex items-center gap-2 text-white/80">
                 <Camera size={18} className="animate-pulse" /> Waiting for camera permission…
               </p>
+            ) : onFile ? (
+              <label className="mt-5 flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-teal px-6 text-lg font-medium text-white hover:bg-teal-dark">
+                <Film size={20} /> Choose a video
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) onFile(f);
+                  }}
+                />
+              </label>
             ) : (
               <Button variant={caregiver ? 'care' : 'primary'} size="lg" className="mt-5 w-full" onClick={onStart}>
                 <Camera size={20} /> Start camera

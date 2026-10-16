@@ -34,13 +34,20 @@ export function useStartExercise(caregiver = false) {
       open={!!pending}
       caregiver={caregiver}
       exerciseName={pending?.name ?? ''}
+      armChoice={!!pending && isLive(pending) && pending.region === 'shoulder' && pending.side === 'both'}
       onClose={() => setPending(null)}
-      onStart={({ pain, confirmedByPatient }) => {
+      onStart={({ pain, confirmedByPatient, side }) => {
         // This click is the user gesture iOS needs before speech is allowed (SPEC §6.1).
         voice.unlock();
         const ex = pending!;
         setPending(null);
-        navigate(`/mirror/${ex.id}${caregiver ? '?mode=caregiver' : ''}`, { state: { painBefore: pain, painConfirmed: confirmedByPatient, patientId } });
+        const query = new URLSearchParams();
+        if (caregiver) query.set('mode', 'caregiver');
+        if (side) query.set('side', side);
+        const qs = query.toString();
+        navigate(`/mirror/${ex.id}${qs ? `?${qs}` : ''}`, {
+          state: { painBefore: pain, painConfirmed: confirmedByPatient, patientId },
+        });
       }}
     />
   );

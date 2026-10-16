@@ -20,8 +20,8 @@ export const ALL_FAULTS: FaultRuleId[] = [
 
 export const THRESHOLDS = {
   torsoLeanDeg: 10, // TUNE:
-  symmetryPct: 85, // TUNE:
-  elbowDeg: 150, // TUNE:
+  symmetryPct: 78, // TUNE: arms held level on a real person read 84%, so 85 gave false alarms
+  elbowDeg: 145, // TUNE: straight arms on a real person read 158–177°
   backArchFraction: 0.08, // TUNE: of body height
   valgusRatio: 0.15, // TUNE:
   weightShiftFraction: 0.08, // TUNE: of hip width

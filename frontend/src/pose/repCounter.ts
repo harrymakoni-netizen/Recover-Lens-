@@ -96,9 +96,24 @@ export class RepCounter {
   private lastMs: number | null = null;
   private setJustCompleted = false;
 
+  private startAngle: number;
+  private targetAngle: number;
+
   constructor(private readonly opts: RepCounterOptions) {
+    this.startAngle = opts.startAngle;
+    this.targetAngle = opts.targetAngle;
     this.sets = Math.max(1, opts.sets ?? 1);
     this.holdMs = Math.max(0, (opts.holdSeconds ?? 0) * 1000);
+  }
+
+  /** Change the rest and target angles (e.g. once the person's own resting angle is measured). */
+  setRange(startAngle: number, targetAngle: number): void {
+    this.startAngle = startAngle;
+    this.targetAngle = targetAngle;
+  }
+
+  get range(): { start: number; target: number } {
+    return { start: this.startAngle, target: this.targetAngle };
   }
 
   /** Current set number, 1-based. Stays on the finished set until the next rep starts. */
@@ -121,7 +136,7 @@ export class RepCounter {
     this.lastMs = frame.tMs;
     if (this.done || frame.angle === null) return events;
 
-    const p = computeProgress(frame.angle, this.opts.startAngle, this.opts.targetAngle);
+    const p = computeProgress(frame.angle, this.startAngle, this.targetAngle);
     this.progress = p;
 
     if (this.rep) this.track(frame, p);

@@ -25,6 +25,7 @@ describe('recorded landmark replay', () => {
     const expected = Number(/_(\d+)reps\.json$/.exec(file)![1]);
     const rec = JSON.parse(readFileSync(join(dir, file), 'utf8')) as LandmarkRecording;
     const engine = new SessionEngine(getLiveExercise(rec.exerciseId), { targetReps: expected, sets: 1 });
+    const leaning = file.includes('leaning');
     let calibrationIssues = 0;
     for (const f of rec.frames) {
       const frame = engine.update(decodeLandmarks(f.lm), f.t, rec.width, rec.height, decodeWorld(f.w));
@@ -32,6 +33,11 @@ describe('recorded landmark replay', () => {
     }
     const summary = engine.summary();
     expect(summary.reps).toBe(expected);
+    // Files named *leaning* must flag the lean on every rep but still count them.
+    if (leaning) {
+      expect(summary.topFault).toBe('torso_lean');
+      expect(summary.correctReps).toBe(0);
+    }
     expect(engine.currentPhase).toBe('complete');
     if (rec.source === 'synthetic') {
       // The synthetic recording walks in too close first, so calibration must have spoken up.

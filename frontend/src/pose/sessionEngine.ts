@@ -5,6 +5,7 @@ import type { ExerciseConfig } from '../exercises/types';
 import {
   CalibrationGate,
   type CalibrationIssue,
+  MIN_IN_SET_VISIBILITY,
   checkCalibration,
   requiredVisible,
 } from './calibration';
@@ -245,6 +246,31 @@ export class SessionEngine {
     if (opts.side) this.autoSide = opts.side;
   }
 
+  /** Rest/target angles in use (config values, or measured from the person for relative ranges). */
+  private range(): { start: number; target: number } {
+    return this.counter?.range ?? { start: this.config.startAngle, target: this.config.targetAngle };
+  }
+
+  /** Relative-range exercises: count depth from the person's own resting angle. */
+  private applyRelativeRange(m: Record<MetricKey, number | null>): void {
+    const spec = this.config.primaryAngle;
+    if (!this.config.relativeRange || !this.counter || !spec || !('joint' in spec)) return;
+    const key = (side: Side): MetricKey => `${spec.joint}${side === 'left' ? 'L' : 'R'}` as MetricKey;
+    const both = this.config.side === 'both' && !this.opts.side;
+    const values = (both ? [m[key('left')], m[key('right')]] : [m[key(this.side ?? 'left')]]).filter(
+      (v): v is number => v !== null,
+    );
+    if (values.length === 0) return;
+    const measured = values.reduce((a, b) => a + b, 0) / values.length;
+    const span = this.config.targetAngle - this.config.startAngle;
+    // TUNE: trust the measured resting angle only within a window around the nominal start
+    // (wider on the side the movement goes), in case the person was not at rest when counting began.
+    const towardTarget = Math.sign(span) || 1;
+    const bounds = [this.config.startAngle - 10 * towardTarget, this.config.startAngle + 25 * towardTarget];
+    const start = Math.min(Math.max(measured, Math.min(...bounds)), Math.max(...bounds));
+    this.counter.setRange(start, start + span);
+  }
+
   get currentPhase(): EnginePhase {
     return this.phase;
   }
@@ -323,7 +349,7 @@ export class SessionEngine {
         events.push({ type: 'ready' });
       }
     } else if (this.phase === 'countdown') {
-      if (!requiredVisible(landmarks, required)) {
+      if (!requiredVisible(landmarks, required, MIN_IN_SET_VISIBILITY)) {
         this.phase = 'calibrating';
         this.gate.reset();
         this.lastIssue = undefined;
@@ -341,6 +367,7 @@ export class SessionEngine {
             heelLY: m.heelLY,
             heelRY: m.heelRY,
           };
+          this.applyRelativeRange(m);
           events.push({ type: 'start' });
         } else if (n !== this.lastCountdown) {
           this.lastCountdown = n;
@@ -348,7 +375,7 @@ export class SessionEngine {
         }
       }
     } else if (this.phase === 'active' || this.phase === 'paused') {
-      const visible = requiredVisible(landmarks, required);
+      const visible = requiredVisible(landmarks, required, MIN_IN_SET_VISIBILITY);
       if (this.phase === 'paused') {
         if (visible) {
           this.phase = 'active';
@@ -460,8 +487,9 @@ export class SessionEngine {
         return { primaryRaw: one, primaryAngle: one, symmetryPct: sym };
       }
       // Use the side with less progress so both arms/legs must reach the target.
-      const pl = computeProgress(l, this.config.startAngle, this.config.targetAngle);
-      const pr = computeProgress(r, this.config.startAngle, this.config.targetAngle);
+      const { start, target } = this.range();
+      const pl = computeProgress(l, start, target);
+      const pr = computeProgress(r, start, target);
       const useLeft = pl <= pr;
       return {
         primaryRaw: raw ? raw[key(useLeft ? 'left' : 'right')] : null,

@@ -1,7 +1,7 @@
 // Maps SessionEngine events to spoken cues (SPEC §6). Pure, so it can be tested.
 import type { ExerciseConfig } from '../exercises/types';
 import type { EngineEvent } from '../pose/sessionEngine';
-import { type CueMode, type Lang, phrase, pillText } from './phrases';
+import { type CueMode, type Lang, hasPhrase, phrase, pillText } from './phrases';
 import type { Priority } from './voiceEngine';
 
 export interface Cue {
@@ -33,7 +33,10 @@ const CALIBRATION_KEYS: Record<string, string> = {
 export function cuesForEvents(events: EngineEvent[], ctx: CueContext): Cue[] {
   const { config, mode, lang } = ctx;
   const vars = { side: ctx.side ?? 'left', seconds: ctx.holdSeconds ?? config.holdSeconds ?? 30 };
-  const make = (key: string, priority: Priority, extra: Record<string, string | number> = {}): Cue | null => {
+  // One side chosen for a normally two-sided exercise: use the single-arm wording where it exists.
+  const singleSide = !!ctx.side && config.side === 'both';
+  const make = (baseKey: string, priority: Priority, extra: Record<string, string | number> = {}): Cue | null => {
+    const key = singleSide && hasPhrase(`${baseKey}_one`) ? `${baseKey}_one` : baseKey;
     const v = { ...vars, ...extra };
     const text = phrase(key, { lang, mode, vars: v });
     if (!text) return null;

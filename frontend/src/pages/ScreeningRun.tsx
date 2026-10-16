@@ -33,8 +33,15 @@ export default function ScreeningRun() {
     return step.exerciseId === 'single_leg_balance' ? { ...base, cues: { ...base.cues, intro: 'screen_slb_intro' } } : base;
   }, [step]);
   const options = useMemo(
-    () => ({ targetReps: step?.reps, sets: 1, side: step?.side, holdSeconds: step?.holdSeconds }),
-    [step],
+    () => ({
+      targetReps: step?.reps,
+      sets: 1,
+      side: step?.side,
+      holdSeconds: step?.holdSeconds,
+      // A recorded video cannot wait for the countdown.
+      ...(params.get('source') === 'file' ? { countdownMs: 0, calibrationHoldMs: 300 } : {}),
+    }),
+    [step, params],
   );
 
   const finishBattery = useCallback(
@@ -107,6 +114,7 @@ export default function ScreeningRun() {
       caregiver={false}
       sessionKey={`${screeningId}-${stepIndex}`}
       debug={params.get('debug') === '1'}
+      fileMode={params.get('source') === 'file'}
       title={`Test ${stepIndex + 1}/${steps.length} · ${step.label}`}
       steps={introSteps}
       onComplete={onComplete}

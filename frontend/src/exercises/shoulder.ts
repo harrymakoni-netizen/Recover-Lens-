@@ -18,7 +18,9 @@ export const shoulderAbduction: ExerciseConfig = {
   primaryAngle: { joint: 'shoulder' },
   side: 'both',
   startAngle: 20,
-  targetAngle: 90,
+  // TUNE: arms held at shoulder height on a real person read 83–98° (the lower arm counts), so
+  // 90 made correct reps miss the top. 80 still needs the arms at about shoulder height.
+  targetAngle: 80,
   defaultSets: 3,
   defaultReps: 10,
   minRepSeconds: 0.8,
