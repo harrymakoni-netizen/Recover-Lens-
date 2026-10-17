@@ -1,6 +1,6 @@
 # RecoverLens
 
-AI rehab mirror in the browser. A phone camera, MediaPipe pose tracking and voice coaching guide patients through rehab exercises. Clinicians and coaches see the results. Team CodeMed · CEAS Hack4Africa 2026.
+AI rehab mirror in the browser. A phone camera, MediaPipe pose tracking and voice coaching guide patients through rehab exercises. Clinicians and coaches see the results. Harry James Makoni · TENT Gig 2026.
 
 The full specification is in [`docs/SPEC.md`](docs/SPEC.md). Rules for working on the code are in [`CLAUDE.md`](CLAUDE.md).
 

@@ -1,6 +1,6 @@
 # RecoverLens — Build Specification
 
-Version 2.0 (Claude Code rebuild) · Team CodeMed · CEAS Hack4Africa 2026
+Version 2.0 (Claude Code rebuild) · Harry James Makoni · TENT Gig 2026
 
 This document tells you exactly what to build, how each piece should behave, and how to check it works. It replaces the earlier Replit prompts. Sections are numbered so CLAUDE.md and commit messages can reference them (e.g. "SPEC §5.3").
 
