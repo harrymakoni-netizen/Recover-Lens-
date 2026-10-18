@@ -34,10 +34,6 @@ export function getLiveExercise(id: string): ExerciseConfig {
 /** Exercises a clinician can assign / a patient sees in the library. */
 export const LIBRARY: AnyExercise[] = EXERCISES.filter((e) => !(isLive(e) && e.screeningOnly));
 
-export function exerciseName(id: string): string {
-  return byId.get(id)?.name ?? id.replace(/_/g, ' ');
-}
-
 export function defaultTargetAngle(id: string): number | null {
   const ex = byId.get(id);
   return ex && isLive(ex) && ex.kind === 'reps' && ex.primaryAngle && 'joint' in ex.primaryAngle ? ex.targetAngle : null;

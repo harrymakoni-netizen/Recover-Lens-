@@ -4,9 +4,10 @@ import { Check, Share2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { enqueue } from '../../api/offlineQueue';
 import type { SessionMode, SessionRecord } from '../../api/types';
+import { exerciseName } from '../../i18n';
+import { useApp } from '../../lib/appContext';
 import { round } from '../../lib/format';
-import { FAULT_LABELS, buildSessionRecord, recommendationFor, shareText } from '../../lib/sessionRecord';
-import type { FaultRuleId } from '../../pose/formRules';
+import { buildSessionRecord, faultLabel, recommendationFor, shareText } from '../../lib/sessionRecord';
 import type { SessionSummary as Summary } from '../../pose/sessionEngine';
 import { Button, PainSlider } from '../ui';
 
@@ -37,7 +38,9 @@ function Row({ label, value }: { label: string; value: string }) {
 export function SessionSummaryCard({
   sessionId, summary, patientId, patientName, mode, startedAt, painBefore, painConfirmed, onDone, guided,
 }: Props) {
+  const { t } = useApp();
   const caregiver = mode === 'caregiver';
+  const name = exerciseName(t, summary.exerciseId);
   const [painAfter, setPainAfter] = useState(painBefore ?? 0);
   const [confirmed, setConfirmed] = useState(painConfirmed ?? false);
   const [saved, setSaved] = useState(false);
@@ -81,48 +84,55 @@ export function SessionSummaryCard({
   }, [save]);
 
   const share = async () => {
-    const text = shareText(record(), summary.exerciseName, patientName);
+    const text = shareText(t, record(), name, patientName);
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'RecoverLens session', text });
-        setShareState('Shared');
+        await navigator.share({ title: t('share.title'), text });
+        setShareState(t('sum.shared'));
       } else {
         await navigator.clipboard.writeText(text);
-        setShareState('Copied — paste it into WhatsApp');
+        setShareState(t('sum.copied'));
       }
     } catch {
       try {
         await navigator.clipboard.writeText(text);
-        setShareState('Copied — paste it into WhatsApp');
+        setShareState(t('sum.copied'));
       } catch {
-        setShareState('Could not share');
+        setShareState(t('sum.share_failed'));
       }
     }
   };
 
-  const topFault = summary.topFault as FaultRuleId | null;
+  const topFault = summary.topFault;
   const accent = caregiver ? 'text-care' : 'text-good';
 
   return (
     <div className="flex min-h-full items-center justify-center p-4 pt-16">
       <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#121510] p-6 text-white">
-        <h1 className={`text-2xl font-bold tracking-wide ${accent}`}>SESSION COMPLETE</h1>
+        <h1 className={`text-2xl font-bold tracking-wide ${accent}`}>{t('sum.title')}</h1>
         <dl className="mt-4 text-[15px]">
-          <Row label="Exercise" value={summary.exerciseName} />
+          <Row label={t('sum.exercise')} value={name} />
           {summary.kind === 'reps' ? (
             <>
-              <Row label="Total reps" value={String(summary.reps)} />
-              {!guided && <Row label="Correct reps" value={String(summary.correctReps)} />}
+              <Row label={t('sum.total_reps')} value={String(summary.reps)} />
+              {!guided && <Row label={t('sum.correct_reps')} value={String(summary.correctReps)} />}
             </>
           ) : (
-            <Row label="Holds completed" value={`${summary.setsCompleted} of ${summary.sets}`} />
+            <Row label={t('sum.holds')} value={t('sum.holds_value', { done: summary.setsCompleted, total: summary.sets })} />
           )}
-          {!guided && summary.avgTopAngle !== null && <Row label="Average angle at top" value={`${round(summary.avgTopAngle, 1)}°`} />}
-          {!guided && <Row label="Movement score" value={summary.movementScore === null ? '—' : `${round(summary.movementScore, 1)}%`} />}
+          {!guided && summary.avgTopAngle !== null && (
+            <Row label={t('sum.avg_angle')} value={`${round(summary.avgTopAngle, 1)}°`} />
+          )}
           {!guided && (
             <Row
-              label={topFault ? `Most common: ${FAULT_LABELS[topFault]}` : 'Form'}
-              value={recommendationFor(topFault)}
+              label={t('sum.movement_score')}
+              value={summary.movementScore === null ? '—' : `${round(summary.movementScore, 1)}%`}
+            />
+          )}
+          {!guided && (
+            <Row
+              label={topFault ? t('sum.most_common', { fault: faultLabel(t, topFault) }) : t('sum.form')}
+              value={recommendationFor(t, topFault)}
             />
           )}
         </dl>
@@ -136,7 +146,7 @@ export function SessionSummaryCard({
               savedRef.current = false;
               setSaved(false);
             }}
-            label={caregiver ? 'Their pain after the session' : 'Pain after session'}
+            label={caregiver ? t('sum.pain_after_cg') : t('sum.pain_after')}
           />
           {caregiver && (
             <label className="mt-3 flex min-h-11 items-center gap-3 text-sm">
@@ -150,7 +160,7 @@ export function SessionSummaryCard({
                   setSaved(false);
                 }}
               />
-              Confirmed by patient
+              {t('common.confirmed_by_patient')}
             </label>
           )}
         </div>
@@ -165,11 +175,11 @@ export function SessionSummaryCard({
               onDone();
             }}
           >
-            {saved ? <Check size={20} /> : null} {saved ? 'Saved — Done' : 'Save'}
+            {saved ? <Check size={20} /> : null} {saved ? t('sum.saved_done') : t('common.save')}
           </Button>
           {caregiver && (
             <Button variant="secondary" size="lg" onClick={share}>
-              <Share2 size={18} /> Share
+              <Share2 size={18} /> {t('sum.share')}
             </Button>
           )}
         </div>

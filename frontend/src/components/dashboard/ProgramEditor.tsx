@@ -1,6 +1,8 @@
 // Pick exercises from the registry with sets/reps (Add Patient modal and Patient Detail).
 import { Plus, Trash2 } from 'lucide-react';
-import { LIBRARY, defaultTargetAngle, exerciseName } from '../../exercises';
+import { LIBRARY, defaultTargetAngle } from '../../exercises';
+import { exerciseName } from '../../i18n';
+import { useApp } from '../../lib/appContext';
 import { inputClass } from '../ui';
 
 export interface ProgramDraft {
@@ -16,26 +18,27 @@ export const draftFor = (id: string): ProgramDraft => {
 };
 
 export function ProgramEditor({ value, onChange }: { value: ProgramDraft[]; onChange: (v: ProgramDraft[]) => void }) {
+  const { t } = useApp();
   const unused = LIBRARY.filter((e) => !value.some((v) => v.exercise_id === e.id));
   const update = (i: number, patch: Partial<ProgramDraft>) => onChange(value.map((v, j) => (j === i ? { ...v, ...patch } : v)));
 
   return (
     <div className="space-y-2">
-      {value.length === 0 && <p className="text-sm text-navy-soft">No exercises assigned.</p>}
+      {value.length === 0 && <p className="text-sm text-navy-soft">{t('prog.none')}</p>}
       {value.map((p, i) => (
         <div key={p.exercise_id} className="grid grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_2.75rem] items-end gap-2 rounded-xl bg-page p-2">
-          <div className="min-w-0 self-center truncate pl-1 font-medium">{exerciseName(p.exercise_id)}</div>
+          <div className="min-w-0 self-center truncate pl-1 font-medium">{exerciseName(t, p.exercise_id)}</div>
           <label className="text-xs text-navy-soft">
-            Sets
+            {t('prog.sets')}
             <input className={inputClass} type="number" min={1} max={10} value={p.sets} onChange={(e) => update(i, { sets: Number(e.target.value) })} />
           </label>
           <label className="text-xs text-navy-soft">
-            Reps
+            {t('prog.reps')}
             <input className={inputClass} type="number" min={1} max={50} value={p.reps} onChange={(e) => update(i, { reps: Number(e.target.value) })} />
           </label>
           <button
             type="button"
-            aria-label={`Remove ${exerciseName(p.exercise_id)}`}
+            aria-label={t('prog.remove', { exercise: exerciseName(t, p.exercise_id) })}
             className="flex h-11 items-center justify-center rounded-xl text-navy-soft hover:bg-alert-soft hover:text-alert"
             onClick={() => onChange(value.filter((_, j) => j !== i))}
           >
@@ -50,12 +53,12 @@ export function ProgramEditor({ value, onChange }: { value: ProgramDraft[]; onCh
             className={inputClass}
             value=""
             onChange={(e) => e.target.value && onChange([...value, draftFor(e.target.value)])}
-            aria-label="Add exercise"
+            aria-label={t('prog.add_label')}
           >
-            <option value="">Add an exercise…</option>
+            <option value="">{t('prog.add')}</option>
             {unused.map((e) => (
               <option key={e.id} value={e.id}>
-                {e.name} {e.tracking === 'guided' ? '(guided timer)' : ''}
+                {exerciseName(t, e.id)} {e.tracking === 'guided' ? t('prog.guided') : ''}
               </option>
             ))}
           </select>

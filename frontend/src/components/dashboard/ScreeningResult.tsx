@@ -1,15 +1,18 @@
 import { CheckCircle2, Eye } from 'lucide-react';
 import type { Observation } from '../../api/types';
+import { describeObservation } from '../../i18n/records';
+import { useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
 
 /** Observation list: Good / Review with icon + label, never colour alone. */
 export function ObservationList({ observations, dark }: { observations: Observation[]; dark?: boolean }) {
+  const { t } = useApp();
   if (observations.length === 0) {
-    return <p className={dark ? 'text-white/70' : 'text-navy-soft'}>No measurable reps were recorded in this screening.</p>;
+    return <p className={dark ? 'text-white/70' : 'text-navy-soft'}>{t('obs.none')}</p>;
   }
   return (
     <ul className="space-y-2">
-      {observations.map((o) => (
+      {observations.map((o) => ({ o, text: describeObservation(t, o) })).map(({ o, text }) => (
         <li
           key={o.id}
           className={cn(
@@ -25,8 +28,8 @@ export function ObservationList({ observations, dark }: { observations: Observat
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className={cn('text-xs font-medium uppercase tracking-wide', dark ? 'text-white/60' : 'text-navy-soft')}>{o.label}</div>
-              <div className="font-medium">{o.detail}</div>
+              <div className={cn('text-xs font-medium uppercase tracking-wide', dark ? 'text-white/60' : 'text-navy-soft')}>{text.label}</div>
+              <div className="font-medium">{text.detail}</div>
             </div>
             <span
               className={cn(
@@ -35,10 +38,10 @@ export function ObservationList({ observations, dark }: { observations: Observat
               )}
             >
               {o.status === 'review' ? <Eye size={12} /> : <CheckCircle2 size={12} />}
-              {o.status === 'review' ? 'Review' : 'Good'}
+              {o.status === 'review' ? t('common.review') : t('common.good')}
             </span>
           </div>
-          {o.recommendation && <p className={cn('mt-1.5 text-sm', dark ? 'text-white/75' : 'text-navy-soft')}>{o.recommendation}</p>}
+          {text.recommendation && <p className={cn('mt-1.5 text-sm', dark ? 'text-white/75' : 'text-navy-soft')}>{text.recommendation}</p>}
         </li>
       ))}
     </ul>

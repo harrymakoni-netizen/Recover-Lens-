@@ -111,8 +111,24 @@ describe('phrases (SPEC §6.2)', () => {
     expect(phrase('rep_of', { mode: 'caregiver', vars: { n: 3, total: 10 } })).toBe("That's a rep. 3 of 10.");
   });
 
-  it('falls back to English for missing keys', () => {
+  it('speaks Shona and Ndebele, with caregiver variants', () => {
     expect(phrase('rep_of', { lang: 'sn', vars: { n: 1, total: 5 } })).toBe('Nhamba 1 pa5.');
-    expect(phrase('dont_arch_back', { lang: 'nd' })).toBe("Don't arch your back.");
+    expect(phrase('dont_arch_back', { lang: 'nd' })).toBe('Lingagobi umhlane wenu.');
+    expect(phrase('rep_of', { lang: 'nd', mode: 'caregiver', vars: { n: 2, total: 5 } })).toBe('Kubaliwe. 2 ku-5.');
+  });
+
+  it('makes left and right agree with arm and leg', () => {
+    expect(phrase('abd_raising_one', { vars: { side: 'left' } })).toBe('Raise your left arm slowly out to the side.');
+    expect(phrase('abd_raising_one', { lang: 'sn', vars: { side: 'left' } })).toContain('ruoko rwenyu rworuboshwe');
+    expect(phrase('abd_raising_one', { lang: 'nd', vars: { side: 'right' } })).toContain('ingalo yenu yesokudla');
+    expect(phrase('screen_slb_intro', { lang: 'sn', vars: { side: 'right', seconds: 20 } })).toBe(
+      'Mirai negumbo renyu rerudyi kwemasekondi 20.',
+    );
+    expect(phrase('screen_sls_intro', { lang: 'nd', vars: { side: 'left' } })).toContain('ngomlenze wenu wesokhohlo');
+  });
+
+  it('falls back to English for a missing key', () => {
+    expect(phrase('no_such_cue', { lang: 'sn' })).toBe('');
+    expect(phrase('none', { lang: 'nd' })).toBe('');
   });
 });

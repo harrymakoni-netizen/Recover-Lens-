@@ -1,6 +1,7 @@
 // Single-series trend line (one measure per chart, never a dual axis). Recessive grid, 2px line,
 // hover tooltip; the card title names the series so no legend is needed.
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useApp } from '../../lib/appContext';
 
 export interface TrendPoint {
   label: string;
@@ -64,8 +65,9 @@ export function TrendChart({
 
 /** Tiny line for the last few sessions; hover shows the value. */
 export function Sparkline({ data, color = '#159A82', name }: { data: TrendPoint[]; color?: string; name: string }) {
+  const { t } = useApp();
   return (
-    <div className="h-14 w-full" aria-label={`${name} trend`}>
+    <div className="h-14 w-full" aria-label={t('chart.trend', { name })}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 6, right: 6, bottom: 6, left: 6 }}>
           <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />

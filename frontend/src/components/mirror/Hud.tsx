@@ -2,10 +2,19 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ExerciseConfig } from '../../exercises/types';
 import type { HudState } from '../../hooks/useSession';
+import { type T, exerciseName } from '../../i18n';
+import { useApp } from '../../lib/appContext';
 import { cn, round } from '../../lib/format';
 import { SKELETON_COLORS } from './drawSkeleton';
 
 const pad = (n: number) => String(n).padStart(2, '0');
+
+/** Engine status ("RAISING", "HOLD"…) in the UI language. */
+function statusText(t: T, status: string): string {
+  const key = `status.${status}`;
+  const text = t(key);
+  return text === key ? status : text;
+}
 
 /** One-line live instruction, directly above the status panel. Dot matches the skeleton colour. */
 export function InstructionPill({
@@ -17,10 +26,11 @@ export function InstructionPill({
   color: HudState['skeletonColor'];
   countdown?: number | null;
 }) {
+  const { t } = useApp();
   if (countdown) {
     return (
       <div className="hud-panel inline-flex items-center gap-3 rounded-full px-4 py-1.5 text-white" role="status" aria-live="polite">
-        <span className="text-sm text-white/80">Starting in</span>
+        <span className="text-sm text-white/80">{t('hud.starting_in')}</span>
         <span key={countdown} className="rep-pop text-2xl font-bold tabular-nums">
           {countdown}
         </span>
@@ -80,35 +90,32 @@ export function HudStatusPanel({
   caregiver: boolean;
   title?: string;
 }) {
+  const { t } = useApp();
   const hold = holdText(hud);
   return (
     <div className="hud-panel max-h-[22vh] w-[min(320px,42vw)] overflow-hidden rounded-xl px-4 py-3 text-white">
       <div className={cn('text-[11px] font-semibold tracking-[0.18em]', caregiver ? 'text-care' : 'text-teal-300')}>
-        {caregiver ? 'CAREGIVER MODE' : 'AI REHAB MIRROR'}
+        {caregiver ? t('common.caregiver_mode') : t('hud.title')}
       </div>
-      <div className="truncate text-sm text-white/90">{title ?? config.name}</div>
+      <div className="truncate text-sm text-white/90">{title ?? exerciseName(t, config.id)}</div>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-xs text-white/60">STATUS</span>
-        <span className={cn('truncate text-lg font-semibold', statusColor(hud))}>{hud.status}</span>
+        <span className="text-xs text-white/60">{t('hud.status')}</span>
+        <span className={cn('truncate text-lg font-semibold', statusColor(hud))}>{statusText(t, hud.status)}</span>
       </div>
       <div className="flex items-baseline gap-4 text-sm">
         <span>
-          Score <span className="font-semibold tabular-nums">{hud.score === null ? '--' : Math.round(hud.score)}</span>
+          {t('hud.score')} <span className="font-semibold tabular-nums">{hud.score === null ? '--' : Math.round(hud.score)}</span>
         </span>
         {config.kind === 'reps' ? (
           <span>
-            Rep <span className="font-semibold">{<RepCount value={hud.repsInSet} total={hud.targetReps} />}</span>
+            {t('hud.rep')} <span className="font-semibold">{<RepCount value={hud.repsInSet} total={hud.targetReps} />}</span>
           </span>
         ) : (
           <span>
-            Hold <span className="font-semibold tabular-nums">{hold}</span>
+            {t('hud.hold')} <span className="font-semibold tabular-nums">{hold}</span>
           </span>
         )}
-        {hud.sets > 1 && (
-          <span className="text-white/70">
-            Set {hud.set}/{hud.sets}
-          </span>
-        )}
+        {hud.sets > 1 && <span className="text-white/70">{t('hud.set', { set: hud.set, sets: hud.sets })}</span>}
       </div>
     </div>
   );
@@ -124,51 +131,53 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 export function HudMetricsPanel({ hud, config }: { hud: HudState; config: ExerciseConfig }) {
+  const { t } = useApp();
   const m = hud.metrics;
   const joint = config.primaryAngle && 'joint' in config.primaryAngle ? config.primaryAngle.joint : 'knee';
   const [l, r] = joint === 'shoulder' ? [m.shoulderL, m.shoulderR] : [m.kneeL, m.kneeR];
-  const short = joint === 'shoulder' ? 'Shoulder' : 'Knee';
+  const short = joint === 'shoulder' ? 'shoulder' : 'knee';
   const single = config.side !== 'both' && config.kind === 'reps';
   return (
     <div className="hud-panel max-h-[22vh] w-[min(260px,38vw)] overflow-hidden rounded-xl px-4 py-3 text-sm text-white">
-      <div className="mb-1 text-[11px] font-semibold tracking-[0.18em] text-teal-300">LIVE METRICS</div>
+      <div className="mb-1 text-[11px] font-semibold tracking-[0.18em] text-teal-300">{t('hud.live_metrics')}</div>
       {single ? (
         <Metric
-          label={`${hud.trackedSide === 'right' ? 'Right' : 'Left'} ${short}`}
+          label={t(`hud.${hud.trackedSide === 'right' ? 'right' : 'left'}_${short}`)}
           value={`${round(hud.trackedSide === 'right' ? r : l)}°`}
         />
       ) : (
         <>
-          <Metric label={`Left ${short}`} value={`${round(l)}°`} />
-          <Metric label={`Right ${short}`} value={`${round(r)}°`} />
+          <Metric label={t(`hud.left_${short}`)} value={`${round(l)}°`} />
+          <Metric label={t(`hud.right_${short}`)} value={`${round(r)}°`} />
         </>
       )}
-      <Metric label="Torso" value={`${round(m.torsoAlignment)}%`} />
-      {m.symmetry !== null && <Metric label="Symmetry" value={`${round(m.symmetry)}%`} />}
+      <Metric label={t('hud.torso')} value={`${round(m.torsoAlignment)}%`} />
+      {m.symmetry !== null && <Metric label={t('hud.symmetry')} value={`${round(m.symmetry)}%`} />}
     </div>
   );
 }
 
 /** Under 640 px: one bar with Status, Rep, Score, Symmetry only. */
 export function HudCompactBar({ hud, config, caregiver }: { hud: HudState; config: ExerciseConfig; caregiver: boolean }) {
+  const { t } = useApp();
   return (
     <div className={cn('hud-panel grid grid-cols-4 gap-2 rounded-xl px-3 py-2 text-white', caregiver && 'ring-2 ring-care')}>
       <div className="min-w-0">
-        <div className="text-[10px] text-white/60">STATUS</div>
-        <div className={cn('truncate text-sm font-semibold', statusColor(hud))}>{hud.status}</div>
+        <div className="text-[10px] text-white/60">{t('hud.short_status')}</div>
+        <div className={cn('truncate text-sm font-semibold', statusColor(hud))}>{statusText(t, hud.status)}</div>
       </div>
       <div>
-        <div className="text-[10px] text-white/60">{config.kind === 'reps' ? 'REP' : 'HOLD'}</div>
+        <div className="text-[10px] text-white/60">{config.kind === 'reps' ? t('hud.short_rep') : t('hud.short_hold')}</div>
         <div className="text-sm font-semibold">
           {config.kind === 'reps' ? <RepCount value={hud.repsInSet} total={hud.targetReps} /> : holdText(hud)}
         </div>
       </div>
       <div>
-        <div className="text-[10px] text-white/60">SCORE</div>
+        <div className="text-[10px] text-white/60">{t('hud.short_score')}</div>
         <div className="text-sm font-semibold tabular-nums">{hud.score === null ? '--' : Math.round(hud.score)}</div>
       </div>
       <div>
-        <div className="text-[10px] text-white/60">SYM</div>
+        <div className="text-[10px] text-white/60">{t('hud.short_symmetry')}</div>
         <div className="text-sm font-semibold tabular-nums">
           {hud.metrics.symmetry === null ? '—' : `${Math.round(hud.metrics.symmetry)}%`}
         </div>

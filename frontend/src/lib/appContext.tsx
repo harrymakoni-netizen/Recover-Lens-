@@ -1,24 +1,17 @@
 // App-wide preferences: UI language and which patient the patient-facing screens show.
-import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import en from '../i18n/en.json';
-import nd from '../i18n/nd.json';
-import sn from '../i18n/sn.json';
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { type T, type Vars, translate } from '../i18n';
 import type { Lang } from '../voice/phrases';
 import { voice } from '../voice/voiceEngine';
 
-const TABLES: Record<Lang, Record<string, string>> = { en, sn, nd };
-export const LANGUAGES: Array<{ code: Lang; label: string }> = [
-  { code: 'en', label: 'English' },
-  { code: 'sn', label: 'chiShona' },
-  { code: 'nd', label: 'isiNdebele' },
-];
+export { LANGUAGES } from '../i18n';
 
 export const DEFAULT_PATIENT_ID = 'tariro';
 
 interface AppContextValue {
   lang: Lang;
   setLang: (lang: Lang) => void;
-  t: (key: string, vars?: Record<string, string | number>) => string;
+  t: T;
   patientId: string;
   setPatientId: (id: string) => void;
 }
@@ -50,6 +43,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   voice.lang = lang;
 
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const setLang = useCallback((l: Lang) => {
     store('rl.lang', l);
     setLangState(l);
@@ -60,13 +57,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPatientIdState(id);
   }, []);
 
-  const t = useCallback(
-    (key: string, vars?: Record<string, string | number>) => {
-      const template = TABLES[lang][key] ?? TABLES.en[key] ?? key;
-      return vars ? template.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? '')) : template;
-    },
-    [lang],
-  );
+  const t = useCallback((key: string, vars?: Vars) => translate(lang, key, vars), [lang]);
 
   const value = useMemo(() => ({ lang, setLang, t, patientId, setPatientId }), [lang, setLang, t, patientId, setPatientId]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

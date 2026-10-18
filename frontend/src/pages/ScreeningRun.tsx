@@ -7,16 +7,20 @@ import { MirrorSession } from '../components/mirror/MirrorSession';
 import { ObservationList } from '../components/dashboard/ScreeningResult';
 import { Button } from '../components/ui';
 import { getLiveExercise } from '../exercises';
+import { exerciseSteps } from '../i18n';
+import { sportName, stepLabel } from '../i18n/records';
+import { useApp } from '../lib/appContext';
 import { uuid } from '../lib/format';
 import { BATTERIES, type ScreeningAnalysis, type Sport, type StepResult, analyzeScreening } from '../pose/screening';
 import type { SessionSummary } from '../pose/sessionEngine';
+import { phrase } from '../voice/phrases';
 import { voice } from '../voice/voiceEngine';
-import { sportName } from './SportsScreening';
 
 export default function ScreeningRun() {
   const { sport } = useParams<{ sport: Sport }>();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { t, lang } = useApp();
   const state = (useLocation().state ?? {}) as { athleteId?: string; athleteName?: string };
   const [screeningId] = useState(uuid);
   const [athleteId] = useState(() => state.athleteId ?? uuid());
@@ -52,7 +56,7 @@ export default function ScreeningRun() {
       const record: Screening = {
         id: screeningId,
         athlete_id: athleteId,
-        athlete_name: state.athleteName ?? 'Athlete',
+        athlete_name: state.athleteName ?? t('common.athlete'),
         sport,
         created_at: new Date().toISOString(),
         results_json: { observations: a.observations, tests: a.tests },
@@ -61,7 +65,7 @@ export default function ScreeningRun() {
       // Saved immediately (local first, then synced).
       void enqueue('screening', screeningId, record);
     },
-    [sport, screeningId, athleteId, state.athleteName],
+    [sport, screeningId, athleteId, state.athleteName, t],
   );
 
   const onComplete = useCallback(
@@ -71,37 +75,37 @@ export default function ScreeningRun() {
       setResults(all);
       if (stepIndex + 1 < steps.length) {
         const next = steps[stepIndex + 1];
-        voice.speak(`Next test: ${next.label.replace('×', '')}.`, 1, `next${stepIndex}`);
+        const test = stepLabel(t, next).replace('×', '');
+        voice.speak(phrase('next_test', { lang, vars: { test } }), 1, `next${stepIndex}`);
         setStepIndex(stepIndex + 1);
       } else {
         finishBattery(all);
       }
     },
-    [results, step, stepIndex, steps, finishBattery],
+    [results, step, stepIndex, steps, finishBattery, t, lang],
   );
 
   if (!sport || !steps || !step || !config) return <Navigate to="/sports" replace />;
   if (!state.athleteName && !state.athleteId) return <Navigate to="/sports" replace />;
 
-  const vars = { side: step.side ?? 'left', seconds: step.holdSeconds ?? 20 };
   const introSteps =
     step.exerciseId === 'single_leg_balance'
-      ? [`Stand on your ${vars.side} leg.`, `Hold for ${vars.seconds} seconds with your hips level.`]
-      : config.steps;
+      ? [t(`screen.slb_step1_${step.side ?? 'left'}`), t('screen.slb_step2', { seconds: step.holdSeconds ?? 20 })]
+      : exerciseSteps(t, config);
 
   const overlay = analysis && (
     <div className="flex min-h-full items-center justify-center p-4 pt-16">
       <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#121510] p-6 text-white">
-        <h1 className="text-2xl font-bold tracking-wide text-good">SCREENING COMPLETE</h1>
+        <h1 className="text-2xl font-bold tracking-wide text-good">{t('screen.complete')}</h1>
         <p className="mt-1 text-white/70">
-          {state.athleteName} · {sportName(sport)} · {analysis.overall === 'review' ? 'Some items to review' : 'All good'}
+          {state.athleteName} · {sportName(t, sport)} · {analysis.overall === 'review' ? t('screen.some_review') : t('screen.all_good')}
         </p>
         <div className="mt-4">
           <ObservationList observations={analysis.observations} dark />
         </div>
-        <p className="mt-4 text-xs text-white/50">Observations from a camera screen, not a diagnosis. Saved automatically.</p>
+        <p className="mt-4 text-xs text-white/50">{t('screen.note')}</p>
         <Button size="lg" className="mt-4 w-full" onClick={() => navigate('/sports')}>
-          Done
+          {t('common.done')}
         </Button>
       </div>
     </div>
@@ -115,7 +119,7 @@ export default function ScreeningRun() {
       sessionKey={`${screeningId}-${stepIndex}`}
       debug={params.get('debug') === '1'}
       fileMode={params.get('source') === 'file'}
-      title={`Test ${stepIndex + 1}/${steps.length} · ${step.label}`}
+      title={t('screen.title', { i: stepIndex + 1, n: steps.length, label: stepLabel(t, step) })}
       steps={introSteps}
       onComplete={onComplete}
       onStop={(summary) => {

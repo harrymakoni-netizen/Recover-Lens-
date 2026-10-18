@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef } from 'react';
+import { useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'care';
@@ -89,6 +90,7 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useApp();
   const ref = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
   useEffect(() => {
@@ -116,7 +118,7 @@ export function Modal({
           <h2 id={titleId} className="text-lg font-semibold">
             {title}
           </h2>
-          <button type="button" aria-label="Close" className="rounded-lg p-2 hover:bg-page" onClick={onClose}>
+          <button type="button" aria-label={t('common.close')} className="rounded-lg p-2 hover:bg-page" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
@@ -129,7 +131,7 @@ export function Modal({
 export function PainSlider({
   value,
   onChange,
-  label = 'Pain level',
+  label,
   dark,
 }: {
   value: number;
@@ -137,13 +139,14 @@ export function PainSlider({
   label?: string;
   dark?: boolean;
 }) {
+  const { t } = useApp();
   const id = useId();
   const tone = value >= 8 ? 'text-alert' : value >= 4 ? 'text-amber-500' : 'text-teal';
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
         <label htmlFor={id} className={cn('text-sm font-medium', dark ? 'text-white/80' : 'text-navy-soft')}>
-          {label} <span className="font-normal opacity-70">(0 = none, 10 = worst)</span>
+          {label ?? t('pain.level')} <span className="font-normal opacity-70">{t('pain.scale')}</span>
         </label>
         <span className={cn('text-2xl font-semibold tabular-nums', tone)}>{value}</span>
       </div>

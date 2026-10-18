@@ -7,12 +7,13 @@ import { PainCheckIn } from '../components/dashboard/PainCheckIn';
 import { Sparkline } from '../components/dashboard/TrendChart';
 import { Disclaimer } from '../components/layout/Disclaimer';
 import { Badge, Button, Card, CardTitle, Empty, Skeleton } from '../components/ui';
-import { type AnyExercise, LIBRARY, exerciseName, getExercise, isLive } from '../exercises';
+import { type AnyExercise, LIBRARY, getExercise, isLive } from '../exercises';
 import { useApi } from '../hooks/useApi';
 import { useLocalSessions, useMerged } from '../hooks/useLocalData';
 import { loadPoseLandmarker } from '../hooks/usePoseLandmarker';
+import { type T, exerciseDescription, exerciseName, formatDate } from '../i18n';
 import { useApp } from '../lib/appContext';
-import { cn, formatDate, round } from '../lib/format';
+import { cn, round } from '../lib/format';
 import { voice } from '../voice/voiceEngine';
 
 export function conditionLabel(condition: string | undefined): string {
@@ -27,13 +28,13 @@ export function scoreOf(sessions: SessionRecord[]): number | null {
 
 export function useStartExercise(caregiver = false) {
   const navigate = useNavigate();
-  const { patientId } = useApp();
+  const { t, patientId } = useApp();
   const [pending, setPending] = useState<AnyExercise | null>(null);
   const checkIn = (
     <PainCheckIn
       open={!!pending}
       caregiver={caregiver}
-      exerciseName={pending?.name ?? ''}
+      exerciseName={pending ? exerciseName(t, pending.id) : ''}
       armChoice={!!pending && isLive(pending) && pending.region === 'shoulder' && pending.side === 'both'}
       onClose={() => setPending(null)}
       onStart={({ pain, confirmedByPatient, side }) => {
@@ -54,19 +55,31 @@ export function useStartExercise(caregiver = false) {
   return { start: (id: string) => setPending(getExercise(id) ?? null), checkIn };
 }
 
+/** "3 sets × 10 reps" or "3 sets × 30s hold" for an exercise plan. */
+export function planText(t: T, ex: AnyExercise | undefined, sets: number, reps: number): string {
+  return ex && isLive(ex) && ex.kind === 'hold'
+    ? t('plan.sets_hold', { sets, seconds: ex.holdSeconds ?? 0 })
+    : t('plan.sets_reps', { sets, reps });
+}
+
 function ExerciseCard({ ex, onStart, caregiver }: { ex: AnyExercise; onStart: () => void; caregiver?: boolean }) {
+  const { t } = useApp();
   return (
     <div className="flex flex-col rounded-2xl border border-line bg-white p-4">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold">{ex.name}</h3>
-        {isLive(ex) ? <Badge tone="teal">Live tracking</Badge> : <Badge tone="neutral"><Timer size={12} /> Guided timer</Badge>}
+        <h3 className="font-semibold">{exerciseName(t, ex.id)}</h3>
+        {isLive(ex) ? (
+          <Badge tone="teal">{t('home.live_tracking')}</Badge>
+        ) : (
+          <Badge tone="neutral">
+            <Timer size={12} /> {t('home.guided_timer')}
+          </Badge>
+        )}
       </div>
-      <p className="mt-1 flex-1 text-sm text-navy-soft">{ex.description}</p>
-      <div className="mt-2 text-xs text-navy-soft">
-        {ex.defaultSets} sets · {isLive(ex) && ex.kind === 'hold' ? `${ex.holdSeconds}s hold` : `${ex.defaultReps} reps`}
-      </div>
+      <p className="mt-1 flex-1 text-sm text-navy-soft">{exerciseDescription(t, ex)}</p>
+      <div className="mt-2 text-xs text-navy-soft">{planText(t, ex, ex.defaultSets, ex.defaultReps)}</div>
       <Button variant={caregiver ? 'care' : 'primary'} className="mt-3 w-full" onClick={onStart}>
-        <Play size={16} /> Start Exercise
+        <Play size={16} /> {t('home.start_exercise')}
       </Button>
     </div>
   );
@@ -79,7 +92,7 @@ export function ExerciseLibrary({ onStart, caregiver }: { onStart: (id: string) 
   return (
     <section className="mt-8">
       <h2 className="mb-3 flex items-center gap-2 text-xl font-semibold">
-        <Dumbbell className="text-teal" size={22} /> {t('exercise_library')}
+        <Dumbbell className="text-teal" size={22} /> {t('home.exercise_library')}
       </h2>
       <div role="tablist" className="mb-4 inline-grid grid-cols-2 rounded-xl bg-navy/5 p-1">
         {(['shoulder', 'knee'] as const).map((r) => (
@@ -91,7 +104,7 @@ export function ExerciseLibrary({ onStart, caregiver }: { onStart: (id: string) 
             onClick={() => setTab(r)}
             className={cn('min-h-10 rounded-lg px-6 text-sm font-medium', tab === r ? 'bg-white shadow-sm' : 'text-navy-soft')}
           >
-            {t(r)}
+            {t(`home.${r}`)}
           </button>
         ))}
       </div>
@@ -105,7 +118,7 @@ export function ExerciseLibrary({ onStart, caregiver }: { onStart: (id: string) 
 }
 
 export default function Home() {
-  const { t, patientId } = useApp();
+  const { t, lang, patientId } = useApp();
   const { data: patient, loading, offline } = useApi<PatientDetail>(`/patients/${patientId}`);
   const local = useLocalSessions(patientId);
   const sessions = useMerged<SessionRecord>(patient?.sessions, local, 'started_at');
@@ -123,7 +136,7 @@ export default function Home() {
     .filter((s) => s.movement_score !== null)
     .slice(0, 7)
     .reverse()
-    .map((s) => ({ label: `${formatDate(s.started_at)} · ${exerciseName(s.exercise_id)}`, value: s.movement_score }));
+    .map((s) => ({ label: `${formatDate(s.started_at, lang)} · ${exerciseName(t, s.exercise_id)}`, value: s.movement_score }));
   const unsynced = local.filter((s) => !s.synced).length;
 
   return (
@@ -133,7 +146,9 @@ export default function Home() {
           {loading && !patient ? (
             <Skeleton className="h-9 w-72" />
           ) : (
-            <h1 className="text-3xl font-semibold md:text-4xl">{t('welcome_back', { name: firstName ?? 'there' })}</h1>
+            <h1 className="text-3xl font-semibold md:text-4xl">
+              {firstName ? t('home.welcome', { name: firstName }) : t('home.welcome_anon')}
+            </h1>
           )}
           {patient && <p className="mt-1 text-lg text-navy-soft">{conditionLabel(patient.condition)}</p>}
         </div>
@@ -141,20 +156,20 @@ export default function Home() {
 
       {offline && !patient && (
         <p className="mt-4 rounded-xl bg-navy/5 px-4 py-3 text-sm text-navy-soft">
-          Can't reach the server right now. You can still exercise — sessions save on this phone and sync later.
+          {t('home.offline_notice')}
         </p>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card className="border-teal/20 bg-teal-soft/40">
-          <CardTitle icon={<Calendar size={20} />}>{t('todays_program')}</CardTitle>
+          <CardTitle icon={<Calendar size={20} />}>{t('home.todays_program')}</CardTitle>
           {loading && !patient ? (
             <div className="space-y-3">
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
             </div>
           ) : programs.length === 0 ? (
-            <p className="text-navy-soft">No exercises assigned yet. Pick one from the library below.</p>
+            <p className="text-navy-soft">{t('home.no_program')}</p>
           ) : (
             <ul className="space-y-3">
               {programs.map((p) => {
@@ -162,14 +177,14 @@ export default function Home() {
                 return (
                   <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4">
                     <div>
-                      <div className="font-semibold">{exerciseName(p.exercise_id)}</div>
+                      <div className="font-semibold">{exerciseName(t, p.exercise_id)}</div>
                       <div className="text-sm text-navy-soft">
-                        {p.sets} sets × {ex && isLive(ex) && ex.kind === 'hold' ? `${ex.holdSeconds}s hold` : `${p.reps} reps`}
-                        {p.target_angle ? ` · target ${p.target_angle}°` : ''}
+                        {planText(t, ex, p.sets, p.reps)}
+                        {p.target_angle ? ` · ${t('plan.target', { angle: p.target_angle })}` : ''}
                       </div>
                     </div>
                     <Button onClick={() => start(p.exercise_id)}>
-                      <Play size={16} /> {t('start_exercise')}
+                      <Play size={16} /> {t('home.start_exercise')}
                     </Button>
                   </li>
                 );
@@ -179,11 +194,11 @@ export default function Home() {
         </Card>
 
         <Card>
-          <CardTitle icon={<TrendingUp size={20} />}>{t('recovery_progress')}</CardTitle>
+          <CardTitle icon={<TrendingUp size={20} />}>{t('home.recovery_progress')}</CardTitle>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm">
-                <span className="text-navy-soft">{t('overall_score')}</span>
+                <span className="text-navy-soft">{t('home.overall_score')}</span>
                 <span className="font-semibold tabular-nums">{score === null ? '—' : `${Math.round(score)}/100`}</span>
               </div>
               <div className="mt-1.5 h-2 rounded-full bg-teal-soft">
@@ -192,7 +207,7 @@ export default function Home() {
             </div>
             <div>
               <div className="flex justify-between text-sm">
-                <span className="text-navy-soft">{t('adherence')}</span>
+                <span className="text-navy-soft">{t('home.adherence')}</span>
                 <span className="font-semibold tabular-nums">{patient ? `${Math.round(patient.adherence)}%` : '—'}</span>
               </div>
               <div className="mt-1.5 h-2 rounded-full bg-teal-soft">
@@ -201,8 +216,8 @@ export default function Home() {
             </div>
             {spark.length > 1 && (
               <div>
-                <div className="text-xs text-navy-soft">Movement score, last {spark.length} sessions</div>
-                <Sparkline data={spark} name="Score" />
+                <div className="text-xs text-navy-soft">{t('home.score_trend', { n: spark.length })}</div>
+                <Sparkline data={spark} name={t('home.score_series')} />
               </div>
             )}
           </div>
@@ -211,23 +226,25 @@ export default function Home() {
 
       <Card className="mt-6">
         <CardTitle icon={<History size={20} />}>
-          My recent sessions{unsynced > 0 && <Badge tone="neutral">{unsynced} waiting to sync</Badge>}
+          {t('home.recent_sessions')}
+          {unsynced > 0 && <Badge tone="neutral">{t('waiting_to_sync', { n: unsynced })}</Badge>}
         </CardTitle>
         {sessions.length === 0 ? (
-          <Empty title="No sessions yet">Your sessions appear here as soon as you finish one.</Empty>
+          <Empty title={t('home.no_sessions')}>{t('home.no_sessions_hint')}</Empty>
         ) : (
           <ul className="divide-y divide-line">
             {sessions.slice(0, 5).map((s) => (
               <li key={s.id} className="flex items-center justify-between gap-3 py-3">
                 <div>
-                  <div className="font-medium">{exerciseName(s.exercise_id)}</div>
+                  <div className="font-medium">{exerciseName(t, s.exercise_id)}</div>
                   <div className="text-sm text-navy-soft">
-                    {formatDate(s.started_at)} · {s.reps} reps{s.mode === 'caregiver' ? ' · with caregiver' : ''}
+                    {formatDate(s.started_at, lang)} · {t('plan.reps', { n: s.reps })}
+                    {s.mode === 'caregiver' ? ` · ${t('home.with_caregiver')}` : ''}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-semibold tabular-nums">{round(s.movement_score)}</div>
-                  <div className="text-xs text-navy-soft">score</div>
+                  <div className="text-xs text-navy-soft">{t('common.score')}</div>
                 </div>
               </li>
             ))}

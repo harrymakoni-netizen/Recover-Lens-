@@ -1,34 +1,20 @@
 import type { SessionMode, SessionRecord } from '../api/types';
-import type { FaultRuleId } from '../pose/formRules';
+import type { T } from '../i18n';
 import type { SessionSummary } from '../pose/sessionEngine';
 
-export const FAULT_LABELS: Record<FaultRuleId, string> = {
-  torso_lean: 'Torso leaning',
-  asymmetry: 'Uneven sides',
-  elbow_bend: 'Bent elbows',
-  back_arch: 'Arched back',
-  knee_valgus: 'Knees drifting inward',
-  weight_shift: 'Weight shifting',
-  heel_rise: 'Heels lifting',
-  pelvis_drop: 'Hip dropping',
-  not_high_enough: 'Partial range',
-};
+/** Short name of a form fault ("Torso leaning"), in the UI language. */
+export function faultLabel(t: T, fault: string): string {
+  const key = `fault.${fault}`;
+  const text = t(key);
+  return text === key ? fault : text;
+}
 
-export const FAULT_RECOMMENDATIONS: Record<FaultRuleId, string> = {
-  torso_lean: 'Keep your torso upright. Try the movement standing with your back near a wall.',
-  asymmetry: 'Slow down so both sides move together.',
-  elbow_bend: 'Keep your elbows straight through the whole movement.',
-  back_arch: 'Tighten your stomach muscles to stop your back arching.',
-  knee_valgus: 'Keep your knees in line with your toes.',
-  weight_shift: 'Spread your weight evenly over both feet.',
-  heel_rise: 'Keep your heels on the floor; ankle mobility work may help.',
-  pelvis_drop: 'Keep your hips level; hip strengthening may help.',
-  not_high_enough: 'Work towards the full range, staying within a pain-free range.',
-};
-
-export function recommendationFor(fault: string | null | undefined): string {
-  if (!fault) return 'Good form. Keep it up.';
-  return FAULT_RECOMMENDATIONS[fault as FaultRuleId] ?? 'Keep practising with control.';
+/** One-line advice for the most common fault, or praise when there was none. */
+export function recommendationFor(t: T, fault: string | null | undefined): string {
+  if (!fault) return t('rec.good');
+  const key = `rec.${fault}`;
+  const text = t(key);
+  return text === key ? t('rec.default') : text;
 }
 
 export function buildSessionRecord(args: {
@@ -64,16 +50,16 @@ export function buildSessionRecord(args: {
 }
 
 /** Short plain-text summary for WhatsApp (caregiver Share, SPEC §8.3). */
-export function shareText(record: SessionRecord, exerciseName: string, patientName?: string): string {
+export function shareText(t: T, record: SessionRecord, exerciseName: string, patientName?: string): string {
   const lines = [
-    `RecoverLens session${patientName ? ` — ${patientName}` : ''}`,
-    `${exerciseName}: ${record.reps} reps (${record.correct_reps} with good form)`,
+    patientName ? t('share.header', { name: patientName }) : t('share.title'),
+    t('share.reps', { exercise: exerciseName, reps: record.reps, correct: record.correct_reps }),
   ];
-  if (record.movement_score !== null) lines.push(`Movement score: ${Math.round(record.movement_score)}/100`);
-  if (record.avg_top_angle !== null) lines.push(`Average angle at top: ${Math.round(record.avg_top_angle)}°`);
+  if (record.movement_score !== null) lines.push(t('share.score', { score: Math.round(record.movement_score) }));
+  if (record.avg_top_angle !== null) lines.push(t('share.angle', { angle: Math.round(record.avg_top_angle) }));
   if (record.pain_after !== null) {
-    lines.push(`Pain after: ${record.pain_after}/10${record.pain_confirmed_by_patient ? '' : ' (logged by caregiver)'}`);
+    lines.push(t(record.pain_confirmed_by_patient ? 'share.pain' : 'share.pain_cg', { pain: record.pain_after }));
   }
-  if (record.top_fault) lines.push(`Focus: ${FAULT_LABELS[record.top_fault as FaultRuleId] ?? record.top_fault}`);
+  if (record.top_fault) lines.push(t('share.focus', { fault: faultLabel(t, record.top_fault) }));
   return lines.join('\n');
 }

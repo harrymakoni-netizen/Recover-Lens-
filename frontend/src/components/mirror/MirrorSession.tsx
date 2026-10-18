@@ -6,6 +6,7 @@ import type { ExerciseConfig } from '../../exercises/types';
 import { useCamera } from '../../hooks/useCamera';
 import { loadPoseLandmarker, usePoseLandmarker } from '../../hooks/usePoseLandmarker';
 import { useSession } from '../../hooks/useSession';
+import { exerciseName, exerciseSteps } from '../../i18n';
 import { useApp } from '../../lib/appContext';
 import type { EngineOptions, SessionSummary } from '../../pose/sessionEngine';
 import { pillText } from '../../voice/phrases';
@@ -39,7 +40,7 @@ interface Props {
 export function MirrorSession({
   config, options, caregiver, sessionKey, debug, title, steps, onComplete, onStop, onBack, overlay, fileMode,
 }: Props) {
-  const { lang } = useApp();
+  const { t, lang } = useApp();
   const camera = useCamera();
   const pose = usePoseLandmarker();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -135,7 +136,7 @@ export function MirrorSession({
       <div className="absolute inset-x-0 top-0 z-30 flex items-center justify-between p-2 sm:p-3">
         <button
           type="button"
-          aria-label="Back"
+          aria-label={t('common.back')}
           onClick={onBack}
           className="hud-panel flex h-11 w-11 items-center justify-center rounded-full"
         >
@@ -143,12 +144,12 @@ export function MirrorSession({
         </button>
         <div className="flex items-center gap-2">
           {caregiver && (
-            <span className="rounded-full bg-care px-3 py-1 text-xs font-bold tracking-wider">CAREGIVER MODE</span>
+            <span className="rounded-full bg-care px-3 py-1 text-xs font-bold tracking-wider">{t('common.caregiver_mode')}</span>
           )}
           {camera.status === 'ready' && (
             <button
               type="button"
-              aria-label="Switch camera"
+              aria-label={t('mirror.switch_camera')}
               onClick={() => void camera.switchCamera()}
               className="hud-panel flex h-11 w-11 items-center justify-center rounded-full"
             >
@@ -157,7 +158,7 @@ export function MirrorSession({
           )}
           <button
             type="button"
-            aria-label={muted ? 'Unmute voice' : 'Mute voice'}
+            aria-label={muted ? t('mirror.unmute') : t('mirror.mute')}
             aria-pressed={muted}
             onClick={toggleMute}
             className="hud-panel flex h-11 w-11 items-center justify-center rounded-full"
@@ -170,7 +171,7 @@ export function MirrorSession({
               onClick={stop}
               className="hud-panel flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold"
             >
-              <Square size={14} fill="currentColor" /> Stop
+              <Square size={14} fill="currentColor" /> {t('mirror.stop')}
             </button>
           )}
         </div>
@@ -187,7 +188,7 @@ export function MirrorSession({
 
       {portraitHint && (
         <div className="hud-panel absolute inset-x-4 top-16 z-30 rounded-xl px-4 py-3 text-center text-sm">
-          Turn your phone sideways or step back so your whole body fits.
+          {t('mirror.portrait_hint')}
         </div>
       )}
 
@@ -212,15 +213,15 @@ export function MirrorSession({
 
       {camera.status === 'ready' && pose.status === 'loading' && (
         <div className="hud-panel absolute left-1/2 top-16 z-30 -translate-x-1/2 rounded-full px-4 py-2 text-sm">
-          Loading pose model…
+          {t('mirror.loading_model')}
         </div>
       )}
 
       {showMessage && (
         <CameraMessage
           status={pose.status === 'error' && camera.status === 'ready' ? 'error' : camera.status === 'idle' ? 'intro' : camera.status}
-          exerciseName={config.name}
-          steps={steps ?? config.steps}
+          exerciseName={exerciseName(t, config.id)}
+          steps={steps ?? exerciseSteps(t, config)}
           onStart={start}
           onRetry={fileMode ? camera.reset : start}
           onFile={

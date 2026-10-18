@@ -38,7 +38,7 @@ function UserPanel() {
           value={patientId}
           onChange={(e) => setPatientId(e.target.value)}
         >
-          {(patients ?? [{ id: patientId, name: 'Patient' } as Patient]).map((p) => (
+          {(patients ?? [{ id: patientId, name: t('common.patient') } as Patient]).map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -72,7 +72,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <div className="flex h-16 items-center px-5">
           <Logo />
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-2" aria-label="Main">
+        <nav className="flex-1 space-y-1 px-3 py-2" aria-label={t('nav.main')}>
           {NAV.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
@@ -125,7 +125,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
 
       {/* Mobile bottom tabs */}
       <nav
-        aria-label="Main"
+        aria-label={t('nav.main')}
         className="pb-safe fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white md:hidden"
       >
         {NAV.map(({ to, icon: Icon, short, end }) => (

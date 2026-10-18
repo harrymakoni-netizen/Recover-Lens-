@@ -3,6 +3,7 @@
 import { ArrowLeft, Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { GuidedExerciseConfig } from '../../exercises/types';
+import { exerciseName, exerciseSteps } from '../../i18n';
 import { useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
 import type { SessionSummary } from '../../pose/sessionEngine';
@@ -22,7 +23,7 @@ interface Props {
 }
 
 export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBack }: Props) {
-  const { lang } = useApp();
+  const { t: tr, lang } = useApp();
   const mode = caregiver ? 'caregiver' : 'self';
   const [running, setRunning] = useState(false);
   const [, setVersion] = useState(0);
@@ -106,14 +107,16 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
   return (
     <div className={cn('fixed inset-0 z-50 overflow-y-auto bg-[#0b0d10] text-white', caregiver && 'ring-4 ring-inset ring-care')}>
       <div className="flex items-center justify-between p-3">
-        <button type="button" aria-label="Back" onClick={onBack} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
+        <button type="button" aria-label={tr('common.back')} onClick={onBack} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
           <ArrowLeft size={22} />
         </button>
         <div className="flex items-center gap-2">
-          {caregiver && <span className="rounded-full bg-care px-3 py-1 text-xs font-bold tracking-wider">CAREGIVER MODE</span>}
+          {caregiver && (
+            <span className="rounded-full bg-care px-3 py-1 text-xs font-bold tracking-wider">{tr('common.caregiver_mode')}</span>
+          )}
           <button
             type="button"
-            aria-label={muted ? 'Unmute voice' : 'Mute voice'}
+            aria-label={muted ? tr('mirror.unmute') : tr('mirror.mute')}
             onClick={() => {
               voice.setMuted(!muted);
               setMuted(!muted);
@@ -126,13 +129,11 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
       </div>
 
       <div className="mx-auto max-w-lg px-5 pb-10">
-        <div className="text-[11px] font-semibold tracking-[0.2em] text-white/60">GUIDED TIMER · NO CAMERA SCORING</div>
-        <h1 className="mt-1 text-2xl font-semibold">{config.name}</h1>
-        <p className="mt-1 text-sm text-white/70">
-          A single camera cannot measure this movement reliably, so RecoverLens guides you with a timer instead.
-        </p>
+        <div className="text-[11px] font-semibold tracking-[0.2em] text-white/60">{tr('guided.badge')}</div>
+        <h1 className="mt-1 text-2xl font-semibold">{exerciseName(tr, config.id)}</h1>
+        <p className="mt-1 text-sm text-white/70">{tr('guided.explain')}</p>
         <ol className="mt-4 space-y-2 text-white/85">
-          {config.steps.map((s, i) => (
+          {exerciseSteps(tr, config).map((s, i) => (
             <li key={s} className="flex gap-3">
               <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm">{i + 1}</span>
               {s}
@@ -140,7 +141,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
           ))}
         </ol>
         <p className="mt-4 rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-          Stop if you feel sharp pain, dizziness or numbness.
+          {caregiver ? tr('cam.safety_cg') : tr('cam.safety')}
         </p>
 
         <div className="mt-8 flex flex-col items-center">
@@ -161,27 +162,28 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
             <div className="text-center">
               {resting ? (
                 <>
-                  <div className="text-sm text-white/60">REST</div>
+                  <div className="text-sm text-white/60">{tr('guided.rest')}</div>
                   <div className="text-5xl font-semibold tabular-nums">{resting}s</div>
                 </>
               ) : (
                 <>
-                  <div className="text-sm text-white/60">REP</div>
+                  <div className="text-sm text-white/60">{tr('guided.rep')}</div>
                   <div className="text-5xl font-semibold tabular-nums">
                     {String(Math.min(rep + 1, reps)).padStart(2, '0')}/{String(reps).padStart(2, '0')}
                   </div>
-                  <div className="text-sm text-white/60">Set {set} of {sets}</div>
+                  <div className="text-sm text-white/60">{tr('guided.set_of', { set, sets })}</div>
                 </>
               )}
             </div>
           </div>
           <div className="mt-6 flex w-full gap-3">
             <Button size="lg" className={cn('flex-1', accent)} variant={caregiver ? 'care' : 'primary'} onClick={toggle}>
-              {running ? <Pause size={20} /> : <Play size={20} />} {running ? 'Pause' : startRef.current ? 'Resume' : 'Start'}
+              {running ? <Pause size={20} /> : <Play size={20} />}{' '}
+              {running ? tr('guided.pause') : startRef.current ? tr('guided.resume') : tr('guided.start')}
             </Button>
             {startRef.current && (
               <Button size="lg" variant="secondary" onClick={finish}>
-                Finish
+                {tr('guided.finish')}
               </Button>
             )}
           </div>

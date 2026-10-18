@@ -33,11 +33,11 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 87 Vitest tests
+cd frontend && npm test     # 100 Vitest tests
 cd backend && pytest        # 18 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
-The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping and sports screening analysis. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
+The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping, sports screening analysis, and translations: every screen string and voice cue must exist in Shona and Ndebele with the same placeholders. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
 
 ### Recorded-landmarks fixtures
 
@@ -120,9 +120,10 @@ Other hosts: the frontend also works on Netlify (`public/_redirects`, with `VITE
 - **Thresholds retuned on real MediaPipe output** (reference photos of a real person): abduction counts at 80° (arms held level read 83° and 98°), symmetry warns below 78% (level arms read 84%), elbow warns below 145°.
 - **Counting continues down to 40% landmark visibility** once a set has started; calibration still needs 60%.
 - **Abduction can be done with one arm** (arm choice in the check-in, or `?side=left|right`), as most shoulder rehab is.
+- **Every screen and voice cue is in English, chiShona and isiNdebele**, where SPEC §6.2 asked for a proof of concept. Screenings and alerts are stored in English and translated when shown (`frontend/src/i18n/records.ts`).
 
 ## Still to do before the final
 
 - Record the clips in "Testing the computer vision on real people" and tune the `// TUNE:` thresholds on 3–5 people. Squats are the least proven: their thresholds have not yet been checked on a real person squatting.
-- Have native speakers check the Shona and Ndebele phrases (`frontend/src/voice/phrases.ts`, `src/i18n/`).
+- Have native speakers check the Shona and Ndebele text (`frontend/src/voice/phrases.ts`, `frontend/src/i18n/sn.json`, `nd.json`).
 - Test on iPhone Safari and Android Chrome over HTTPS (camera, speech unlock, GPU→CPU fallback).

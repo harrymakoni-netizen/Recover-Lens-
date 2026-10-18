@@ -22,7 +22,7 @@ export default function Mirror() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { patientId: currentPatient } = useApp();
+  const { t, patientId: currentPatient } = useApp();
   const state = (location.state ?? {}) as MirrorState;
   const patientId = state.patientId ?? currentPatient;
   const { data: patient } = useApi<PatientDetail>(`/patients/${patientId}`, { poll: false });
@@ -50,9 +50,9 @@ export default function Mirror() {
   if (!exercise) {
     return (
       <div className="p-8 text-center">
-        <p className="text-lg">Exercise not found.</p>
+        <p className="text-lg">{t('mirror.not_found')}</p>
         <Link to="/" className="mt-4 inline-block text-teal underline">
-          Back to Home
+          {t('common.back_home')}
         </Link>
       </div>
     );
