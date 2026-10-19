@@ -170,7 +170,7 @@ export default function PatientDetail() {
           {sessions.length === 0 ? (
             <Empty title={t('pd.awaiting')} />
           ) : (
-            <div className="-mx-4 overflow-x-auto sm:-mx-5">
+            <div className="-mx-4 overflow-x-auto sm:-mx-5" role="region" tabIndex={0} aria-label={t('pd.sessions')}>
               <table className="w-full min-w-[640px] text-sm">
                 <thead className="text-left text-xs uppercase tracking-wide text-navy-soft">
                   <tr className="border-b border-line">

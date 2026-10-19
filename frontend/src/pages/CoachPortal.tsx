@@ -78,7 +78,7 @@ export default function CoachPortal() {
         ) : rows.length === 0 ? (
           <Empty title={t('coach.none')}>{t('coach.none_hint')}</Empty>
         ) : (
-          <div className="-mx-4 overflow-x-auto sm:-mx-5">
+          <div className="-mx-4 overflow-x-auto sm:-mx-5" role="region" tabIndex={0} aria-label={t('nav.coach')}>
             <table className="w-full min-w-[620px] text-sm">
               <thead className="text-left text-xs uppercase tracking-wide text-navy-soft">
                 <tr className="border-b border-line">

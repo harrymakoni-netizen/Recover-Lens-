@@ -1,11 +1,12 @@
 // /mirror/:exerciseId?mode=caregiver&reps=5&sets=1&debug=1 (SPEC §8.2)
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { PatientDetail } from '../api/types';
 import { GuidedSession } from '../components/mirror/GuidedSession';
 import { MirrorSession } from '../components/mirror/MirrorSession';
 import { SessionSummaryCard } from '../components/mirror/SessionSummary';
 import { getExercise, isLive } from '../exercises';
+import { exerciseName } from '../i18n';
 import { useApi } from '../hooks/useApi';
 import { useApp } from '../lib/appContext';
 import { uuid } from '../lib/format';
@@ -47,14 +48,20 @@ export default function Mirror() {
     [reps, sets, side, fileMode],
   );
 
+  // Full-screen routes sit outside AppShell, so they name the page themselves (WCAG 2.4.2).
+  const pageTitle = exercise ? exerciseName(t, exercise.id) : t('mirror.not_found');
+  useEffect(() => {
+    document.title = `${pageTitle} · RecoverLens`;
+  }, [pageTitle]);
+
   if (!exercise) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-lg">{t('mirror.not_found')}</p>
+      <main className="p-8 text-center">
+        <h1 className="text-lg">{t('mirror.not_found')}</h1>
         <Link to="/" className="mt-4 inline-block text-teal underline">
           {t('common.back_home')}
         </Link>
-      </div>
+      </main>
     );
   }
 
@@ -75,7 +82,7 @@ export default function Mirror() {
 
   if (!isLive(exercise)) {
     if (summaryCard) {
-      return <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0b0d10]">{summaryCard}</div>;
+      return <main className="dark-ui fixed inset-0 z-50 overflow-y-auto bg-[#0b0d10]">{summaryCard}</main>;
     }
     return (
       <GuidedSession

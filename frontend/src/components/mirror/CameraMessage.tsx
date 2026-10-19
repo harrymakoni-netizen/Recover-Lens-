@@ -36,13 +36,13 @@ export function CameraMessage({
   onFile?: (file: File) => void;
 }) {
   const { t } = useApp();
-  const accent = caregiver ? 'text-care' : 'text-good';
+  const accent = caregiver ? 'text-orange-300' : 'text-good';
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto bg-[#0b0d10] p-4 text-white">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
         {status === 'intro' || status === 'idle' || status === 'starting' ? (
           <>
-            <div className={`mb-3 text-[11px] font-semibold tracking-[0.2em] ${accent}`}>
+            <div className={`mb-3 text-xs font-semibold tracking-[0.2em] ${accent}`}>
               {caregiver ? t('common.caregiver_mode') : t('hud.title')}
             </div>
             <h1 className="text-2xl font-semibold">{exerciseName}</h1>

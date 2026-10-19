@@ -29,7 +29,7 @@ interface Props {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-1.5">
-      <dt className="text-white/65">{label}</dt>
+      <dt className="text-white/75">{label}</dt>
       <dd className="font-semibold text-white">{value}</dd>
     </div>
   );
@@ -104,7 +104,7 @@ export function SessionSummaryCard({
   };
 
   const topFault = summary.topFault;
-  const accent = caregiver ? 'text-care' : 'text-good';
+  const accent = caregiver ? 'text-orange-300' : 'text-good';
 
   return (
     <div className="flex min-h-full items-center justify-center p-4 pt-16">
@@ -152,7 +152,7 @@ export function SessionSummaryCard({
             <label className="mt-3 flex min-h-11 items-center gap-3 text-sm">
               <input
                 type="checkbox"
-                className="h-5 w-5 accent-[#E07A10]"
+                className="h-6 w-6 shrink-0 accent-[var(--color-care)]"
                 checked={confirmed}
                 onChange={(e) => {
                   setConfirmed(e.target.checked);

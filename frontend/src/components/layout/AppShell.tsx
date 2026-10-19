@@ -1,13 +1,14 @@
 // Sidebar on ≥768 px, fixed bottom tab bar below (SPEC §7.1).
 import { Activity, Dumbbell, HeartHandshake, House, Stethoscope, UsersRound } from 'lucide-react';
-import { type ReactNode, Suspense } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { type ReactNode, type RefObject, Suspense, useEffect, useRef } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import type { Patient } from '../../api/types';
 import { useApi } from '../../hooks/useApi';
 import { LANGUAGES, useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
 import type { Lang } from '../../voice/phrases';
 import { ConnectionDot } from './ConnectionDot';
+import { DisplaySettingsButton } from './DisplaySettings';
 
 const NAV = [
   { to: '/', icon: House, label: 'nav.home', short: 'nav.home', end: true },
@@ -20,7 +21,7 @@ const NAV = [
 function Logo() {
   return (
     <div className="flex items-center gap-2 text-lg font-semibold">
-      <Activity className="text-teal" size={24} strokeWidth={2.5} />
+      <Activity className="text-teal" size={24} strokeWidth={2.5} aria-hidden />
       RecoverLens
     </div>
   );
@@ -34,7 +35,7 @@ function UserPanel() {
       <label className="block text-xs text-navy-soft">
         {t('viewing_as')}
         <select
-          className="mt-1 block min-h-10 w-full rounded-lg border border-line bg-white px-2 text-sm text-navy"
+          className="mt-1 block min-h-10 w-full rounded-lg border border-line-strong bg-white px-2 text-sm text-navy"
           value={patientId}
           onChange={(e) => setPatientId(e.target.value)}
         >
@@ -48,7 +49,7 @@ function UserPanel() {
       <label className="block text-xs text-navy-soft">
         {t('language')}
         <select
-          className="mt-1 block min-h-10 w-full rounded-lg border border-line bg-white px-2 text-sm text-navy"
+          className="mt-1 block min-h-10 w-full rounded-lg border border-line-strong bg-white px-2 text-sm text-navy"
           value={lang}
           onChange={(e) => setLang(e.target.value as Lang)}
         >
@@ -63,10 +64,41 @@ function UserPanel() {
   );
 }
 
+/**
+ * Page title from the page's heading (WCAG 2.4.2), and after moving to another page, focus goes to
+ * the main content so screen-reader users hear the new page instead of staying on the menu link.
+ */
+function usePageTitleAndFocus(main: RefObject<HTMLElement | null>) {
+  const { pathname } = useLocation();
+  const first = useRef(true);
+  useEffect(() => {
+    const el = main.current;
+    if (!el) return;
+    const update = () => {
+      const h1 = el.querySelector('h1')?.textContent?.trim();
+      document.title = h1 ? `${h1} · RecoverLens` : 'RecoverLens';
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(el, { childList: true, subtree: true, characterData: true });
+    if (first.current) first.current = false;
+    else el.focus({ preventScroll: true });
+    return () => observer.disconnect();
+  }, [pathname, main]);
+}
+
 export function AppShell({ children }: { children?: ReactNode }) {
   const { t, lang, setLang } = useApp();
+  const main = useRef<HTMLElement | null>(null);
+  usePageTitleAndFocus(main);
   return (
     <div className="min-h-full md:flex">
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-lg bg-navy px-4 py-3 text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+      >
+        {t('a11y.skip')}
+      </a>
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white md:flex">
         <div className="flex h-16 items-center px-5">
@@ -80,12 +112,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
               end={end}
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] transition-colors',
+                  'flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.9375rem] transition-colors',
                   isActive ? 'bg-teal-soft font-medium text-teal-dark' : 'text-navy-soft hover:bg-page hover:text-navy',
                 )
               }
             >
-              <Icon size={20} />
+              <Icon size={20} aria-hidden />
               {t(label)}
             </NavLink>
           ))}
@@ -95,15 +127,16 @@ export function AppShell({ children }: { children?: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header (connection dot; logo + language on phones) */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-white/90 px-4 backdrop-blur md:bg-transparent md:px-8 md:backdrop-blur-none md:border-none">
+        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:bg-transparent md:px-8 md:backdrop-blur-none md:border-none">
           <div className="md:hidden">
             <Logo />
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <ConnectionDot />
+            <DisplaySettingsButton />
             <select
               aria-label={t('language')}
-              className="min-h-9 rounded-lg border border-line bg-white px-2 text-sm md:hidden"
+              className="min-h-10 rounded-lg border border-line-strong bg-white px-2 text-sm md:hidden"
               value={lang}
               onChange={(e) => setLang(e.target.value as Lang)}
             >
@@ -115,7 +148,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
             </select>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-4 md:px-8 md:pb-10">{children ?? (
+        <main
+          id="main"
+          ref={main}
+          tabIndex={-1}
+          className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-4 focus:outline-none md:px-8 md:pb-10"
+        >{children ?? (
             <Suspense fallback={<div className="skeleton h-40 w-full" />}>
               <Outlet />
             </Suspense>
@@ -135,12 +173,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
             end={end}
             className={({ isActive }) =>
               cn(
-                'flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px]',
+                'flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs',
                 isActive ? 'font-semibold text-teal' : 'text-navy-soft',
               )
             }
           >
-            <Icon size={22} />
+            <Icon size={22} aria-hidden />
             <span className="max-w-full truncate px-1">{t(short)}</span>
           </NavLink>
         ))}

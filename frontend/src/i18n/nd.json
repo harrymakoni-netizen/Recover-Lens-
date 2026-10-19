@@ -500,5 +500,16 @@
   "ex.jump_landing.desc": "Ukweqa phezulu kathathu, lisehla kancane ngezinyawo zombili.",
   "ex.jump_landing.step1": "Khangelani ikhamera kulendawo eyaneleyo eceleni kwenu.",
   "ex.jump_landing.step2": "Eqani phezulu ngamandla enu wonke.",
-  "ex.jump_landing.step3": "Ehlani kancane amadolo egobile. Yenzani kathathu."
+  "ex.jump_landing.step3": "Ehlani kancane amadolo egobile. Yenzani kathathu.",
+
+  "a11y.skip": "Yeqela kokuqukethwe okukhulu",
+  "a11y.display": "Ukubona lokubala",
+  "a11y.text_size": "Ubukhulu bezinhlamvu",
+  "a11y.size_normal": "Okujwayelekileyo",
+  "a11y.size_large": "Okukhulu",
+  "a11y.size_xl": "Okukhulu kakhulu",
+  "a11y.contrast": "Imibala ebonakala kakhulu",
+  "a11y.contrast_hint": "Imibhalo emnyama lemigqa eqinileyo.",
+  "a11y.voice_note": "Ilizwi libala yonke imilayo ngokuzwakalayo, ngakho lingalandela lingakhangeli esikrinini.",
+  "chart.summary": "{name}: izilinganiso ezingu-{count}, esokucina {last}, esincane kakhulu {min}, esikhulu kakhulu {max}"
 }

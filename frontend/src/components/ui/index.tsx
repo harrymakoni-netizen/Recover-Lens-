@@ -1,13 +1,14 @@
 import { X } from 'lucide-react';
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'care';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-teal text-white hover:bg-teal-dark disabled:bg-teal/50',
-  secondary: 'bg-white text-navy border border-line hover:bg-page disabled:text-navy/40',
+  primary: 'bg-teal text-white hover:bg-teal-dark disabled:bg-navy-soft',
+  secondary: 'bg-white text-navy border border-line-strong hover:bg-page disabled:text-navy-soft',
   ghost: 'text-navy hover:bg-navy/5',
   danger: 'bg-alert text-white hover:bg-alert/90',
   care: 'bg-care text-white hover:bg-care/90',
@@ -43,7 +44,7 @@ export function CardTitle({ icon, children, action }: { icon?: ReactNode; childr
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
-        {icon && <span className="text-teal">{icon}</span>}
+        {icon && <span className="text-teal" aria-hidden>{icon}</span>}
         {children}
       </h2>
       {action}
@@ -70,7 +71,7 @@ export function Skeleton({ className }: { className?: string }) {
 export function Empty({ icon, title, children }: { icon?: ReactNode; title: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-10 text-center text-navy-soft">
-      {icon && <div className="text-navy/30">{icon}</div>}
+      {icon && <div className="text-navy-soft" aria-hidden>{icon}</div>}
       <p className="font-medium text-navy">{title}</p>
       {children && <div className="text-sm">{children}</div>}
     </div>
@@ -95,13 +96,37 @@ export function Modal({
   const titleId = useId();
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    // Keep Tab inside the dialog, and hand focus back to whatever opened it (WCAG 2.4.3).
+    const opener = document.activeElement as HTMLElement | null;
+    const focusable = () =>
+      [...(ref.current?.querySelectorAll<HTMLElement>('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])') ?? [])].filter(
+        (el) => !el.hasAttribute('disabled'),
+      );
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key !== 'Tab') return;
+      const els = focusable();
+      if (!els.length) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
     ref.current?.querySelector<HTMLElement>('input,select,button')?.focus();
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      opener?.focus?.();
+    };
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  // Rendered on <body>: an ancestor with a blur or transform would otherwise trap the fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy/40 p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div
         ref={ref}
@@ -119,12 +144,13 @@ export function Modal({
             {title}
           </h2>
           <button type="button" aria-label={t('common.close')} className="rounded-lg p-2 hover:bg-page" onClick={onClose}>
-            <X size={20} />
+            <X size={20} aria-hidden />
           </button>
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -141,12 +167,14 @@ export function PainSlider({
 }) {
   const { t } = useApp();
   const id = useId();
-  const tone = value >= 8 ? 'text-alert' : value >= 4 ? 'text-amber-500' : 'text-teal';
+  const tone = dark
+    ? value >= 8 ? 'text-red-300' : value >= 4 ? 'text-amber-300' : 'text-teal-300'
+    : value >= 8 ? 'text-alert' : value >= 4 ? 'text-amber-700' : 'text-teal';
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
         <label htmlFor={id} className={cn('text-sm font-medium', dark ? 'text-white/80' : 'text-navy-soft')}>
-          {label ?? t('pain.level')} <span className="font-normal opacity-70">{t('pain.scale')}</span>
+          {label ?? t('pain.level')} <span className="font-normal">{t('pain.scale')}</span>
         </label>
         <span className={cn('text-2xl font-semibold tabular-nums', tone)}>{value}</span>
       </div>
@@ -158,6 +186,7 @@ export function PainSlider({
         step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-valuetext={`${value} / 10`}
         className="h-11 w-full"
       />
     </div>
@@ -185,4 +214,4 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 }
 
 export const inputClass =
-  'w-full min-h-11 rounded-xl border border-line bg-white px-3 text-navy placeholder:text-navy/40 focus:border-teal focus:outline-none';
+  'w-full min-h-11 rounded-xl border border-line-strong bg-white px-3 text-navy placeholder:text-navy-soft focus:border-teal';

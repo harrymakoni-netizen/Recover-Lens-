@@ -8,12 +8,27 @@ export interface TrendPoint {
   value: number | null;
 }
 
-const INK_MUTED = '#6B7690';
+const INK_MUTED = '#5B6680';
+
+/** What the chart shows, in words, for screen readers (WCAG 1.1.1). */
+function useChartSummary(data: TrendPoint[], name: string, unit = ''): string {
+  const { t } = useApp();
+  const values = data.map((d) => d.value).filter((v): v is number => v !== null);
+  if (!values.length) return t('chart.trend', { name });
+  const fmt = (v: number) => `${Math.round(v * 10) / 10}${unit}`;
+  return t('chart.summary', {
+    name,
+    count: values.length,
+    last: fmt(values[values.length - 1]),
+    min: fmt(Math.min(...values)),
+    max: fmt(Math.max(...values)),
+  });
+}
 const GRID = '#E9EDF3';
 
 export function TrendChart({
   data,
-  color = '#159A82',
+  color = '#0D7362',
   unit = '',
   domain,
   height = 200,
@@ -26,8 +41,9 @@ export function TrendChart({
   height?: number;
   name: string;
 }) {
+  const summary = useChartSummary(data, name, unit);
   return (
-    <div style={{ height }} className="w-full">
+    <div style={{ height }} className="w-full" role="img" aria-label={summary}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke={GRID} />
@@ -64,10 +80,10 @@ export function TrendChart({
 }
 
 /** Tiny line for the last few sessions; hover shows the value. */
-export function Sparkline({ data, color = '#159A82', name }: { data: TrendPoint[]; color?: string; name: string }) {
-  const { t } = useApp();
+export function Sparkline({ data, color = '#0D7362', name }: { data: TrendPoint[]; color?: string; name: string }) {
+  const summary = useChartSummary(data, name);
   return (
-    <div className="h-14 w-full" aria-label={t('chart.trend', { name })}>
+    <div className="h-14 w-full" role="img" aria-label={summary}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 6, right: 6, bottom: 6, left: 6 }}>
           <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />

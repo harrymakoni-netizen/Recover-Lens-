@@ -78,6 +78,16 @@ Save good recordings as `frontend/src/pose/__tests__/fixtures/recorded_<exercise
 
 Record each with 2–3 different people, in normal and dim light, and in fitted and baggy clothes if you can.
 
+## Accessibility (WCAG 2.2 AA)
+
+Built for people with low vision as well as everyone else:
+
+- **Display and reading** (eye button in the header): normal, large or extra-large text, and high contrast. High contrast switches on by itself when the device asks for more contrast. Saved per device (`frontend/src/lib/display.ts`).
+- Text and controls meet AA contrast (4.5:1 for text, 3:1 for control borders and focus outlines). The voice coach speaks every instruction, so the camera screens can be followed without reading them.
+- Keyboard and screen readers: a skip link, page titles, focus moved to the new page after navigating, dialogs that keep focus inside and return it, labelled landmarks, charts described in words, and live status messages.
+- WCAG 2.2 additions: focused controls are never hidden under the sticky header or tab bar (2.4.11), and every tap target is at least 24 × 24 px (2.5.8).
+- Checked with axe-core on every screen, at phone and desktop widths, at 320 px with extra-large text, and in high contrast. Automated checks catch only part of WCAG, so a test with a screen-reader user and a low-vision user is still on the list below.
+
 ## Layout
 
 ```
@@ -125,5 +135,6 @@ Other hosts: the frontend also works on Netlify (`public/_redirects`, with `VITE
 ## Still to do before the final
 
 - Record the clips in "Testing the computer vision on real people" and tune the `// TUNE:` thresholds on 3–5 people. Squats are the least proven: their thresholds have not yet been checked on a real person squatting.
+- Test with a screen-reader user (TalkBack on Android) and a low-vision user, and have native speakers check the new accessibility wording too.
 - Have native speakers check the Shona and Ndebele text (`frontend/src/voice/phrases.ts`, `frontend/src/i18n/sn.json`, `nd.json`).
 - Test on iPhone Safari and Android Chrome over HTTPS (camera, speech unlock, GPU→CPU fallback).

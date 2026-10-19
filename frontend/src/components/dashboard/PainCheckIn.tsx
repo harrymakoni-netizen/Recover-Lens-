@@ -126,7 +126,7 @@ export function PainCheckIn({
           </fieldset>
           {caregiver && (
             <label className="flex min-h-11 items-center gap-3 text-sm">
-              <input type="checkbox" className="h-5 w-5 accent-[#E07A10]" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+              <input type="checkbox" className="h-6 w-6 shrink-0 accent-[var(--color-care)]" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
               {t('common.confirmed_by_patient')}
             </label>
           )}

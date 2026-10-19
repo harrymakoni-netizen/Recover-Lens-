@@ -500,5 +500,16 @@
   "ex.jump_landing.desc": "Kusvetuka kumusoro katatu, muchidzika zvinyoronyoro netsoka mbiri.",
   "ex.jump_landing.step1": "Tarisai kamera pane nzvimbo yakakwana makakupoteredzai.",
   "ex.jump_landing.step2": "Svetukai kumusoro zvakanyanya sezvamunogona.",
-  "ex.jump_landing.step3": "Dzikai zvinyoronyoro mabvi akakotama. Itai katatu."
+  "ex.jump_landing.step3": "Dzikai zvinyoronyoro mabvi akakotama. Itai katatu.",
+
+  "a11y.skip": "Svetukira kune zviri mukati",
+  "a11y.display": "Kuona nekuverenga",
+  "a11y.text_size": "Ukuru hwemavara",
+  "a11y.size_normal": "Zvakajairwa",
+  "a11y.size_large": "Hombe",
+  "a11y.size_xl": "Hombe kwazvo",
+  "a11y.contrast": "Mavara anonyatsooneka",
+  "a11y.contrast_hint": "Mavara akasviba nemitsetse yakasimba.",
+  "a11y.voice_note": "Izwi rinoverenga murairo wega wega zvinonzwika, saka munogona kutevera musingatarisi sikirini.",
+  "chart.summary": "{name}: zviyero {count}, chazvino {last}, chidiki {min}, chikuru {max}"
 }

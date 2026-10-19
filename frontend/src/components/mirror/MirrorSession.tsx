@@ -126,7 +126,7 @@ export function MirrorSession({
   const showMessage = camera.status !== 'ready' || pose.status === 'error';
 
   return (
-    <div className="fixed inset-0 z-50 select-none bg-black text-white">
+    <main className="dark-ui fixed inset-0 z-50 select-none bg-black text-white">
       <CameraView videoRef={camera.videoRef} canvasRef={canvasRef} mirrored={mirrored}>
         {hud && !overlay && <CalibrationOverlay hud={hud} />}
       </CameraView>
@@ -242,6 +242,6 @@ export function MirrorSession({
       )}
 
       {overlay && <div className="absolute inset-0 z-40 overflow-y-auto bg-[#0b0d10]">{overlay}</div>}
-    </div>
+    </main>
   );
 }

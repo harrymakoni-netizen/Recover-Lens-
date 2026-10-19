@@ -1,5 +1,5 @@
 // Runs a sport's test battery in sequence, each test with its own calibration (SPEC §8.4).
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { enqueue } from '../api/offlineQueue';
 import type { Screening } from '../api/types';
@@ -29,6 +29,10 @@ export default function ScreeningRun() {
   const [analysis, setAnalysis] = useState<ScreeningAnalysis | null>(null);
 
   const steps = sport ? BATTERIES[sport] : undefined;
+  const pageTitle = steps && sport ? `${t('sports.title')} · ${sportName(t, sport)}` : null;
+  useEffect(() => {
+    if (pageTitle) document.title = `${pageTitle} · RecoverLens`;
+  }, [pageTitle]);
   const step = steps?.[stepIndex];
   const config = useMemo(() => {
     if (!step) return null;
@@ -103,7 +107,7 @@ export default function ScreeningRun() {
         <div className="mt-4">
           <ObservationList observations={analysis.observations} dark />
         </div>
-        <p className="mt-4 text-xs text-white/50">{t('screen.note')}</p>
+        <p className="mt-4 text-xs text-white/75">{t('screen.note')}</p>
         <Button size="lg" className="mt-4 w-full" onClick={() => navigate('/sports')}>
           {t('common.done')}
         </Button>

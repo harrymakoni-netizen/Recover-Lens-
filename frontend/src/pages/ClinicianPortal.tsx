@@ -17,7 +17,7 @@ export function Avatar({ initials, alert }: { initials: string; alert?: boolean 
   return (
     <div className="relative">
       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-soft font-semibold text-teal-dark">{initials}</div>
-      {alert && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-alert" aria-label={t('clin.has_alerts')} />}
+      {alert && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-alert" role="img" aria-label={t('clin.has_alerts')} />}
     </div>
   );
 }
@@ -158,7 +158,7 @@ export default function ClinicianPortal() {
         <Card>
           <CardTitle icon={<Users size={20} />}>{t('clin.patients')}</CardTitle>
           <label className="relative mb-3 block">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-navy/40" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-navy-soft" aria-hidden />
             <input
               className={cn(inputClass, 'pl-10')}
               placeholder={t('clin.search')}

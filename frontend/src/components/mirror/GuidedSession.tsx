@@ -105,7 +105,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
   const progress = elapsedInRep / config.secondsPerRep;
 
   return (
-    <div className={cn('fixed inset-0 z-50 overflow-y-auto bg-[#0b0d10] text-white', caregiver && 'ring-4 ring-inset ring-care')}>
+    <main className={cn('dark-ui fixed inset-0 z-50 overflow-y-auto bg-[#0b0d10] text-white', caregiver && 'ring-4 ring-inset ring-care')}>
       <div className="flex items-center justify-between p-3">
         <button type="button" aria-label={tr('common.back')} onClick={onBack} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
           <ArrowLeft size={22} />
@@ -117,6 +117,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
           <button
             type="button"
             aria-label={muted ? tr('mirror.unmute') : tr('mirror.mute')}
+            aria-pressed={muted}
             onClick={() => {
               voice.setMuted(!muted);
               setMuted(!muted);
@@ -129,7 +130,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
       </div>
 
       <div className="mx-auto max-w-lg px-5 pb-10">
-        <div className="text-[11px] font-semibold tracking-[0.2em] text-white/60">{tr('guided.badge')}</div>
+        <div className="text-xs font-semibold tracking-[0.2em] text-white/75">{tr('guided.badge')}</div>
         <h1 className="mt-1 text-2xl font-semibold">{exerciseName(tr, config.id)}</h1>
         <p className="mt-1 text-sm text-white/70">{tr('guided.explain')}</p>
         <ol className="mt-4 space-y-2 text-white/85">
@@ -153,7 +154,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
                 cy="50"
                 r="45"
                 fill="none"
-                stroke={caregiver ? '#E07A10' : '#4ADE80'}
+                stroke={caregiver ? '#F59E42' : '#4ADE80'}
                 strokeWidth="6"
                 strokeLinecap="round"
                 strokeDasharray={`${(resting ? 1 - resting / REST_S : progress) * 283} 283`}
@@ -162,16 +163,16 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
             <div className="text-center">
               {resting ? (
                 <>
-                  <div className="text-sm text-white/60">{tr('guided.rest')}</div>
+                  <div className="text-sm text-white/75">{tr('guided.rest')}</div>
                   <div className="text-5xl font-semibold tabular-nums">{resting}s</div>
                 </>
               ) : (
                 <>
-                  <div className="text-sm text-white/60">{tr('guided.rep')}</div>
+                  <div className="text-sm text-white/75">{tr('guided.rep')}</div>
                   <div className="text-5xl font-semibold tabular-nums">
                     {String(Math.min(rep + 1, reps)).padStart(2, '0')}/{String(reps).padStart(2, '0')}
                   </div>
-                  <div className="text-sm text-white/60">{tr('guided.set_of', { set, sets })}</div>
+                  <div className="text-sm text-white/75">{tr('guided.set_of', { set, sets })}</div>
                 </>
               )}
             </div>
@@ -189,6 +190,6 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
