@@ -7,7 +7,7 @@ import { cn } from '../../lib/format';
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'care';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-teal text-white hover:bg-teal-dark disabled:bg-navy-soft',
+  primary: 'bg-teal text-white hover:bg-teal-dark disabled:bg-teal/50',
   secondary: 'bg-white text-navy border border-line-strong hover:bg-page disabled:text-navy-soft',
   ghost: 'text-navy hover:bg-navy/5',
   danger: 'bg-alert text-white hover:bg-alert/90',

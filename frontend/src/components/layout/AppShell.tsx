@@ -127,7 +127,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header (connection dot; logo + language on phones) */}
-        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:bg-transparent md:px-8 md:backdrop-blur-none md:border-none">
+        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:bg-page md:px-8 md:backdrop-blur-none md:border-none">
           <div className="md:hidden">
             <Logo />
           </div>

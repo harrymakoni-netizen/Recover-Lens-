@@ -1,7 +1,9 @@
-// Coach Portal (SPEC §8.6): squad overview from stored screenings, filter by sport.
-import { Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+// Coach Portal (SPEC §8.6): squad overview from stored screenings, filter by sport. Tap an athlete
+// to see what their latest screening observed and what to work on.
+import { ChevronDown, Users } from 'lucide-react';
+import { Fragment, useMemo, useState } from 'react';
 import type { Athlete, Screening } from '../api/types';
+import { ObservationList } from '../components/dashboard/ScreeningResult';
 import { Badge, Card, CardTitle, Empty, Skeleton, Stat } from '../components/ui';
 import { useApi } from '../hooks/useApi';
 import { useLocalScreenings, useMerged } from '../hooks/useLocalData';
@@ -19,6 +21,7 @@ export default function CoachPortal() {
   const local = useLocalScreenings();
   const screenings = useMerged<Screening>(server.data, local, 'created_at');
   const [sport, setSport] = useState<string>('all');
+  const [open, setOpen] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     const latestByAthlete = new Map<string, Screening>();
@@ -90,36 +93,72 @@ export default function CoachPortal() {
               </thead>
               <tbody>
                 {rows.map(({ athlete, latest }) => {
-                  const flags = latest?.results_json.observations.filter((o) => o.status === 'review') ?? [];
+                  const observations = latest?.results_json.observations ?? [];
+                  const flags = observations.filter((o) => o.status === 'review');
+                  const expanded = open === athlete.id;
+                  const detailsId = `screening-${athlete.id}`;
+                  const who = (
+                    <>
+                      <Avatar initials={initials(athlete.name)} />
+                      <div className="text-left">
+                        <div className="font-semibold">{athlete.name}</div>
+                        {athlete.team && <div className="text-xs text-navy-soft">{athlete.team}</div>}
+                      </div>
+                    </>
+                  );
                   return (
-                    <tr key={athlete.id} className="border-b border-line align-top last:border-0">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          <Avatar initials={initials(athlete.name)} />
-                          <div>
-                            <div className="font-semibold">{athlete.name}</div>
-                            {athlete.team && <div className="text-xs text-navy-soft">{athlete.team}</div>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3">{sportName(t, athlete.sport)}</td>
-                      <td className="py-3">
-                        {latest ? formatDate(latest.created_at, lang) : <span className="text-navy-soft">{t('coach.not_screened')}</span>}
-                      </td>
-                      <td className="px-5 py-3">
-                        {!latest ? null : flags.length === 0 ? (
-                          <Badge tone="good">{t('common.good')}</Badge>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {flags.map((f) => (
-                              <Badge key={f.id} tone="review">
-                                {describeObservation(t, f).label}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                    <Fragment key={athlete.id}>
+                      <tr className={cn('align-top', !expanded && 'border-b border-line last:border-0')}>
+                        <td className="px-5 py-3">
+                          {latest ? (
+                            <button
+                              type="button"
+                              aria-expanded={expanded}
+                              aria-controls={detailsId}
+                              onClick={() => setOpen(expanded ? null : athlete.id)}
+                              className="-m-1 flex items-center gap-3 rounded-xl p-1 hover:bg-page"
+                            >
+                              {who}
+                              <ChevronDown
+                                size={18}
+                                aria-hidden
+                                className={cn('shrink-0 text-navy-soft transition-transform', expanded && 'rotate-180')}
+                              />
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-3">{who}</div>
+                          )}
+                        </td>
+                        <td className="py-3">{sportName(t, athlete.sport)}</td>
+                        <td className="py-3">
+                          {latest ? formatDate(latest.created_at, lang) : <span className="text-navy-soft">{t('coach.not_screened')}</span>}
+                        </td>
+                        <td className="px-5 py-3">
+                          {!latest ? null : flags.length === 0 ? (
+                            <Badge tone="good">{t('common.good')}</Badge>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {flags.map((f) => (
+                                <Badge key={f.id} tone="review">
+                                  {describeObservation(t, f).label}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                      {expanded && latest && (
+                        <tr id={detailsId} className="border-b border-line last:border-0">
+                          <td colSpan={4} className="px-5 pb-4">
+                            <h3 className="mb-2 text-sm font-semibold text-navy-soft">
+                              {t('sports.latest')} · {formatDate(latest.created_at, lang)}
+                            </h3>
+                            {/* Items to review first, so the coach sees what to work on. */}
+                            <ObservationList observations={[...flags, ...observations.filter((o) => o.status !== 'review')]} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
