@@ -1,6 +1,6 @@
 # RecoverLens
 
-AI rehab mirror in the browser. A phone camera, MediaPipe pose tracking and voice coaching guide patients through rehab exercises. Clinicians and coaches see the results. Harry James Makoni · TENT Gig 2026.
+AI rehab mirror in the browser. A phone camera, MediaPipe pose tracking and voice coaching guide patients through rehab exercises. Clinicians and coaches see the results. Harry James Makoni · NUST · TENT Gig 2026 and the Fifth ATU Africa Innovation Challenge.
 
 The full specification is in [`docs/SPEC.md`](docs/SPEC.md). Rules for working on the code are in [`CLAUDE.md`](CLAUDE.md).
 
@@ -33,8 +33,8 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 100 Vitest tests
-cd backend && pytest        # 18 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
+cd frontend && npm test     # 126 Vitest tests
+cd backend && pytest        # 20 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
 The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping, sports screening analysis, and translations: every screen string and voice cue must exist in Shona and Ndebele with the same placeholders. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
@@ -78,6 +78,21 @@ Save good recordings as `frontend/src/pose/__tests__/fixtures/recorded_<exercise
 
 Record each with 2–3 different people, in normal and dim light, and in fitted and baggy clothes if you can.
 
+## The AI coach
+
+All of this runs on the phone, offline, from the same pose data; video never leaves the device.
+
+- **Fatigue signs from the patient's own reps** (`frontend/src/pose/fatigue.ts`). The first third of a session's reps is compared with the last third: reps slowing (≥ 15 %), less of the target range (≥ 8 %) and a lower form score (≥ 8 points). None, one or two-plus signs read as *none*, *slight* or *clear*. Shown on the summary card, stored with the session, and shown to the clinician. Thresholds are `// TUNE:`.
+- **Adaptive voice coaching.** Within a set, if the latest 3 reps are clearly slower (≥ 25 %) or shorter (≥ 10 %) than the set's first 3, the coach says once per set: "You're slowing down. Take your time, and rest if you need to." It is merged into the rep announcement so it is never cut off, and it never stops the exercise (CLAUDE.md rule 2).
+- **Personal baseline** (`frontend/src/lib/baseline.ts`). The summary compares the session with the average of the same person's last 3 sessions of that exercise: movement score, good-form share and range (a deeper squat counts as more range).
+- **Coach insights** (`frontend/src/lib/insights.ts`), on Home and Patient Detail: movement score and range trends, exercise days in the last week, repeated tiring, a form fault fading or coming back, and pain after exercise. Observations only, never a diagnosis (CLAUDE.md rule 9).
+
+The backend stores the fatigue fields (`fatigue_level`, `fatigue_slower_pct`, `fatigue_shorter_pct`, `fatigue_form_points`). A database created by an older version gains the new columns automatically on start-up (`add_missing_columns` in `backend/app/db.py`).
+
+## Brand
+
+The logo lives in `frontend/public/brand/`: the mark for light and dark backgrounds, app icons (192, 512, maskable), the Apple touch icon and a link-preview image. The wordmark is set in Outfit, which is now self-hosted (`@fontsource/outfit`), so the app makes no third-party requests and the font works offline.
+
 ## Accessibility (WCAG 2.2 AA)
 
 Built for people with low vision as well as everyone else:
@@ -93,7 +108,8 @@ Built for people with low vision as well as everyone else:
 ```
 docs/                 SPEC.md, exercise_library.json, reference images
 frontend/src/pose/    pure TypeScript pose engine (no React): geometry, smoothing, calibration,
-                      repCounter, holdTimer, formRules, scoring, screening, sessionEngine
+                      repCounter, holdTimer, formRules, scoring, fatigue, screening, sessionEngine
+frontend/src/lib/     baseline (vs your usual), insights (coach insights), display settings, records
 frontend/src/exercises/  one ExerciseConfig per exercise
 frontend/src/voice/   voiceEngine (priorities and cooldowns), phrases (en/sn/nd), cue mapping
 frontend/src/hooks/   useCamera, usePoseLandmarker, useSession, useApi

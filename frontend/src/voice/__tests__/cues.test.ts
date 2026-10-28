@@ -35,6 +35,15 @@ describe('cue mapping (SPEC §6.2)', () => {
     expect(cues[0].text).toBe('Rep 10. Set complete. Session complete. Well done.');
   });
 
+  it('merges the pacing cue into the rep announcement so it is never cut off', () => {
+    const cues = cuesForEvents([rep(7), { type: 'tiring' }], ctx('shoulder_abduction'));
+    expect(cues).toHaveLength(1);
+    expect(cues[0].text).toBe("Rep 7 of 10. You're slowing down. Take your time, and rest if you need to.");
+    expect(cues[0].pill).toBe('Slowing down: take your time');
+    const cg = cuesForEvents([rep(7), { type: 'tiring' }], ctx('shoulder_abduction', { mode: 'caregiver' }));
+    expect(cg[0].text).toContain("They're slowing down.");
+  });
+
   it('speaks the exercise-specific fault cue at priority 2', () => {
     expect(cuesForEvents([{ type: 'fault', id: 'torso_lean' }], ctx('shoulder_abduction'))[0]).toMatchObject({
       text: 'Keep your torso upright.',

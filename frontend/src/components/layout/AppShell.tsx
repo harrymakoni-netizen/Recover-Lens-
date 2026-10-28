@@ -1,5 +1,5 @@
 // Sidebar on ≥768 px, fixed bottom tab bar below (SPEC §7.1).
-import { Activity, Dumbbell, HeartHandshake, House, Stethoscope, UsersRound } from 'lucide-react';
+import { Dumbbell, HeartHandshake, House, ShieldCheck, Stethoscope, UsersRound } from 'lucide-react';
 import { type ReactNode, type RefObject, Suspense, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import type { Patient } from '../../api/types';
@@ -7,6 +7,7 @@ import { useApi } from '../../hooks/useApi';
 import { LANGUAGES, useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
 import type { Lang } from '../../voice/phrases';
+import { Logo } from './Brand';
 import { ConnectionDot } from './ConnectionDot';
 import { DisplaySettingsButton } from './DisplaySettings';
 
@@ -18,24 +19,17 @@ const NAV = [
   { to: '/coach', icon: UsersRound, label: 'nav.coach', short: 'nav.coach_short' },
 ];
 
-function Logo() {
-  return (
-    <div className="flex items-center gap-2 text-lg font-semibold">
-      <Activity className="text-teal" size={24} strokeWidth={2.5} aria-hidden />
-      RecoverLens
-    </div>
-  );
-}
+const darkSelect = 'mt-1 block min-h-10 w-full rounded-lg border border-white/20 bg-white px-2 text-sm text-navy';
 
 function UserPanel() {
   const { lang, setLang, t, patientId, setPatientId } = useApp();
   const { data: patients } = useApi<Patient[]>('/patients', { poll: false });
   return (
-    <div className="space-y-3 border-t border-line p-4">
-      <label className="block text-xs text-navy-soft">
+    <div className="space-y-3 border-t border-white/10 p-4">
+      <label className="block text-xs text-white/75">
         {t('viewing_as')}
         <select
-          className="mt-1 block min-h-10 w-full rounded-lg border border-line-strong bg-white px-2 text-sm text-navy"
+          className={darkSelect}
           value={patientId}
           onChange={(e) => setPatientId(e.target.value)}
         >
@@ -46,10 +40,10 @@ function UserPanel() {
           ))}
         </select>
       </label>
-      <label className="block text-xs text-navy-soft">
+      <label className="block text-xs text-white/75">
         {t('language')}
         <select
-          className="mt-1 block min-h-10 w-full rounded-lg border border-line-strong bg-white px-2 text-sm text-navy"
+          className={darkSelect}
           value={lang}
           onChange={(e) => setLang(e.target.value as Lang)}
         >
@@ -100,9 +94,10 @@ export function AppShell({ children }: { children?: ReactNode }) {
         {t('a11y.skip')}
       </a>
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-white md:flex">
-        <div className="flex h-16 items-center px-5">
-          <Logo />
+      <aside className="bg-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col text-white md:flex">
+        <div className="px-5 pb-5 pt-6">
+          <Logo onDark size={40} />
+          <p className="mt-2.5 text-[0.625rem] font-medium uppercase tracking-[0.14em] text-white/70">{t('brand.tagline')}</p>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-2" aria-label={t('nav.main')}>
           {NAV.map(({ to, icon: Icon, label, end }) => (
@@ -112,26 +107,35 @@ export function AppShell({ children }: { children?: ReactNode }) {
               end={end}
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.9375rem] transition-colors',
-                  isActive ? 'bg-teal-soft font-medium text-teal-dark' : 'text-navy-soft hover:bg-page hover:text-navy',
+                  'relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.9375rem] transition-colors',
+                  isActive ? 'bg-white/10 font-medium text-white' : 'text-white/75 hover:bg-white/5 hover:text-white',
                 )
               }
             >
-              <Icon size={20} aria-hidden />
-              {t(label)}
+              {({ isActive }) => (
+                <>
+                  {isActive && <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-mint" aria-hidden />}
+                  <Icon size={20} aria-hidden className={isActive ? 'text-mint' : undefined} />
+                  {t(label)}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
+        <div className="mx-3 mb-3 flex items-start gap-2.5 rounded-xl bg-white/5 p-3 text-xs leading-snug text-white/80">
+          <ShieldCheck size={18} className="mt-0.5 shrink-0 text-mint" aria-hidden />
+          <span>{t('brand.private')}</span>
+        </div>
         <UserPanel />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header (connection dot; logo + language on phones) */}
-        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:bg-page md:px-8 md:backdrop-blur-none md:border-none">
+        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:border-none md:bg-transparent md:px-8 md:pt-2 md:backdrop-blur-none">
           <div className="md:hidden">
-            <Logo />
+            <Logo size={26} compact />
           </div>
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
             <ConnectionDot />
             <DisplaySettingsButton />
             <select
@@ -164,7 +168,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
       {/* Mobile bottom tabs */}
       <nav
         aria-label={t('nav.main')}
-        className="pb-safe fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white md:hidden"
+        className="pb-safe fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white/95 shadow-[0_-8px_24px_-16px_rgb(11_31_58/0.25)] backdrop-blur md:hidden"
       >
         {NAV.map(({ to, icon: Icon, short, end }) => (
           <NavLink
@@ -178,8 +182,14 @@ export function AppShell({ children }: { children?: ReactNode }) {
               )
             }
           >
-            <Icon size={22} aria-hidden />
-            <span className="max-w-full truncate px-1">{t(short)}</span>
+            {({ isActive }) => (
+              <>
+                <span className={cn('flex h-7 w-12 items-center justify-center rounded-full transition-colors', isActive && 'bg-teal-soft')}>
+                  <Icon size={21} aria-hidden />
+                </span>
+                <span className="max-w-full truncate px-1">{t(short)}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

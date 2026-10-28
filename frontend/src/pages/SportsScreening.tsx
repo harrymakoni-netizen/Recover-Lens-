@@ -41,12 +41,12 @@ export default function SportsScreening() {
 
   return (
     <div>
-      <h1 className="text-3xl font-semibold">{t('sports.title')}</h1>
+      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t('sports.title')}</h1>
       <p className="mt-1 text-navy-soft">{t('sports.intro')}</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Card>
-          <CardTitle icon={<Dumbbell size={20} />}>{t('sports.choose')}</CardTitle>
+          <CardTitle icon={<Dumbbell size={18} />}>{t('sports.choose')}</CardTitle>
           <div className="grid gap-3 sm:grid-cols-2">
             {SPORTS.map((s) => (
               <button
@@ -105,7 +105,7 @@ export default function SportsScreening() {
         </Card>
 
         <Card>
-          <CardTitle icon={<ClipboardList size={20} />}>{t('sports.latest')}</CardTitle>
+          <CardTitle icon={<ClipboardList size={18} />}>{t('sports.latest')}</CardTitle>
           {loading && !latest ? (
             <div className="space-y-2">
               <Skeleton className="h-14 w-full" />
@@ -133,7 +133,7 @@ export default function SportsScreening() {
       </div>
 
       <Card className="mt-6">
-        <CardTitle icon={<ClipboardList size={20} />}>{t('sports.recent')}</CardTitle>
+        <CardTitle icon={<ClipboardList size={18} />}>{t('sports.recent')}</CardTitle>
         {screenings.length === 0 ? (
           <Empty title={t('sports.none')}>{t('sports.none_hint')}</Empty>
         ) : (

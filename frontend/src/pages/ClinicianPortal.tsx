@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { post } from '../api/client';
 import type { Alert, Patient } from '../api/types';
 import { ProgramEditor, type ProgramDraft, draftFor } from '../components/dashboard/ProgramEditor';
-import { Badge, Button, Card, CardTitle, Empty, Field, Modal, Skeleton, inputClass } from '../components/ui';
+import { Badge, Button, Card, CardTitle, Empty, Field, Modal, Skeleton, Stat, inputClass } from '../components/ui';
 import { useApi } from '../hooks/useApi';
 import { formatDateTime, relativeDays } from '../i18n';
 import { alertMessage, alertType } from '../i18n/records';
@@ -16,7 +16,9 @@ export function Avatar({ initials, alert }: { initials: string; alert?: boolean 
   const { t } = useApp();
   return (
     <div className="relative">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-soft font-semibold text-teal-dark">{initials}</div>
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-teal-soft to-[#dbe8f3] font-semibold text-teal-dark ring-2 ring-white">
+        {initials}
+      </div>
       {alert && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-alert" role="img" aria-label={t('clin.has_alerts')} />}
     </div>
   );
@@ -146,7 +148,7 @@ export default function ClinicianPortal() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold">{t('nav.clinician')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t('nav.clinician')}</h1>
           <p className="text-navy-soft">{t('clin.subtitle', { clinician: 'Dr. Demo', n: all.length })}</p>
         </div>
         <Button onClick={() => setAdding(true)}>
@@ -154,9 +156,29 @@ export default function ClinicianPortal() {
         </Button>
       </div>
 
+      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat label={t('clin.stat_patients')} value={all.length} />
+        <Stat
+          label={t('clin.stat_alerts')}
+          value={alerts.data?.length ?? '—'}
+          tone={alerts.data?.length ? 'text-alert' : undefined}
+        />
+        <Stat
+          label={t('clin.stat_adherence')}
+          value={all.length ? `${Math.round(all.reduce((a, p) => a + p.adherence, 0) / all.length)}%` : '—'}
+        />
+        <Stat
+          label={t('clin.stat_score')}
+          value={(() => {
+            const scored = all.filter((p) => p.latest_score !== null);
+            return scored.length ? Math.round(scored.reduce((a, p) => a + (p.latest_score ?? 0), 0) / scored.length) : '—';
+          })()}
+        />
+      </div>
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card>
-          <CardTitle icon={<Users size={20} />}>{t('clin.patients')}</CardTitle>
+          <CardTitle icon={<Users size={18} />}>{t('clin.patients')}</CardTitle>
           <label className="relative mb-3 block">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-navy-soft" aria-hidden />
             <input
@@ -208,7 +230,7 @@ export default function ClinicianPortal() {
         </Card>
 
         <Card>
-          <CardTitle icon={<Bell size={20} />} action={alerts.data && alerts.data.length > 0 && <Badge tone="alert">{alerts.data.length}</Badge>}>
+          <CardTitle icon={<Bell size={18} />} action={alerts.data && alerts.data.length > 0 && <Badge tone="alert">{alerts.data.length}</Badge>}>
             {t('clin.alerts')}
           </CardTitle>
           {alerts.loading && !alerts.data ? (

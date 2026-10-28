@@ -1,4 +1,5 @@
 // Shapes returned by the FastAPI backend (SPEC §9).
+import type { FatigueLevel } from '../pose/fatigue';
 
 export interface Program {
   id: string;
@@ -48,6 +49,11 @@ export interface SessionRecord {
   pain_confirmed_by_patient: boolean;
   /** Logged by hand without the camera (caregiver manual log). */
   manual?: boolean;
+  /** Fatigue signs measured from the session's own reps (pose/fatigue.ts); null with < 6 reps. */
+  fatigue_level?: FatigueLevel | null;
+  fatigue_slower_pct?: number | null;
+  fatigue_shorter_pct?: number | null;
+  fatigue_form_points?: number | null;
 }
 
 export interface PatientDetail extends Patient {

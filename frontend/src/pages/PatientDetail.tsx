@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { put } from '../api/client';
 import type { Alert, PatientDetail as Detail, Program } from '../api/types';
+import { InsightsCard } from '../components/dashboard/Insights';
 import { ProgramEditor, type ProgramDraft } from '../components/dashboard/ProgramEditor';
 import { TrendChart } from '../components/dashboard/TrendChart';
 import { Badge, Button, Card, CardTitle, Empty, Skeleton, Stat } from '../components/ui';
@@ -13,6 +14,7 @@ import { useApi } from '../hooks/useApi';
 import { exerciseName, formatDate } from '../i18n';
 import { useApp } from '../lib/appContext';
 import { cn, round } from '../lib/format';
+import { FatigueBadge, fatigueLine } from '../lib/fatigueText';
 import { faultLabel } from '../lib/sessionRecord';
 import { AlertsList, Avatar } from './ClinicianPortal';
 import { planText } from './Home';
@@ -89,7 +91,7 @@ export default function PatientDetail() {
       <div className="flex flex-wrap items-center gap-4">
         <Avatar initials={patient.initials} alert={patient.unresolved_alerts > 0} />
         <div>
-          <h1 className="text-3xl font-semibold">{patient.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{patient.name}</h1>
           <p className="text-navy-soft">
             {patient.condition} · {patient.contact || t('pd.no_contact')}
           </p>
@@ -103,16 +105,19 @@ export default function PatientDetail() {
         <Stat label={t('pd.last_session')} value={<span className="text-lg">{formatDate(patient.last_session_at, lang)}</span>} />
       </div>
 
-      {patientAlerts.length > 0 && (
-        <Card className="mt-6">
-          <CardTitle>{t('pd.open_alerts')}</CardTitle>
-          <AlertsList alerts={patientAlerts} showPatient={false} onResolved={() => void Promise.all([alerts.refresh(), refresh()])} />
-        </Card>
-      )}
+      <div className={cn('mt-6 grid gap-6', patientAlerts.length > 0 && 'lg:grid-cols-2')}>
+        <InsightsCard sessions={patient.sessions} />
+        {patientAlerts.length > 0 && (
+          <Card>
+            <CardTitle>{t('pd.open_alerts')}</CardTitle>
+            <AlertsList alerts={patientAlerts} showPatient={false} onResolved={() => void Promise.all([alerts.refresh(), refresh()])} />
+          </Card>
+        )}
+      </div>
 
       <Card className="mt-6">
         <CardTitle
-          icon={<TrendingUp size={20} />}
+          icon={<TrendingUp size={18} />}
           action={
             exercisesDone.length > 1 && (
               <select
@@ -166,12 +171,12 @@ export default function PatientDetail() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Card>
-          <CardTitle icon={<ClipboardList size={20} />}>{t('pd.sessions')}</CardTitle>
+          <CardTitle icon={<ClipboardList size={18} />}>{t('pd.sessions')}</CardTitle>
           {sessions.length === 0 ? (
             <Empty title={t('pd.awaiting')} />
           ) : (
-            <div className="-mx-4 overflow-x-auto sm:-mx-5" role="region" tabIndex={0} aria-label={t('pd.sessions')}>
-              <table className="w-full min-w-[640px] text-sm">
+            <div className="relative -mx-4 overflow-x-auto sm:-mx-6" role="region" tabIndex={0} aria-label={t('pd.sessions')}>
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="text-left text-xs uppercase tracking-wide text-navy-soft">
                   <tr className="border-b border-line">
                     <th className="px-5 py-2 font-medium">{t('pd.col_date')}</th>
@@ -180,6 +185,7 @@ export default function PatientDetail() {
                     <th className="py-2 pl-4 text-right font-medium">{t('pd.col_correct')}</th>
                     <th className="py-2 pl-4 text-right font-medium">{t('pd.col_score')}</th>
                     <th className="py-2 pl-4 text-right font-medium">{t('pd.col_pain')}</th>
+                    <th className="py-2 pl-4 font-medium">{t('pd.col_fatigue')}</th>
                     <th className="px-5 py-2 font-medium">{t('pd.col_note')}</th>
                   </tr>
                 </thead>
@@ -196,6 +202,22 @@ export default function PatientDetail() {
                       <td className="py-2.5 pl-4 text-right tabular-nums">{round(s.movement_score)}</td>
                       <td className={cn('py-2.5 pl-4 text-right tabular-nums', (s.pain_after ?? 0) >= 6 && 'font-semibold text-alert')}>
                         {s.pain_before ?? '—'} → {s.pain_after ?? '—'}
+                      </td>
+                      <td className="py-2.5 pl-4">
+                        {s.fatigue_level ? (
+                          <FatigueBadge
+                            level={s.fatigue_level}
+                            showNone
+                            details={fatigueLine(t, {
+                              level: s.fatigue_level,
+                              slowerPct: s.fatigue_slower_pct,
+                              shorterPct: s.fatigue_shorter_pct,
+                              formPoints: s.fatigue_form_points,
+                            })}
+                          />
+                        ) : (
+                          <span className="text-navy-soft">—</span>
+                        )}
                       </td>
                       <td className="px-5 py-2.5 text-navy-soft">
                         {s.manual ? t('pd.manual') : s.top_fault ? faultLabel(t, s.top_fault) : ''}

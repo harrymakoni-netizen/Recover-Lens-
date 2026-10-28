@@ -213,6 +213,47 @@ def test_datetimes_are_utc_with_z(client):
     assert detail["sessions"][0]["started_at"].endswith("Z")
 
 
+def test_fatigue_signs_are_stored_and_returned(client):
+    body = session_body(fatigue_level="slight", fatigue_slower_pct=22, fatigue_shorter_pct=3, fatigue_form_points=2)
+    assert client.post("/api/sessions", json=body).status_code == 200
+    s = next(x for x in client.get("/api/patients/tariro").json()["sessions"] if x["id"] == body["id"])
+    assert (s["fatigue_level"], s["fatigue_slower_pct"], s["fatigue_shorter_pct"], s["fatigue_form_points"]) == ("slight", 22, 3, 2)
+    assert client.post("/api/sessions", json={**body, "fatigue_level": "exhausted"}).status_code == 422
+
+
+def test_old_database_gains_new_columns(tmp_path):
+    # A sessions table made before the fatigue fields existed must keep working after an upgrade.
+    import sqlite3
+
+    path = tmp_path / "old.db"
+    con = sqlite3.connect(path)
+    con.execute("CREATE TABLE sessions (id VARCHAR PRIMARY KEY, patient_id VARCHAR, exercise_id VARCHAR, mode VARCHAR, "
+                "started_at DATETIME, duration_s INTEGER, reps INTEGER, correct_reps INTEGER, avg_top_angle FLOAT, "
+                "movement_score FLOAT, torso_alignment_avg FLOAT, symmetry_avg FLOAT, top_fault VARCHAR, pain_before INTEGER, "
+                "pain_after INTEGER, pain_confirmed_by_patient BOOLEAN, manual BOOLEAN)")
+    con.commit()
+    con.close()
+    app = create_app(f"sqlite:///{path}", seed=False)  # seeding would drop and recreate the table
+    con = sqlite3.connect(path)
+    cols = {row[1] for row in con.execute("PRAGMA table_info(sessions)")}
+    con.close()
+    assert {"fatigue_level", "fatigue_slower_pct", "fatigue_shorter_pct", "fatigue_form_points"} <= cols
+
+    from sqlmodel import Session
+
+    from app.models import Clinician, Patient
+
+    with Session(app.state.engine) as db:
+        db.add(Clinician(id="dr-demo", name="Dr. Demo"))
+        db.add(Patient(id="tariro", name="Tariro Moyo", condition="Shoulder", clinician_id="dr-demo"))
+        db.commit()
+    with TestClient(app) as c:
+        body = session_body(fatigue_level="clear", fatigue_slower_pct=30, fatigue_shorter_pct=12, fatigue_form_points=9)
+        assert c.post("/api/sessions", json=body).status_code == 200
+        s = next(x for x in c.get("/api/patients/tariro").json()["sessions"] if x["id"] == body["id"])
+        assert s["fatigue_level"] == "clear"
+
+
 def test_seed_endpoint_resets(client):
     client.post("/api/sessions", json=session_body())
     assert client.post("/api/seed").json() == {"status": "seeded"}

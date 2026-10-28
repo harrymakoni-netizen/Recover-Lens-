@@ -3,15 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#1F2A44" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0B1F3A" />
+    <meta name="description" content="RecoverLens is an AI rehab mirror: the phone camera counts reps, checks form and coaches by voice in English, chiShona and isiNdebele. Video never leaves the device." />
+    <meta property="og:title" content="RecoverLens: AI rehab mirror" />
+    <meta property="og:description" content="Live movement coaching on any phone, offline, in three languages. Video never leaves the device." />
+    <meta property="og:image" content="/brand/og-image.jpg" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>RecoverLens</title>
+    <style>
+      /* Shown until the app has loaded; React replaces it. */
+      .rl-splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        background: #f3f6f9; font-family: Outfit, ui-sans-serif, system-ui, sans-serif; color: #0b1f3a; }
+      .rl-splash img { width: 88px; height: auto; animation: rl-breathe 1.6s ease-in-out infinite; }
+      .rl-splash b { font-size: 22px; letter-spacing: -0.01em; }
+      .rl-splash b span { color: #0d7362; }
+      @keyframes rl-breathe { 50% { transform: scale(1.06); opacity: 0.85; } }
+      @media (prefers-reduced-motion: reduce) { .rl-splash img { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="rl-splash" role="status"><img src="/brand/mark.webp" alt="" /><b>Recover<span>Lens</span></b></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

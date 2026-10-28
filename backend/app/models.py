@@ -56,6 +56,11 @@ class ExerciseSession(SQLModel, table=True):
     pain_after: Optional[int] = None
     pain_confirmed_by_patient: bool = True
     manual: bool = False
+    # Fatigue signs measured on the device from the session's own reps (frontend pose/fatigue.ts).
+    fatigue_level: Optional[str] = None  # none | slight | clear
+    fatigue_slower_pct: Optional[int] = None
+    fatigue_shorter_pct: Optional[int] = None
+    fatigue_form_points: Optional[int] = None
 
 
 class Athlete(SQLModel, table=True):

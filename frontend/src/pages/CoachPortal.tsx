@@ -44,7 +44,7 @@ export default function CoachPortal() {
 
   return (
     <div>
-      <h1 className="text-3xl font-semibold">{t('nav.coach')}</h1>
+      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t('nav.coach')}</h1>
       <p className="text-navy-soft">{t('coach.subtitle')}</p>
 
       <div className="mt-6 grid grid-cols-3 gap-3">
@@ -71,7 +71,7 @@ export default function CoachPortal() {
       </div>
 
       <Card className="mt-4">
-        <CardTitle icon={<Users size={20} />}>{t('coach.athletes')}</CardTitle>
+        <CardTitle icon={<Users size={18} />}>{t('coach.athletes')}</CardTitle>
         {loading ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
@@ -81,7 +81,7 @@ export default function CoachPortal() {
         ) : rows.length === 0 ? (
           <Empty title={t('coach.none')}>{t('coach.none_hint')}</Empty>
         ) : (
-          <div className="-mx-4 overflow-x-auto sm:-mx-5" role="region" tabIndex={0} aria-label={t('nav.coach')}>
+          <div className="relative -mx-4 overflow-x-auto sm:-mx-6" role="region" tabIndex={0} aria-label={t('nav.coach')}>
             <table className="w-full min-w-[620px] text-sm">
               <thead className="text-left text-xs uppercase tracking-wide text-navy-soft">
                 <tr className="border-b border-line">

@@ -37,11 +37,11 @@
       "dest": "/frontend/models/$1"
     },
     {
-      "src": "/(assets|mediapipe)/(.*)",
+      "src": "/(assets|mediapipe|brand)/(.*)",
       "dest": "/frontend/$1/$2"
     },
     {
-      "src": "/(favicon\\.svg|manifest\\.webmanifest|robots\\.txt)",
+      "src": "/(favicon\\.png|manifest\\.webmanifest|robots\\.txt)",
       "dest": "/frontend/$1"
     },
     {

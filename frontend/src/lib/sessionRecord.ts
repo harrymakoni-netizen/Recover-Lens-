@@ -46,6 +46,10 @@ export function buildSessionRecord(args: {
     pain_before: args.painBefore,
     pain_after: args.painAfter,
     pain_confirmed_by_patient: args.mode === 'self' ? true : args.painConfirmed,
+    fatigue_level: s.fatigue?.level ?? null,
+    fatigue_slower_pct: s.fatigue?.slowerPct ?? null,
+    fatigue_shorter_pct: s.fatigue?.shorterPct ?? null,
+    fatigue_form_points: s.fatigue?.formPoints ?? null,
   };
 }
 

@@ -131,6 +131,7 @@ def _athletes() -> list[tuple[Athlete, dict[str, Any], int]]:
 def _session(
     patient_id: str, exercise_id: str, when: datetime, reps: int, correct: int, score: Optional[float],
     angle: Optional[float], pain_before: int, pain_after: int, fault: Optional[str] = None, mode: str = "self",
+    fatigue: tuple[str, int, int, int] = ("none", 4, 1, 2),
 ) -> ExerciseSession:
     return ExerciseSession(
         id=uuid.uuid4().hex,
@@ -149,6 +150,10 @@ def _session(
         pain_before=pain_before,
         pain_after=pain_after,
         pain_confirmed_by_patient=True,
+        fatigue_level=fatigue[0] if reps >= 6 else None,
+        fatigue_slower_pct=fatigue[1] if reps >= 6 else None,
+        fatigue_shorter_pct=fatigue[2] if reps >= 6 else None,
+        fatigue_form_points=fatigue[3] if reps >= 6 else None,
     )
 
 
@@ -159,7 +164,8 @@ def reset_and_seed(engine: Engine) -> None:
     now = utcnow().replace(minute=0, second=0, microsecond=0)
 
     def at(days_ago: float, hour: int = 9) -> datetime:
-        return (now - timedelta(days=days_ago)).replace(hour=hour)
+        t = (now - timedelta(days=days_ago)).replace(hour=hour)
+        return t if t <= now else t - timedelta(days=1)  # never in the future, whatever the time of day
 
     with Session(engine) as db:
         db.add(Clinician(id="dr-demo", name="Dr. Demo"))
@@ -207,6 +213,7 @@ def reset_and_seed(engine: Engine) -> None:
                     round(72 + 20 * k + rng.uniform(-1, 1), 1), 3 if k < 0.5 else 2, 3 if k < 0.4 else 2,
                     "torso_lean" if k < 0.5 else ("asymmetry" if k < 0.8 else None),
                     mode="caregiver" if i in (3, 8) else "self",
+                    fatigue=("slight", 21 - i, 5, 4) if k < 0.35 else ("none", 6, 2, 1),
                 )
             )
         # Liam: 8 knee sessions; pain jumps in the latest one → pain alert.
@@ -218,6 +225,7 @@ def reset_and_seed(engine: Engine) -> None:
                 _session(
                     "liam", "mini_squat", at(d, 17), 30, round(20 + 6 * k), round(70 + 12 * k + rng.uniform(-1, 1), 1),
                     round(142 - 8 * k, 1), 3, 6 if last else 3, "knee_valgus" if k < 0.6 or last else None,
+                    fatigue=("clear", 31, 11, 9) if last else (("slight", 19, 4, 3) if i == len(liam_days) - 2 else ("none", 8, 2, 2)),
                 )
             )
         # Amina: near-daily, both exercises, high adherence.

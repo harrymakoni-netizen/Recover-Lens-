@@ -62,6 +62,10 @@ class SessionIn(BaseModel):
     pain_after: Optional[int] = Field(default=None, ge=0, le=10)
     pain_confirmed_by_patient: bool = True
     manual: bool = False
+    fatigue_level: Optional[Literal["none", "slight", "clear"]] = None
+    fatigue_slower_pct: Optional[int] = Field(default=None, ge=0, le=1000)
+    fatigue_shorter_pct: Optional[int] = Field(default=None, ge=0, le=100)
+    fatigue_form_points: Optional[int] = Field(default=None, ge=0, le=100)
 
 
 class ScreeningIn(BaseModel):
@@ -105,6 +109,10 @@ def session_out(s: ExerciseSession) -> dict[str, Any]:
         "pain_after": s.pain_after,
         "pain_confirmed_by_patient": s.pain_confirmed_by_patient,
         "manual": s.manual,
+        "fatigue_level": s.fatigue_level,
+        "fatigue_slower_pct": s.fatigue_slower_pct,
+        "fatigue_shorter_pct": s.fatigue_shorter_pct,
+        "fatigue_form_points": s.fatigue_form_points,
     }
 
 

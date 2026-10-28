@@ -133,6 +133,23 @@ describe('shoulder abduction session', () => {
     expect(summary.movementScore).toBeGreaterThan(80);
   });
 
+  it('notices reps slowing within a set once, and reports fatigue signs in the summary', () => {
+    const d = make('shoulder_abduction', { targetReps: 10, sets: 1 });
+    d.calibrate({ armL: 15, armR: 15 });
+    for (let i = 0; i < 10; i++) {
+      const s = i < 3 ? 0.9 : 1.6; // later reps take much longer
+      d.move({ armL: 15, armR: 15 }, { armL: 90, armR: 90 }, s);
+      d.frames({ armL: 90, armR: 90 }, 0.2);
+      d.move({ armL: 90, armR: 90 }, { armL: 15, armR: 15 }, s);
+      d.frames({ armL: 15, armR: 15 }, 0.4);
+    }
+    expect(d.count('rep')).toBe(10);
+    expect(d.count('tiring')).toBe(1);
+    const fatigue = d.engine.summary().fatigue!;
+    expect(fatigue.signs).toContain('slower');
+    expect(fatigue.slowerPct).toBeGreaterThan(40);
+  });
+
   it('reads ~90° when the arms are horizontal', () => {
     const d = make('shoulder_abduction');
     d.calibrate({ armL: 80, armR: 80 });

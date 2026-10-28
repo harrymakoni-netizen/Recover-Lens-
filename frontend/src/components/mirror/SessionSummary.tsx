@@ -1,14 +1,19 @@
 // Session summary card that replaces the camera at the end (SPEC §7.2). Saves automatically if the
 // user leaves without pressing Save.
 import { Check, Share2 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { enqueue } from '../../api/offlineQueue';
-import type { SessionMode, SessionRecord } from '../../api/types';
+import type { PatientDetail, SessionMode, SessionRecord } from '../../api/types';
+import { useApi } from '../../hooks/useApi';
+import { useLocalSessions, useMerged } from '../../hooks/useLocalData';
 import { exerciseName } from '../../i18n';
 import { useApp } from '../../lib/appContext';
-import { round } from '../../lib/format';
+import { compareWithBaseline, personalBaseline } from '../../lib/baseline';
+import { fatigueLine } from '../../lib/fatigueText';
+import { cn, round } from '../../lib/format';
 import { buildSessionRecord, faultLabel, recommendationFor, shareText } from '../../lib/sessionRecord';
 import type { SessionSummary as Summary } from '../../pose/sessionEngine';
+import { BrandMark } from '../layout/Brand';
 import { Button, PainSlider } from '../ui';
 
 interface Props {
@@ -28,9 +33,26 @@ interface Props {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-1.5">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-4 border-t border-white/10 py-2.5">
       <dt className="text-white/75">{label}</dt>
-      <dd className="font-semibold text-white">{value}</dd>
+      <dd className="font-medium text-white">{value}</dd>
+    </div>
+  );
+}
+
+/** A big number with an optional "vs usual" line underneath. */
+function Tile({ label, value, note, tone }: { label: string; value: string; note?: string | null; tone?: 'up' | 'down' | null }) {
+  return (
+    <div className="rounded-2xl bg-white/[0.06] p-3.5 ring-1 ring-white/10">
+      <dt className="text-xs font-medium uppercase tracking-wide text-white/70">{label}</dt>
+      <dd className="mt-1">
+        <span className="text-2xl font-bold tabular-nums text-white">{value}</span>
+        {note && (
+          <span className={cn('mt-0.5 block text-xs', tone === 'up' ? 'text-emerald-300' : tone === 'down' ? 'text-amber-200' : 'text-white/70')}>
+            {note}
+          </span>
+        )}
+      </dd>
     </div>
   );
 }
@@ -106,36 +128,92 @@ export function SessionSummaryCard({
   const topFault = summary.topFault;
   const accent = caregiver ? 'text-orange-300' : 'text-good';
 
+  // Personal baseline: this session against the person's own recent sessions of the same exercise.
+  const { data: patient } = useApi<PatientDetail>(guided ? null : `/patients/${patientId}`, { poll: false });
+  const local = useLocalSessions(guided ? undefined : patientId);
+  const history = useMerged<SessionRecord>(patient?.sessions, local, 'started_at');
+  const base = useMemo(
+    () => (guided ? null : personalBaseline(history, summary.exerciseId, { excludeId: sessionId, before: startedAt })),
+    [guided, history, summary.exerciseId, sessionId, startedAt],
+  );
+  const cmp = base
+    ? compareWithBaseline(
+        { score: summary.movementScore, angle: summary.avgTopAngle, reps: summary.reps, correct: summary.correctReps },
+        base,
+        summary.exerciseId,
+      )
+    : null;
+  const delta = (d: number | null | undefined, up: string, down: string) =>
+    d === null || d === undefined ? null : d > 0 ? t(up, { n: d }) : d < 0 ? t(down, { n: -d }) : t('base.same');
+  const toneOf = (d: number | null | undefined) => (!d ? null : d > 0 ? 'up' : 'down');
+
   return (
     <div className="flex min-h-full items-center justify-center p-4 pt-16">
-      <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#121510] p-6 text-white">
-        <h1 className={`text-2xl font-bold tracking-wide ${accent}`}>{t('sum.title')}</h1>
-        <dl className="mt-4 text-[15px]">
-          <Row label={t('sum.exercise')} value={name} />
+      <div className="rise w-full max-w-xl rounded-3xl border border-white/15 bg-[#0d1626]/95 p-6 text-white shadow-2xl shadow-black/40">
+        <div className="flex items-center gap-3">
+          <BrandMark size={34} onDark />
+          <div>
+            <h1 className={`text-2xl font-bold tracking-wide ${accent}`}>{t('sum.title')}</h1>
+            <p className="text-sm text-white/75">{name}</p>
+          </div>
+        </div>
+        <dl className="mt-5 grid grid-cols-2 gap-3">
           {summary.kind === 'reps' ? (
             <>
-              <Row label={t('sum.total_reps')} value={String(summary.reps)} />
-              {!guided && <Row label={t('sum.correct_reps')} value={String(summary.correctReps)} />}
+              <Tile label={t('sum.total_reps')} value={String(summary.reps)} />
+              {!guided && (
+                <Tile
+                  label={t('sum.correct_reps')}
+                  value={String(summary.correctReps)}
+                  note={delta(cmp?.correctDelta, 'base.correct_up', 'base.correct_down')}
+                  tone={toneOf(cmp?.correctDelta)}
+                />
+              )}
             </>
           ) : (
-            <Row label={t('sum.holds')} value={t('sum.holds_value', { done: summary.setsCompleted, total: summary.sets })} />
-          )}
-          {!guided && summary.avgTopAngle !== null && (
-            <Row label={t('sum.avg_angle')} value={`${round(summary.avgTopAngle, 1)}°`} />
+            <Tile label={t('sum.holds')} value={t('sum.holds_value', { done: summary.setsCompleted, total: summary.sets })} />
           )}
           {!guided && (
-            <Row
+            <Tile
               label={t('sum.movement_score')}
               value={summary.movementScore === null ? '—' : `${round(summary.movementScore, 1)}%`}
+              note={delta(cmp?.scoreDelta, 'base.up', 'base.down')}
+              tone={toneOf(cmp?.scoreDelta)}
             />
           )}
-          {!guided && (
+          {!guided && summary.avgTopAngle !== null && (
+            <Tile
+              label={t('sum.avg_angle')}
+              value={`${round(summary.avgTopAngle, 1)}°`}
+              note={delta(cmp?.rangeDelta, 'base.range_more', 'base.range_less')}
+              tone={toneOf(cmp?.rangeDelta)}
+            />
+          )}
+        </dl>
+        {!guided && (
+          <dl className="mt-4 text-[15px]">
             <Row
               label={topFault ? t('sum.most_common', { fault: faultLabel(t, topFault) }) : t('sum.form')}
               value={recommendationFor(t, topFault)}
             />
-          )}
-        </dl>
+            {summary.fatigue && (
+              <Row
+                label={t('fatigue.title')}
+                value={`${fatigueLine(t, {
+                  level: summary.fatigue.level,
+                  slowerPct: summary.fatigue.slowerPct,
+                  shorterPct: summary.fatigue.shorterPct,
+                  formPoints: summary.fatigue.formPoints,
+                })}${summary.fatigue.level === 'clear' ? ` ${t('fatigue.tip')}` : ''}`}
+              />
+            )}
+          </dl>
+        )}
+        {!guided && (
+          <p className="mt-2 text-xs text-white/70">
+            {base ? t('base.caption') : t('base.first')}
+          </p>
+        )}
 
         <div className="mt-5 rounded-xl bg-white/5 p-4">
           <PainSlider

@@ -89,6 +89,10 @@ export function cuesForEvents(events: EngineEvent[], ctx: CueContext): Cue[] {
           if (config.kind === 'hold' || e.set < e.sets) add(make(key, 1, { set: e.set, sets: e.sets }));
         }
         break;
+      case 'tiring':
+        // Merged with the rep announcement it arrives with, so it is never cut off.
+        add(make('pace_tiring', 1));
+        break;
       case 'sessionComplete':
         add(make(config.cues.onSessionComplete, 1));
         break;

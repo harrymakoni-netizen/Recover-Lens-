@@ -9,6 +9,7 @@ import {
   checkCalibration,
   requiredVisible,
 } from './calibration';
+import { type FatigueSigns, analyseFatigue, tiringInSet } from './fatigue';
 import { FaultDetector, type FaultInput, type FaultRuleId } from './formRules';
 import { type RawMetrics, computeRawMetrics, symmetry, torsoAlignment } from './geometry';
 import { HoldTimer } from './holdTimer';
@@ -41,6 +42,8 @@ export type EngineEvent =
   | { type: 'fault'; id: FaultRuleId }
   | ({ type: 'rep' } & RepResult)
   | { type: 'turnedBackEarly' }
+  /** Reps in this set have clearly slowed or shortened (once per set; the coach suggests pacing). */
+  | { type: 'tiring' }
   | { type: 'setComplete'; set: number; sets: number }
   | { type: 'sessionComplete' }
   | { type: 'paused' }
@@ -133,6 +136,8 @@ export interface SessionSummary {
   topFault: FaultRuleId | null;
   repRecords: RepRecord[];
   holdRecords: HoldRecord[];
+  /** Slower, shorter or lower-scoring reps late in the session; null with fewer than 6 reps. */
+  fatigue: FatigueSigns | null;
 }
 
 const PHASE_LABELS: Record<string, Record<RepState, string>> = {
@@ -213,6 +218,7 @@ export class SessionEngine {
   private prevActive = new Set<FaultRuleId>();
   private extremes = emptyExtremes();
   private readonly repRecords: RepRecord[] = [];
+  private readonly tiringSets = new Set<number>();
   private pendingLanding: { record: RepRecord; until: number } | null = null;
 
   private startMs: number | null = null;
@@ -590,6 +596,13 @@ export class SessionEngine {
             this.pendingLanding = { record, until: tMs + LANDING_WINDOW_MS };
           }
           events.push(e);
+          // Coach a slower pace once per set when the reps clearly tire (not on the set's last rep).
+          if (!this.tiringSets.has(e.set) && e.repNumber < this.targetReps && !this.config.screeningOnly) {
+            if (tiringInSet(counter.results.filter((r) => r.set === e.set))) {
+              this.tiringSets.add(e.set);
+              events.push({ type: 'tiring' });
+            }
+          }
           break;
         }
         case 'setComplete':
@@ -803,6 +816,7 @@ export class SessionEngine {
       topFault,
       repRecords: [...this.repRecords],
       holdRecords: [...this.holdRecords],
+      fatigue: this.counter ? analyseFatigue(this.counter.results) : null,
     };
   }
 }

@@ -7,7 +7,7 @@ import { cn } from '../../lib/format';
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'care';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-teal text-white hover:bg-teal-dark disabled:bg-teal/50',
+  primary: 'btn-brand text-white shadow-sm shadow-teal/20 disabled:opacity-50',
   secondary: 'bg-white text-navy border border-line-strong hover:bg-page disabled:text-navy-soft',
   ghost: 'text-navy hover:bg-navy/5',
   danger: 'bg-alert text-white hover:bg-alert/90',
@@ -24,7 +24,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-[background,box-shadow,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100',
         size === 'sm' && 'min-h-9 px-3 text-sm',
         size === 'md' && 'min-h-11 px-4',
         size === 'lg' && 'min-h-14 px-6 text-lg',
@@ -37,14 +37,22 @@ export function Button({
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('min-w-0 rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5', className)}>{children}</div>;
+  return (
+    <div className={cn('min-w-0 rounded-2xl border border-line/80 bg-white p-4 shadow-[var(--shadow-card)] sm:p-6', className)}>
+      {children}
+    </div>
+  );
 }
 
 export function CardTitle({ icon, children, action }: { icon?: ReactNode; children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="flex items-center gap-2 text-lg font-semibold">
-        {icon && <span className="text-teal" aria-hidden>{icon}</span>}
+      <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+        {icon && (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-teal" aria-hidden>
+            {icon}
+          </span>
+        )}
         {children}
       </h2>
       {action}
@@ -195,9 +203,9 @@ export function PainSlider({
 
 export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: string }) {
   return (
-    <div className="rounded-xl bg-page p-3">
+    <div className="rounded-2xl border border-line/80 bg-white p-4 shadow-[var(--shadow-card)]">
       <div className="text-xs font-medium uppercase tracking-wide text-navy-soft">{label}</div>
-      <div className={cn('mt-1 text-2xl font-semibold tabular-nums', tone)}>{value}</div>
+      <div className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', tone)}>{value}</div>
       {sub && <div className="text-xs text-navy-soft">{sub}</div>}
     </div>
   );

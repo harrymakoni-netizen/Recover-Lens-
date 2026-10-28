@@ -55,7 +55,7 @@ function ManualLog({ patientId }: { patientId: string }) {
 
   return (
     <Card className="mt-6">
-      <CardTitle icon={<ClipboardPen size={20} className="text-care" />}>{t('cg.log_title')}</CardTitle>
+      <CardTitle icon={<ClipboardPen size={18} className="text-care" />}>{t('cg.log_title')}</CardTitle>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t('cg.log_exercise')}>
           <select className={inputClass} value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
@@ -97,7 +97,7 @@ export default function Caregiver() {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-3xl font-semibold">{t('cg.title')}</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t('cg.title')}</h1>
         <span className="rounded-full bg-care px-3 py-1 text-xs font-bold tracking-wider text-white">{t('common.caregiver_mode')}</span>
       </div>
       <p className="mt-1 text-navy-soft">{t('cg.helping', { name: patient?.name ?? t('cg.the_patient') })}</p>
@@ -116,7 +116,7 @@ export default function Caregiver() {
       </div>
 
       <Card className="mt-6 border-care/30">
-        <CardTitle icon={<Play size={20} className="text-care" />}>{t('cg.their_program')}</CardTitle>
+        <CardTitle icon={<Play size={18} className="text-care" />}>{t('cg.their_program')}</CardTitle>
         {programs.length === 0 ? (
           <p className="text-navy-soft">{t('cg.no_program')}</p>
         ) : (

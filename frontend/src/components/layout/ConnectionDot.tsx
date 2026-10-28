@@ -13,7 +13,10 @@ export function ConnectionDot({ className }: { className?: string }) {
       ? t('waiting_to_sync', { n: pending })
       : `${t('offline')}${pending ? ` — ${t('waiting_to_sync', { n: pending })}` : ''}`;
   return (
-    <span className={cn('inline-flex items-center gap-1.5 text-xs text-navy-soft', className)} role="status">
+    <span
+      className={cn('inline-flex min-h-8 items-center gap-1.5 rounded-full border border-line bg-white/80 px-2.5 text-xs text-navy-soft', className)}
+      role="status"
+    >
       <span className={cn('h-2 w-2 rounded-full', synced ? 'bg-emerald-500' : 'bg-gray-400')} aria-hidden />
       {label}
     </span>

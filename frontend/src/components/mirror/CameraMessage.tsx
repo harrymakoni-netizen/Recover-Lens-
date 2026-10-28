@@ -1,6 +1,7 @@
 import { Camera, CameraOff, Film, Lock, ShieldCheck } from 'lucide-react';
 import type { CameraStatus } from '../../hooks/useCamera';
 import { useApp } from '../../lib/appContext';
+import { BrandMark } from '../layout/Brand';
 import { Button } from '../ui';
 
 /** "Chrome / Android: tap …" with the browser name in bold. */
@@ -38,12 +39,15 @@ export function CameraMessage({
   const { t } = useApp();
   const accent = caregiver ? 'text-orange-300' : 'text-good';
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto bg-[#0b0d10] p-4 text-white">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
+    <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto bg-[radial-gradient(800px_400px_at_50%_-10%,#123a5a_0%,#0b0d10_70%)] p-4 text-white">
+      <div className="rise w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl shadow-black/40 backdrop-blur">
         {status === 'intro' || status === 'idle' || status === 'starting' ? (
           <>
-            <div className={`mb-3 text-xs font-semibold tracking-[0.2em] ${accent}`}>
-              {caregiver ? t('common.caregiver_mode') : t('hud.title')}
+            <div className="mb-3 flex items-center gap-2.5">
+              <BrandMark size={28} onDark />
+              <span className={`text-xs font-semibold tracking-[0.2em] ${accent}`}>
+                {caregiver ? t('common.caregiver_mode') : t('hud.title')}
+              </span>
             </div>
             <h1 className="text-2xl font-semibold">{exerciseName}</h1>
             <ol className="mt-4 space-y-2 text-white/85">
@@ -69,7 +73,7 @@ export function CameraMessage({
                 <Camera size={18} className="animate-pulse" /> {t('cam.waiting')}
               </p>
             ) : onFile ? (
-              <label className="mt-5 flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-teal px-6 text-lg font-medium text-white hover:bg-teal-dark">
+              <label className="mt-5 flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 btn-brand rounded-xl px-6 text-lg font-medium text-white">
                 <Film size={20} /> {t('cam.choose_video')}
                 <input
                   type="file"

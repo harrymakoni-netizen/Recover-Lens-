@@ -3,8 +3,16 @@
 // - built assets: cache-first
 // - page navigations: network-first, falling back to the cached app shell
 // - /api: never cached here (the app keeps its own offline queue and data cache)
-const VERSION = 'rl-v1';
-const CORE = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg', '/models/pose_landmarker_lite.task'];
+const VERSION = 'rl-v2';
+const CORE = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/favicon.png',
+  '/brand/mark.webp',
+  '/brand/mark-dark.webp',
+  '/models/pose_landmarker_lite.task',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));

@@ -1,10 +1,14 @@
 {
   "name": "RecoverLens",
   "short_name": "RecoverLens",
-  "description": "AI rehab mirror: live movement coaching in the browser.",
+  "description": "AI rehab mirror: live movement coaching on any phone, in English, chiShona and isiNdebele.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F5F7FA",
-  "theme_color": "#1F2A44",
-  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+  "background_color": "#F3F6F9",
+  "theme_color": "#0B1F3A",
+  "icons": [
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
