@@ -1,6 +1,6 @@
 // Patient detail (SPEC §8.5): score / angle / pain trends (one measure per chart), adherence,
 // session table, edit program.
-import { ArrowLeft, ClipboardList, Pencil, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Download, Pencil, Printer, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { put } from '../api/client';
@@ -8,11 +8,13 @@ import type { Alert, PatientDetail as Detail, Program } from '../api/types';
 import { InsightsCard } from '../components/dashboard/Insights';
 import { ProgramEditor, type ProgramDraft } from '../components/dashboard/ProgramEditor';
 import { TrendChart } from '../components/dashboard/TrendChart';
+import { BrandMark } from '../components/layout/Brand';
 import { Badge, Button, Card, CardTitle, Empty, Skeleton, Stat } from '../components/ui';
 import { getExercise, isLive } from '../exercises';
 import { useApi } from '../hooks/useApi';
 import { exerciseName, formatDate } from '../i18n';
 import { useApp } from '../lib/appContext';
+import { downloadText, sessionsCsv } from '../lib/exportCsv';
 import { cn, round } from '../lib/format';
 import { FatigueBadge, fatigueLine } from '../lib/fatigueText';
 import { faultLabel } from '../lib/sessionRecord';
@@ -85,16 +87,40 @@ export default function PatientDetail() {
 
   return (
     <div>
-      <Link to="/clinician" className="mb-3 inline-flex min-h-11 items-center gap-1 text-navy-soft hover:text-navy">
+      <div className="mb-4 hidden items-center gap-3 border-b border-line pb-3 print:flex">
+        <BrandMark size={32} />
+        <div>
+          <div className="font-bold">{t('pd.report_title')}</div>
+          <div className="text-xs text-navy-soft">{t('pd.report_generated', { date: formatDate(new Date().toISOString(), lang) })}</div>
+        </div>
+      </div>
+      <Link to="/clinician" className="mb-3 inline-flex min-h-11 items-center gap-1 text-navy-soft hover:text-navy print:hidden">
         <ArrowLeft size={18} /> {t('nav.clinician')}
       </Link>
       <div className="flex flex-wrap items-center gap-4">
         <Avatar initials={patient.initials} alert={patient.unresolved_alerts > 0} />
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{patient.name}</h1>
-          <p className="text-navy-soft">
+          <p className="text-navy-soft [overflow-wrap:anywhere]">
             {patient.condition} · {patient.contact || t('pd.no_contact')}
           </p>
+        </div>
+        <div className="flex flex-wrap gap-2 print:hidden">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() =>
+              downloadText(
+                `recoverlens-${patient.id}-${new Date().toISOString().slice(0, 10)}.csv`,
+                sessionsCsv(patient.sessions, (id) => exerciseName(t, id)),
+              )
+            }
+          >
+            <Download size={16} aria-hidden /> {t('pd.export_csv')}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => window.print()}>
+            <Printer size={16} aria-hidden /> {t('pd.print')}
+          </Button>
         </div>
       </div>
 
@@ -106,7 +132,7 @@ export default function PatientDetail() {
       </div>
 
       <div className={cn('mt-6 grid gap-6', patientAlerts.length > 0 && 'lg:grid-cols-2')}>
-        <InsightsCard sessions={patient.sessions} />
+        <InsightsCard sessions={patient.sessions} programs={patient.programs} />
         {patientAlerts.length > 0 && (
           <Card>
             <CardTitle>{t('pd.open_alerts')}</CardTitle>
@@ -140,7 +166,7 @@ export default function PatientDetail() {
         {filtered.length === 0 ? (
           <Empty title={t('pd.awaiting')}>{t('pd.trends_hint')}</Empty>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3 print:grid-cols-3">
             <div>
               <h3 className="text-sm font-medium text-navy-soft">{t('pd.movement_score')}</h3>
               {scoreData.length ? (
@@ -169,14 +195,14 @@ export default function PatientDetail() {
         )}
       </Card>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] print:grid-cols-1">
         <Card>
           <CardTitle icon={<ClipboardList size={18} />}>{t('pd.sessions')}</CardTitle>
           {sessions.length === 0 ? (
             <Empty title={t('pd.awaiting')} />
           ) : (
-            <div className="relative -mx-4 overflow-x-auto sm:-mx-6" role="region" tabIndex={0} aria-label={t('pd.sessions')}>
-              <table className="w-full min-w-[720px] text-sm">
+            <div className="relative -mx-4 overflow-x-auto sm:-mx-6 print:mx-0 print:overflow-visible" role="region" tabIndex={0} aria-label={t('pd.sessions')}>
+              <table className="w-full min-w-[800px] text-sm print:min-w-0 print:text-[10px]">
                 <thead className="text-left text-xs uppercase tracking-wide text-navy-soft">
                   <tr className="border-b border-line">
                     <th className="px-5 py-2 font-medium">{t('pd.col_date')}</th>
@@ -186,6 +212,7 @@ export default function PatientDetail() {
                     <th className="py-2 pl-4 text-right font-medium">{t('pd.col_score')}</th>
                     <th className="py-2 pl-4 text-right font-medium">{t('pd.col_pain')}</th>
                     <th className="py-2 pl-4 font-medium">{t('pd.col_fatigue')}</th>
+                    <th className="py-2 pl-4 text-right font-medium">{t('pd.col_load')}</th>
                     <th className="px-5 py-2 font-medium">{t('pd.col_note')}</th>
                   </tr>
                 </thead>
@@ -219,6 +246,16 @@ export default function PatientDetail() {
                           <span className="text-navy-soft">—</span>
                         )}
                       </td>
+                      <td className="whitespace-nowrap py-2.5 pl-4 text-right tabular-nums">
+                        {s.peak_torque_nm != null ? (
+                          <>
+                            {t('effort.value', { n: Math.round(s.peak_torque_nm) })}
+                            {s.load_kg ? <span className="block text-xs text-navy-soft">{t('load.kg', { n: s.load_kg })}</span> : null}
+                          </>
+                        ) : (
+                          <span className="text-navy-soft">—</span>
+                        )}
+                      </td>
                       <td className="px-5 py-2.5 text-navy-soft">
                         {s.manual ? t('pd.manual') : s.top_fault ? faultLabel(t, s.top_fault) : ''}
                       </td>
@@ -234,7 +271,7 @@ export default function PatientDetail() {
           <CardTitle
             action={
               !editing && (
-                <Button variant="secondary" size="sm" onClick={startEdit}>
+                <Button variant="secondary" size="sm" className="print:hidden" onClick={startEdit}>
                   <Pencil size={14} /> {t('common.edit')}
                 </Button>
               )

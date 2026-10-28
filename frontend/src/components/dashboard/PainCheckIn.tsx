@@ -1,8 +1,9 @@
 // Pain check-in before starting (SPEC §8.1). The only allowed interruption, and it is about
 // safety: high pain shows advice with "Continue anyway" / "Skip today". It never blocks.
-import { AlertTriangle, Play } from 'lucide-react';
+import { AlertTriangle, Play, Weight } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../../lib/appContext';
+import { LOAD_CHOICES } from '../../pose/effort';
 import { cn } from '../../lib/format';
 import { Button, Modal, PainSlider } from '../ui';
 
@@ -12,6 +13,8 @@ export interface CheckInResult {
   confirmedByPatient: boolean;
   /** One arm chosen for a two-arm exercise; undefined = both. */
   side?: 'left' | 'right';
+  /** Weight held in the hand, kg (0 = nothing). */
+  loadKg?: number;
 }
 
 export function PainCheckIn({
@@ -19,6 +22,7 @@ export function PainCheckIn({
   exerciseName,
   caregiver,
   armChoice,
+  loadChoice,
   onStart,
   onClose,
 }: {
@@ -27,6 +31,8 @@ export function PainCheckIn({
   caregiver?: boolean;
   /** Offer Both / Left / Right (shoulder rehab is usually one arm). */
   armChoice?: boolean;
+  /** Ask what is held in the hand (exercises with a joint-load estimate). */
+  loadChoice?: boolean;
   onStart: (r: CheckInResult) => void;
   onClose: () => void;
 }) {
@@ -36,6 +42,7 @@ export function PainCheckIn({
   const [confirmed, setConfirmed] = useState(false);
   const [advise, setAdvise] = useState(false);
   const [arm, setArm] = useState<'both' | 'left' | 'right'>('both');
+  const [load, setLoad] = useState<number>(0);
 
   const close = () => {
     setAdvise(false);
@@ -48,6 +55,7 @@ export function PainCheckIn({
       redFlags: !!redFlags,
       confirmedByPatient: !caregiver || confirmed,
       side: armChoice && arm !== 'both' ? arm : undefined,
+      loadKg: loadChoice ? load : undefined,
     });
 
   const next = () => {
@@ -96,6 +104,29 @@ export function PainCheckIn({
                     )}
                   >
                     {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          {loadChoice && (
+            <fieldset>
+              <legend className="mb-2 flex items-center gap-1.5 text-sm font-medium text-navy-soft">
+                <Weight size={16} aria-hidden /> {caregiver ? t('load.question_cg') : t('load.question')}
+              </legend>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {LOAD_CHOICES.map((kg) => (
+                  <button
+                    key={kg}
+                    type="button"
+                    aria-pressed={load === kg}
+                    onClick={() => setLoad(kg)}
+                    className={cn(
+                      'min-h-12 rounded-xl border px-2 text-sm font-medium',
+                      load === kg ? 'border-teal bg-teal-soft text-teal-dark' : 'border-line bg-white',
+                    )}
+                  >
+                    {kg === 0 ? t('load.none') : kg === 0.5 ? t('load.bottle') : t('load.kg', { n: kg })}
                   </button>
                 ))}
               </div>

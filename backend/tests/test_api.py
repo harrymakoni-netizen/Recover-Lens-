@@ -221,6 +221,14 @@ def test_fatigue_signs_are_stored_and_returned(client):
     assert client.post("/api/sessions", json={**body, "fatigue_level": "exhausted"}).status_code == 422
 
 
+def test_joint_load_is_stored(client):
+    body = session_body(exercise_id="elbow_curl", load_kg=0.5, peak_torque_nm=3.9)
+    assert client.post("/api/sessions", json=body).status_code == 200
+    s = next(x for x in client.get("/api/patients/tariro").json()["sessions"] if x["id"] == body["id"])
+    assert (s["load_kg"], s["peak_torque_nm"]) == (0.5, 3.9)
+    assert client.post("/api/sessions", json={**body, "load_kg": -1}).status_code == 422
+
+
 def test_old_database_gains_new_columns(tmp_path):
     # A sessions table made before the fatigue fields existed must keep working after an upgrade.
     import sqlite3
@@ -252,6 +260,13 @@ def test_old_database_gains_new_columns(tmp_path):
         assert c.post("/api/sessions", json=body).status_code == 200
         s = next(x for x in c.get("/api/patients/tariro").json()["sessions"] if x["id"] == body["id"])
         assert s["fatigue_level"] == "clear"
+
+
+def test_seed_key_protects_the_reset(client, monkeypatch):
+    monkeypatch.setenv("SEED_KEY", "s3cret")
+    assert client.post("/api/seed").status_code == 403
+    assert client.post("/api/seed", headers={"X-Seed-Key": "wrong"}).status_code == 403
+    assert client.post("/api/seed", headers={"X-Seed-Key": "s3cret"}).json() == {"status": "seeded"}
 
 
 def test_seed_endpoint_resets(client):

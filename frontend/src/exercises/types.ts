@@ -1,10 +1,11 @@
 // Exercise configuration (SPEC §4). The pose engine reads these; components never hard-code
 // exercise logic.
 import type { AngleSpec } from '../pose/geometry';
+import type { EffortJoint } from '../pose/effort';
 import type { FaultRuleId } from '../pose/formRules';
 
 export type ExerciseKind = 'reps' | 'hold';
-export type Region = 'shoulder' | 'knee' | 'full_body';
+export type Region = 'shoulder' | 'elbow' | 'knee' | 'full_body';
 
 /**
  * What drives the rep counter. Usually a joint angle; jump landings use how far the hips rise
@@ -65,6 +66,8 @@ export interface ExerciseConfig {
   angleLabel: string;
   /** Hidden from the patient library (used by sports screening only). */
   screeningOnly?: boolean;
+  /** Estimate the load on this joint (pose/effort.ts) and offer a weight choice before starting. */
+  effort?: EffortJoint;
 }
 
 /**

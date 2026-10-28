@@ -33,8 +33,8 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 126 Vitest tests
-cd backend && pytest        # 20 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
+cd frontend && npm test     # 135 Vitest tests
+cd backend && pytest        # 22 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
 The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping, sports screening analysis, and translations: every screen string and voice cue must exist in Shona and Ndebele with the same placeholders. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
@@ -85,9 +85,18 @@ All of this runs on the phone, offline, from the same pose data; video never lea
 - **Fatigue signs from the patient's own reps** (`frontend/src/pose/fatigue.ts`). The first third of a session's reps is compared with the last third: reps slowing (≥ 15 %), less of the target range (≥ 8 %) and a lower form score (≥ 8 points). None, one or two-plus signs read as *none*, *slight* or *clear*. Shown on the summary card, stored with the session, and shown to the clinician. Thresholds are `// TUNE:`.
 - **Adaptive voice coaching.** Within a set, if the latest 3 reps are clearly slower (≥ 25 %) or shorter (≥ 10 %) than the set's first 3, the coach says once per set: "You're slowing down. Take your time, and rest if you need to." It is merged into the rep announcement so it is never cut off, and it never stops the exercise (CLAUDE.md rule 2).
 - **Personal baseline** (`frontend/src/lib/baseline.ts`). The summary compares the session with the average of the same person's last 3 sessions of that exercise: movement score, good-form share and range (a deeper squat counts as more range).
-- **Coach insights** (`frontend/src/lib/insights.ts`), on Home and Patient Detail: movement score and range trends, exercise days in the last week, repeated tiring, a form fault fading or coming back, and pain after exercise. Observations only, never a diagnosis (CLAUDE.md rule 9).
+- **Coach insights** (`frontend/src/lib/insights.ts`), on Home and Patient Detail: movement score and range trends, a **projection** of how many sessions until the clinician's target angle at the current rate (or that it has been reached), exercise days in the last week, repeated tiring, a form fault fading or coming back, and pain after exercise. Observations only, never a diagnosis (CLAUDE.md rule 9).
+- **Joint load** (`frontend/src/pose/effort.ts`): the turning force (N·m) gravity puts on the elbow or shoulder from the limb and anything held, from Winter's body-segment tables for an average adult (70 kg, 1.70 m). Shown on the summary for shoulder abduction, shoulder flexion and the new **elbow curl**, whose check-in asks what is held (nothing, a 500 ml bottle, 1 kg, 2 kg). A static estimate, labelled as one. Checked against OpenSim's elbow torque on a public 8-person curl dataset: the same physics form reached R² 0.85 (leave-one-subject-out) on lab-measured angles.
 
 The backend stores the fatigue fields (`fatigue_level`, `fatigue_slower_pct`, `fatigue_shorter_pct`, `fatigue_form_points`). A database created by an older version gains the new columns automatically on start-up (`add_missing_columns` in `backend/app/db.py`).
+
+## For clinicians and patients
+
+- **Share** a session summary (WhatsApp or clipboard) from the summary card, for patients and caregivers, including fatigue signs and joint load.
+- **Download data (CSV)** and **Print or save as PDF** on Patient Detail: the print view is a clean report with the logo, insights, alerts, trends and the session table.
+- **Privacy** page (`/privacy`, linked from the sidebar and the disclaimer line) in all three languages.
+- **Display and reading** is a floating button, bottom right on every page.
+- **Demo reset protection:** set `SEED_KEY` and `POST /api/seed` then needs an `X-Seed-Key` header with that value.
 
 ## Brand
 

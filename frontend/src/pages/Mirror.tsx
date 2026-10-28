@@ -41,11 +41,12 @@ export default function Mirror() {
   const backTo = caregiver ? '/caregiver' : '/';
   const sideParam = params.get('side');
   const side: 'left' | 'right' | undefined = sideParam === 'left' || sideParam === 'right' ? sideParam : undefined;
+  const loadKg = Math.min(20, Math.max(0, Number(params.get('load')) || 0));
   // A recorded video cannot wait for the 3-2-1 countdown: start counting as soon as the person is in view.
   const fileMode = params.get('source') === 'file';
   const options = useMemo(
-    () => ({ targetReps: reps, sets, side, ...(fileMode ? { countdownMs: 0, calibrationHoldMs: 300 } : {}) }),
-    [reps, sets, side, fileMode],
+    () => ({ targetReps: reps, sets, side, loadKg, ...(fileMode ? { countdownMs: 0, calibrationHoldMs: 300 } : {}) }),
+    [reps, sets, side, loadKg, fileMode],
   );
 
   // Full-screen routes sit outside AppShell, so they name the page themselves (WCAG 2.4.2).

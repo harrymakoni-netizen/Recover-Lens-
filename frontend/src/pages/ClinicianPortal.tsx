@@ -112,7 +112,7 @@ export function AlertsList({ alerts, onResolved, showPatient = true }: { alerts:
           <Button
             variant="secondary"
             size="sm"
-            className="mt-2 w-full"
+            className="mt-2 w-full print:hidden"
             disabled={busy === a.id}
             onClick={async () => {
               setBusy(a.id);

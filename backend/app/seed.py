@@ -8,6 +8,7 @@
 Sessions are spread over the last 21 days with realistic upward trends.
 """
 
+import math
 import random
 import uuid
 from datetime import datetime, timedelta
@@ -132,6 +133,7 @@ def _session(
     patient_id: str, exercise_id: str, when: datetime, reps: int, correct: int, score: Optional[float],
     angle: Optional[float], pain_before: int, pain_after: int, fault: Optional[str] = None, mode: str = "self",
     fatigue: tuple[str, int, int, int] = ("none", 4, 1, 2),
+    load_kg: Optional[float] = None,
 ) -> ExerciseSession:
     return ExerciseSession(
         id=uuid.uuid4().hex,
@@ -154,7 +156,16 @@ def _session(
         fatigue_slower_pct=fatigue[1] if reps >= 6 else None,
         fatigue_shorter_pct=fatigue[2] if reps >= 6 else None,
         fatigue_form_points=fatigue[3] if reps >= 6 else None,
+        load_kg=load_kg,
+        peak_torque_nm=_shoulder_load(angle, load_kg) if load_kg is not None and angle is not None else None,
     )
+
+
+def _shoulder_load(arm_angle: float, load_kg: float) -> float:
+    """Same static estimate as the app (frontend/src/pose/effort.ts) for a 70 kg, 1.70 m adult."""
+    length = 0.332 * 1.7
+    lever = math.sin(math.radians(min(180.0, max(0.0, arm_angle))))
+    return round(9.81 * lever * (0.05 * 70 * 0.53 * length + load_kg * (length + 0.06)), 1)
 
 
 def reset_and_seed(engine: Engine) -> None:
@@ -214,6 +225,7 @@ def reset_and_seed(engine: Engine) -> None:
                     "torso_lean" if k < 0.5 else ("asymmetry" if k < 0.8 else None),
                     mode="caregiver" if i in (3, 8) else "self",
                     fatigue=("slight", 21 - i, 5, 4) if k < 0.35 else ("none", 6, 2, 1),
+                    load_kg=0.5 if k >= 0.7 else 0.0,  # progressed to holding a 500 ml bottle
                 )
             )
         # Liam: 8 knee sessions; pain jumps in the latest one → pain alert.

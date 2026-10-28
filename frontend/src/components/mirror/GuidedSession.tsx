@@ -55,6 +55,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
       repRecords: [],
       holdRecords: [],
       fatigue: null,
+      effort: null,
     });
   };
 

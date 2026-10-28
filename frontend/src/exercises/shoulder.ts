@@ -26,6 +26,7 @@ export const shoulderAbduction: ExerciseConfig = {
   minRepSeconds: 0.8,
   faultRules: ['torso_lean', 'asymmetry', 'elbow_bend', 'not_high_enough'],
   angleLabel: 'Shoulder',
+  effort: 'shoulder',
   cues: {
     intro: 'abd_intro',
     onRaising: 'abd_raising',
@@ -66,6 +67,7 @@ export const shoulderFlexion: ExerciseConfig = {
   minRepSeconds: 1.0,
   faultRules: ['back_arch', 'elbow_bend', 'not_high_enough'],
   angleLabel: 'Shoulder',
+  effort: 'shoulder',
   cues: {
     intro: 'flex_intro',
     onRaising: 'flex_raising',

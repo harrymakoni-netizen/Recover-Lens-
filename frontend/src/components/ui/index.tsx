@@ -38,7 +38,12 @@ export function Button({
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cn('min-w-0 rounded-2xl border border-line/80 bg-white p-4 shadow-[var(--shadow-card)] sm:p-6', className)}>
+    <div
+      className={cn(
+        'min-w-0 rounded-2xl border border-line/80 bg-white p-4 shadow-[var(--shadow-card)] sm:p-6 print:break-inside-avoid print:shadow-none',
+        className,
+      )}
+    >
       {children}
     </div>
   );

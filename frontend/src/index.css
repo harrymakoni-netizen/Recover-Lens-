@@ -40,7 +40,14 @@ body,
 /* Keep a focused control clear of the sticky header and the phone tab bar (WCAG 2.4.11). */
 html {
   scroll-padding-top: 4.5rem;
-  scroll-padding-bottom: 5.5rem;
+  /* Phone tab bar plus the floating Display and reading button. */
+  scroll-padding-bottom: 9.5rem;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-bottom: 6rem;
+  }
 }
 
 /* Display settings (lib/display.ts). Sizes are in rem, so the whole interface scales. */
@@ -200,6 +207,27 @@ textarea {
 
 input[type='range'] {
   accent-color: var(--color-teal);
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  /* Charts were sized for the screen; scale their SVG (it has a viewBox) to the printed column. */
+  .recharts-responsive-container > div,
+  .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .recharts-surface {
+    height: auto !important;
+  }
+
+  @page {
+    margin: 14mm;
+  }
 }
 
 @keyframes rise {

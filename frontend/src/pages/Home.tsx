@@ -39,8 +39,9 @@ export function useStartExercise(caregiver = false) {
       caregiver={caregiver}
       exerciseName={pending ? exerciseName(t, pending.id) : ''}
       armChoice={!!pending && isLive(pending) && pending.region === 'shoulder' && pending.side === 'both'}
+      loadChoice={!!pending && isLive(pending) && !!pending.effort}
       onClose={() => setPending(null)}
-      onStart={({ pain, confirmedByPatient, side }) => {
+      onStart={({ pain, confirmedByPatient, side, loadKg }) => {
         // This click is the user gesture iOS needs before speech is allowed (SPEC §6.1).
         voice.unlock();
         const ex = pending!;
@@ -48,6 +49,7 @@ export function useStartExercise(caregiver = false) {
         const query = new URLSearchParams();
         if (caregiver) query.set('mode', 'caregiver');
         if (side) query.set('side', side);
+        if (loadKg) query.set('load', String(loadKg));
         const qs = query.toString();
         navigate(`/mirror/${ex.id}${qs ? `?${qs}` : ''}`, {
           state: { painBefore: pain, painConfirmed: confirmedByPatient, patientId },
@@ -99,7 +101,7 @@ function ExerciseCard({ ex, onStart, caregiver }: { ex: AnyExercise; onStart: ()
 
 export function ExerciseLibrary({ onStart, caregiver }: { onStart: (id: string) => void; caregiver?: boolean }) {
   const { t } = useApp();
-  const [tab, setTab] = useState<'shoulder' | 'knee'>('shoulder');
+  const [tab, setTab] = useState<'shoulder' | 'elbow' | 'knee'>('shoulder');
   const items = LIBRARY.filter((e) => e.region === tab);
   return (
     <section className="mt-8">
@@ -109,15 +111,15 @@ export function ExerciseLibrary({ onStart, caregiver }: { onStart: (id: string) 
         </span>
         {t('home.exercise_library')}
       </h2>
-      <div role="tablist" className="mb-4 inline-grid grid-cols-2 rounded-xl bg-navy/5 p-1">
-        {(['shoulder', 'knee'] as const).map((r) => (
+      <div role="tablist" className="mb-4 inline-grid grid-cols-3 rounded-xl bg-navy/5 p-1">
+        {(['shoulder', 'elbow', 'knee'] as const).map((r) => (
           <button
             key={r}
             role="tab"
             type="button"
             aria-selected={tab === r}
             onClick={() => setTab(r)}
-            className={cn('min-h-10 rounded-lg px-6 text-sm font-medium', tab === r ? 'bg-white shadow-sm' : 'text-navy-soft')}
+            className={cn('min-h-10 rounded-lg px-4 text-sm font-medium sm:px-6', tab === r ? 'bg-white shadow-sm' : 'text-navy-soft')}
           >
             {t(`home.${r}`)}
           </button>
@@ -243,7 +245,7 @@ export default function Home() {
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <InsightsCard sessions={sessions} />
+        <InsightsCard sessions={sessions} programs={programs} />
         <Card>
           <CardTitle icon={<TrendingUp size={18} />}>{t('home.recovery_progress')}</CardTitle>
           <div className="space-y-4">

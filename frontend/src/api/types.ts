@@ -54,6 +54,9 @@ export interface SessionRecord {
   fatigue_slower_pct?: number | null;
   fatigue_shorter_pct?: number | null;
   fatigue_form_points?: number | null;
+  /** Weight held in the hand (kg) and the joint-load estimate (pose/effort.ts), N·m. */
+  load_kg?: number | null;
+  peak_torque_nm?: number | null;
 }
 
 export interface PatientDetail extends Patient {

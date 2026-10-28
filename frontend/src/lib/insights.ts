@@ -1,12 +1,12 @@
 // Coach insights: short, plain findings worked out on the device from a person's session history.
 // Observational wording only (CLAUDE.md rule 9). Rendered by components/dashboard/Insights.tsx.
-import type { SessionRecord } from '../api/types';
+import type { Program, SessionRecord } from '../api/types';
 import { smallerAngleIsMoreRange } from './baseline';
 
 export type InsightTone = 'review' | 'good' | 'neutral';
 
 export interface Insight {
-  id: 'score' | 'range' | 'days' | 'fatigue' | 'form' | 'pain';
+  id: 'score' | 'range' | 'target' | 'days' | 'fatigue' | 'form' | 'pain';
   tone: InsightTone;
   /** Translation key, e.g. "ins.score_up". */
   key: string;
@@ -18,8 +18,53 @@ const DAY_MS = 86_400_000;
 const ORDER: Record<InsightTone, number> = { review: 0, good: 1, neutral: 2 };
 const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
 
+/** Least-squares slope of y against 0, 1, 2… (change per session). */
+function slope(y: number[]): number {
+  const n = y.length;
+  const mx = (n - 1) / 2;
+  const my = mean(y);
+  let num = 0;
+  let den = 0;
+  y.forEach((v, i) => {
+    num += (i - mx) * (v - my);
+    den += (i - mx) ** 2;
+  });
+  return den ? num / den : 0;
+}
+
+/**
+ * Projection towards the clinician's target angle: reached, or roughly how many more sessions at
+ * the current rate of progress. Only when the trend is clearly improving; labelled as a projection.
+ */
+function projection(camera: SessionRecord[], programs: readonly Program[]): Insight | null {
+  for (const p of programs) {
+    if (!p.active || p.target_angle === null) continue;
+    const list = camera.filter((s) => s.exercise_id === p.exercise_id && s.avg_top_angle !== null).slice(0, 8).reverse();
+    if (list.length < 4) continue;
+    const sign = smallerAngleIsMoreRange(p.exercise_id) ? -1 : 1;
+    const y = list.map((s) => sign * s.avg_top_angle!); // larger = more range
+    const current = mean(y.slice(-2));
+    const target = sign * p.target_angle;
+    const vars = { exerciseId: p.exercise_id, target: p.target_angle };
+    if (current >= target) return { id: 'target', tone: 'good', key: 'ins.target_reached', vars };
+    const rate = slope(y);
+    if (rate >= MIN_PROGRESS_PER_SESSION) {
+      const n = Math.ceil((target - current) / rate);
+      if (n <= MAX_PROJECTED_SESSIONS) return { id: 'target', tone: 'neutral', key: 'ins.target_eta', vars: { ...vars, n } };
+    }
+  }
+  return null;
+}
+
+const MIN_PROGRESS_PER_SESSION = 0.3; // degrees; slower than this is too flat to project
+const MAX_PROJECTED_SESSIONS = 40;
+
 /** Newest first; at most one insight per topic, findings that need a look first. */
-export function buildInsights(sessions: readonly SessionRecord[], now = Date.now()): Insight[] {
+export function buildInsights(
+  sessions: readonly SessionRecord[],
+  now = Date.now(),
+  programs: readonly Program[] = [],
+): Insight[] {
   const all = [...sessions].sort((a, b) => b.started_at.localeCompare(a.started_at));
   const camera = all.filter((s) => !s.manual);
   const out: Insight[] = [];
@@ -54,6 +99,9 @@ export function buildInsights(sessions: readonly SessionRecord[], now = Date.now
       else if (d <= -5) out.push({ id: 'range', tone: 'review', key: 'ins.range_down', vars: { ...vars, n: -d } });
     }
   }
+
+  const target = projection(camera, programs);
+  if (target) out.push(target);
 
   // Consistency: days with at least one session in the last 7 days.
   if (all.length) {

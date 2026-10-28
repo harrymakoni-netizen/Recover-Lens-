@@ -189,6 +189,17 @@ export function SessionSummaryCard({
               tone={toneOf(cmp?.rangeDelta)}
             />
           )}
+          {!guided && summary.effort && (
+            <Tile
+              label={t('effort.title')}
+              value={t('effort.value', { n: Math.round(summary.effort.peakNm) })}
+              note={
+                summary.effort.loadKg > 0
+                  ? t('effort.with_load', { n: summary.effort.loadKg })
+                  : t('effort.no_load')
+              }
+            />
+          )}
         </dl>
         {!guided && (
           <dl className="mt-4 text-[15px]">
@@ -212,6 +223,7 @@ export function SessionSummaryCard({
         {!guided && (
           <p className="mt-2 text-xs text-white/70">
             {base ? t('base.caption') : t('base.first')}
+            {summary.effort && ` ${t('effort.explain')}`}
           </p>
         )}
 
@@ -255,11 +267,9 @@ export function SessionSummaryCard({
           >
             {saved ? <Check size={20} /> : null} {saved ? t('sum.saved_done') : t('common.save')}
           </Button>
-          {caregiver && (
-            <Button variant="secondary" size="lg" onClick={share}>
-              <Share2 size={18} /> {t('sum.share')}
-            </Button>
-          )}
+          <Button variant="secondary" size="lg" onClick={share}>
+            <Share2 size={18} /> {t('sum.share')}
+          </Button>
         </div>
         {shareState && <p className="mt-2 text-sm text-white/70">{shareState}</p>}
       </div>

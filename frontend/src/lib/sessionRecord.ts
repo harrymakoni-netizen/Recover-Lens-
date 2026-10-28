@@ -1,6 +1,7 @@
 import type { SessionMode, SessionRecord } from '../api/types';
 import type { T } from '../i18n';
 import type { SessionSummary } from '../pose/sessionEngine';
+import { fatigueLine } from './fatigueText';
 
 /** Short name of a form fault ("Torso leaning"), in the UI language. */
 export function faultLabel(t: T, fault: string): string {
@@ -50,6 +51,8 @@ export function buildSessionRecord(args: {
     fatigue_slower_pct: s.fatigue?.slowerPct ?? null,
     fatigue_shorter_pct: s.fatigue?.shorterPct ?? null,
     fatigue_form_points: s.fatigue?.formPoints ?? null,
+    load_kg: s.effort ? s.effort.loadKg : null,
+    peak_torque_nm: s.effort ? r(s.effort.peakNm) : null,
   };
 }
 
@@ -64,6 +67,19 @@ export function shareText(t: T, record: SessionRecord, exerciseName: string, pat
   if (record.pain_after !== null) {
     lines.push(t(record.pain_confirmed_by_patient ? 'share.pain' : 'share.pain_cg', { pain: record.pain_after }));
   }
+  if (record.fatigue_level) {
+    lines.push(
+      t('share.fatigue', {
+        line: fatigueLine(t, {
+          level: record.fatigue_level,
+          slowerPct: record.fatigue_slower_pct,
+          shorterPct: record.fatigue_shorter_pct,
+          formPoints: record.fatigue_form_points,
+        }),
+      }),
+    );
+  }
+  if (record.peak_torque_nm != null) lines.push(t('share.load', { n: Math.round(record.peak_torque_nm) }));
   if (record.top_fault) lines.push(t('share.focus', { fault: faultLabel(t, record.top_fault) }));
   return lines.join('\n');
 }

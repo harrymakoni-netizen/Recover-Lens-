@@ -1,5 +1,5 @@
 // "Display and reading" settings for people with low vision (WCAG 2.2): text size and contrast.
-import { Eye, Volume2 } from 'lucide-react';
+import { Accessibility, Volume2 } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../../lib/appContext';
 import type { TextSize } from '../../lib/display';
@@ -12,6 +12,10 @@ const SIZES: Array<{ value: TextSize; label: string; sample: string }> = [
   { value: 'xl', label: 'a11y.size_xl', sample: 'text-xl' },
 ];
 
+/**
+ * Floating "Display and reading" button, always in the same place on every page: bottom right,
+ * above the phone tab bar. Round on phones, a labelled pill on wider screens.
+ */
 export function DisplaySettingsButton({ className }: { className?: string }) {
   const { t } = useApp();
   const [open, setOpen] = useState(false);
@@ -19,15 +23,17 @@ export function DisplaySettingsButton({ className }: { className?: string }) {
     <>
       <button
         type="button"
+        aria-haspopup="dialog"
         onClick={() => setOpen(true)}
         className={cn(
-          'inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-line-strong bg-white px-2.5 text-sm text-navy hover:bg-page',
+          'bg-brand-gradient fixed right-4 z-40 inline-flex h-14 min-w-14 items-center justify-center gap-2 rounded-full px-4 text-white shadow-[var(--shadow-lift)] ring-2 ring-white transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100',
+          'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-6 md:right-6 print:hidden',
           className,
         )}
       >
-        <Eye size={18} aria-hidden />
-        <span className="hidden sm:inline">{t('a11y.display')}</span>
-        <span className="sr-only sm:hidden">{t('a11y.display')}</span>
+        <Accessibility size={24} aria-hidden />
+        <span className="hidden font-medium md:inline">{t('a11y.display')}</span>
+        <span className="sr-only md:hidden">{t('a11y.display')}</span>
       </button>
       <DisplaySettingsDialog open={open} onClose={() => setOpen(false)} />
     </>

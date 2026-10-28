@@ -66,6 +66,8 @@ class SessionIn(BaseModel):
     fatigue_slower_pct: Optional[int] = Field(default=None, ge=0, le=1000)
     fatigue_shorter_pct: Optional[int] = Field(default=None, ge=0, le=100)
     fatigue_form_points: Optional[int] = Field(default=None, ge=0, le=100)
+    load_kg: Optional[float] = Field(default=None, ge=0, le=50)
+    peak_torque_nm: Optional[float] = Field(default=None, ge=0, le=500)
 
 
 class ScreeningIn(BaseModel):
@@ -113,6 +115,8 @@ def session_out(s: ExerciseSession) -> dict[str, Any]:
         "fatigue_slower_pct": s.fatigue_slower_pct,
         "fatigue_shorter_pct": s.fatigue_shorter_pct,
         "fatigue_form_points": s.fatigue_form_points,
+        "load_kg": s.load_kg,
+        "peak_torque_nm": s.peak_torque_nm,
     }
 
 

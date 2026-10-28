@@ -150,6 +150,32 @@ describe('shoulder abduction session', () => {
     expect(fatigue.slowerPct).toBeGreaterThan(40);
   });
 
+  it('counts elbow curls and estimates a higher joint load with a weight in the hand', () => {
+    const run = (loadKg: number) => {
+      const d = make('elbow_curl', { targetReps: 3, sets: 1, loadKg });
+      const down = { armL: 5, armR: 5, elbowBend: 0 };
+      const up = { armL: 5, armR: 5, elbowBend: 110 };
+      d.calibrate(down);
+      for (let i = 0; i < 3; i++) {
+        d.move(down, up, 1);
+        d.frames(up, 0.3);
+        d.move(up, down, 1);
+        d.frames(down, 0.4);
+      }
+      return d;
+    };
+    const empty = run(0);
+    const bottle = run(0.5);
+    expect(empty.count('rep')).toBe(3);
+    const a = empty.engine.summary().effort!;
+    const b = bottle.engine.summary().effort!;
+    expect(a.joint).toBe('elbow');
+    expect(a.peakNm).toBeGreaterThan(1.5);
+    expect(b.loadKg).toBe(0.5);
+    expect(b.peakNm - a.peakNm).toBeGreaterThan(1);
+    expect(empty.engine.summary().repRecords[0].peakTorque).not.toBeNull();
+  });
+
   it('reads ~90° when the arms are horizontal', () => {
     const d = make('shoulder_abduction');
     d.calibrate({ armL: 80, armR: 80 });

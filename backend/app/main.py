@@ -1,5 +1,6 @@
 """RecoverLens API (SPEC §9). Run: uvicorn app.main:app --reload --port 8000"""
 
+import hmac
 import os
 from typing import Any, Optional
 
@@ -39,9 +40,13 @@ def create_app(database_url: Optional[str] = None, seed: bool = True) -> FastAPI
 
     @api.post("/seed")
     def reseed(request: Request) -> dict[str, Any]:
-        """Dev only: reset demo data. Disabled when ENABLE_SEED_ENDPOINT=false."""
+        """Reset demo data. Disabled when ENABLE_SEED_ENDPOINT=false; when SEED_KEY is set, the
+        request must carry it in an X-Seed-Key header, so only the presenter can reset a demo."""
         if os.environ.get("ENABLE_SEED_ENDPOINT", "true").lower() == "false":
             raise HTTPException(403, "Seeding is disabled")
+        key = os.environ.get("SEED_KEY")
+        if key and not hmac.compare_digest(request.headers.get("x-seed-key", ""), key):
+            raise HTTPException(403, "A valid X-Seed-Key header is required")
         reset_and_seed(request.app.state.engine)
         return {"status": "seeded"}
 

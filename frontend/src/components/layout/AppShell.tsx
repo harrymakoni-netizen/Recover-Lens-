@@ -1,7 +1,7 @@
 // Sidebar on ≥768 px, fixed bottom tab bar below (SPEC §7.1).
 import { Dumbbell, HeartHandshake, House, ShieldCheck, Stethoscope, UsersRound } from 'lucide-react';
 import { type ReactNode, type RefObject, Suspense, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import type { Patient } from '../../api/types';
 import { useApi } from '../../hooks/useApi';
 import { LANGUAGES, useApp } from '../../lib/appContext';
@@ -94,7 +94,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         {t('a11y.skip')}
       </a>
       {/* Desktop sidebar */}
-      <aside className="bg-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col text-white md:flex">
+      <aside className="bg-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col text-white md:flex print:hidden">
         <div className="px-5 pb-5 pt-6">
           <Logo onDark size={40} />
           <p className="mt-2.5 text-[0.625rem] font-medium uppercase tracking-[0.14em] text-white/70">{t('brand.tagline')}</p>
@@ -122,22 +122,26 @@ export function AppShell({ children }: { children?: ReactNode }) {
             </NavLink>
           ))}
         </nav>
-        <div className="mx-3 mb-3 flex items-start gap-2.5 rounded-xl bg-white/5 p-3 text-xs leading-snug text-white/80">
+        <Link
+          to="/privacy"
+          className="mx-3 mb-3 flex items-start gap-2.5 rounded-xl bg-white/5 p-3 text-xs leading-snug text-white/80 transition-colors hover:bg-white/10"
+        >
           <ShieldCheck size={18} className="mt-0.5 shrink-0 text-mint" aria-hidden />
-          <span>{t('brand.private')}</span>
-        </div>
+          <span>
+            {t('brand.private')} <span className="font-semibold text-white underline underline-offset-2">{t('priv.link')}</span>
+          </span>
+        </Link>
         <UserPanel />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header (connection dot; logo + language on phones) */}
-        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:border-none md:bg-transparent md:px-8 md:pt-2 md:backdrop-blur-none">
+        <header className="sticky top-0 z-30 flex print:hidden min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:border-none md:bg-transparent md:px-8 md:pt-2 md:backdrop-blur-none">
           <div className="md:hidden">
             <Logo size={26} compact />
           </div>
           <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
             <ConnectionDot />
-            <DisplaySettingsButton />
             <select
               aria-label={t('language')}
               className="min-h-10 rounded-lg border border-line-strong bg-white px-2 text-sm md:hidden"
@@ -156,7 +160,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
           id="main"
           ref={main}
           tabIndex={-1}
-          className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-4 focus:outline-none md:px-8 md:pb-10"
+          className="mx-auto w-full max-w-6xl flex-1 px-4 pb-40 pt-4 focus:outline-none md:px-8 md:pb-28 print:max-w-none print:p-0"
         >{children ?? (
             <Suspense fallback={<div className="skeleton h-40 w-full" />}>
               <Outlet />
@@ -165,10 +169,12 @@ export function AppShell({ children }: { children?: ReactNode }) {
         </main>
       </div>
 
+      <DisplaySettingsButton />
+
       {/* Mobile bottom tabs */}
       <nav
         aria-label={t('nav.main')}
-        className="pb-safe fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white/95 shadow-[0_-8px_24px_-16px_rgb(11_31_58/0.25)] backdrop-blur md:hidden"
+        className="pb-safe fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 print:hidden border-t border-line bg-white/95 shadow-[0_-8px_24px_-16px_rgb(11_31_58/0.25)] backdrop-blur md:hidden"
       >
         {NAV.map(({ to, icon: Icon, short, end }) => (
           <NavLink

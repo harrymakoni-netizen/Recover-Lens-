@@ -1,7 +1,7 @@
 // Coach insights card (lib/insights.ts): plain findings from the person's own sessions.
 import { CircleCheck, Eye, Info, Sparkles } from 'lucide-react';
 import { useMemo } from 'react';
-import type { SessionRecord } from '../../api/types';
+import type { Program, SessionRecord } from '../../api/types';
 import { exerciseName } from '../../i18n';
 import { useApp } from '../../lib/appContext';
 import { cn } from '../../lib/format';
@@ -27,9 +27,20 @@ export function useInsightText() {
   };
 }
 
-export function InsightsCard({ sessions, className, max = 4 }: { sessions: SessionRecord[]; className?: string; max?: number }) {
+export function InsightsCard({
+  sessions,
+  programs,
+  className,
+  max = 4,
+}: {
+  sessions: SessionRecord[];
+  /** Active programmes with target angles, for the progress projection. */
+  programs?: Program[];
+  className?: string;
+  max?: number;
+}) {
   const { t } = useApp();
-  const items = useMemo(() => buildInsights(sessions).slice(0, max), [sessions, max]);
+  const items = useMemo(() => buildInsights(sessions, Date.now(), programs).slice(0, max), [sessions, programs, max]);
   const text = useInsightText();
   return (
     <Card className={className}>

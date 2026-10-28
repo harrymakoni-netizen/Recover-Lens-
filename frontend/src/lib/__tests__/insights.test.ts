@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { SessionRecord } from '../../api/types';
+import type { Program, SessionRecord } from '../../api/types';
 import { compareWithBaseline, personalBaseline } from '../baseline';
 import { buildInsights } from '../insights';
 
@@ -76,6 +76,23 @@ describe('coach insights', () => {
     expect(find(buildInsights(fading, NOW), 'form')).toMatchObject({ tone: 'good', key: 'ins.fault_less', vars: { faultId: 'torso_lean' } });
     const back = [1, 2, 3, 4].map((d) => s(d, { top_fault: 'knee_valgus' }));
     expect(find(buildInsights(back, NOW), 'form')).toMatchObject({ tone: 'review', key: 'ins.fault_often', vars: { faultId: 'knee_valgus', n: 2, count: 2 } });
+  });
+
+  it('projects how many sessions to the target angle, or says it is reached', () => {
+    const program = (target: number, exercise_id = 'shoulder_abduction'): Program => ({
+      id: 'p', patient_id: 'p', exercise_id, sets: 3, reps: 10, target_angle: target, active: true,
+    });
+    const rising = [6, 5, 4, 3, 2, 1].map((d, i) => s(d, { avg_top_angle: 70 + i * 2 }));
+    // Latest two average 79°, rising 2° a session: 90° is about 6 sessions away.
+    expect(find(buildInsights(rising, NOW, [program(90)]), 'target')).toMatchObject({
+      tone: 'neutral', key: 'ins.target_eta', vars: { exerciseId: 'shoulder_abduction', target: 90, n: 6 },
+    });
+    expect(find(buildInsights(rising, NOW, [program(75)]), 'target')).toMatchObject({ tone: 'good', key: 'ins.target_reached' });
+    // A flat trend is not projected.
+    expect(find(buildInsights([4, 3, 2, 1].map((d) => s(d, { avg_top_angle: 80 })), NOW, [program(90)]), 'target')).toBeUndefined();
+    // Squats: a smaller knee angle is deeper, so 134° has reached a 135° target.
+    const squats = [4, 3, 2, 1].map((d, i) => s(d, { exercise_id: 'mini_squat', avg_top_angle: 142 - i * 3 }));
+    expect(find(buildInsights(squats, NOW, [program(135, 'mini_squat')]), 'target')).toMatchObject({ key: 'ins.target_reached' });
   });
 
   it('flags rising pain, and lists findings that need a look first', () => {

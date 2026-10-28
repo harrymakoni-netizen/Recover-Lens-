@@ -61,6 +61,9 @@ class ExerciseSession(SQLModel, table=True):
     fatigue_slower_pct: Optional[int] = None
     fatigue_shorter_pct: Optional[int] = None
     fatigue_form_points: Optional[int] = None
+    # Weight held in the hand and the joint-load estimate (frontend pose/effort.ts), N·m.
+    load_kg: Optional[float] = None
+    peak_torque_nm: Optional[float] = None
 
 
 class Athlete(SQLModel, table=True):

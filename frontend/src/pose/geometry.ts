@@ -47,6 +47,14 @@ export function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));
 }
 
+/** Direction of the segment from `from` to `to`, measured from straight down (image y), 0..180. */
+export function angleFromDown(from: Point, to: Point): number {
+  const v = { x: to.x - from.x, y: to.y - from.y };
+  const mag = Math.hypot(v.x, v.y);
+  if (mag === 0) return 0;
+  return (Math.acos(clamp(v.y / mag, -1, 1)) * 180) / Math.PI;
+}
+
 /** Angle between midHip→midShoulder and straight up (0, -1), in degrees. */
 export function torsoLean(midHip: Point, midShoulder: Point): number {
   const v = { x: midShoulder.x - midHip.x, y: midShoulder.y - midHip.y };
@@ -162,6 +170,12 @@ export interface RawMetrics {
    * in pixels. Negative = shoulders behind hips (back arch).
    */
   shoulderForward: number | null;
+  /** Elbow → wrist, degrees from hanging straight down (joint-load estimate). */
+  forearmDownL: number | null;
+  forearmDownR: number | null;
+  /** Shoulder → wrist, degrees from hanging straight down. */
+  armDownL: number | null;
+  armDownR: number | null;
 }
 
 /**
@@ -218,6 +232,11 @@ export function computeRawMetrics(
     bodyHeight = Math.abs(midAnkle.y - p(LM.NOSE).y);
   }
 
+  const fromDown = (side: Side, proximal: 'shoulder' | 'elbow'): number | null => {
+    const s = SIDE_LANDMARKS[side];
+    return vis(s[proximal], s.wrist) ? angleFromDown(p(s[proximal]), p(s.wrist)) : null;
+  };
+
   let shoulderForward: number | null = null;
   if (midHip && midShoulder && vis(LM.NOSE)) {
     const facing = Math.sign(p(LM.NOSE).x - midShoulder.x) || 1;
@@ -244,5 +263,9 @@ export function computeRawMetrics(
     ankleLY: vis(LM.L_ANKLE) ? p(LM.L_ANKLE).y : null,
     ankleRY: vis(LM.R_ANKLE) ? p(LM.R_ANKLE).y : null,
     shoulderForward,
+    forearmDownL: fromDown('left', 'elbow'),
+    forearmDownR: fromDown('right', 'elbow'),
+    armDownL: fromDown('left', 'shoulder'),
+    armDownR: fromDown('right', 'shoulder'),
   };
 }

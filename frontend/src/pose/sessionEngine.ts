@@ -9,6 +9,7 @@ import {
   checkCalibration,
   requiredVisible,
 } from './calibration';
+import { type EffortSummary, jointTorque, summariseEffort } from './effort';
 import { type FatigueSigns, analyseFatigue, tiringInSet } from './fatigue';
 import { FaultDetector, type FaultInput, type FaultRuleId } from './formRules';
 import { type RawMetrics, computeRawMetrics, symmetry, torsoAlignment } from './geometry';
@@ -31,6 +32,8 @@ export interface EngineOptions {
   calibrationHoldMs?: number;
   /** Landmarks missing this long during a set pauses counting (SPEC §5.1). */
   pauseAfterMs?: number;
+  /** Weight held in the hand (kg), for the joint-load estimate. */
+  loadKg?: number;
 }
 
 export type EngineEvent =
@@ -65,6 +68,8 @@ export interface RepRecord extends RepResult {
   maxHipDrop: number | null;
   /** Jump landing: smallest knee angle in the 0.6 s after landing. */
   landingKneeMin: number | null;
+  /** Highest joint-load estimate during the rep, N·m (exercises with `effort`). */
+  peakTorque: number | null;
 }
 
 export interface HoldRecord {
@@ -138,6 +143,8 @@ export interface SessionSummary {
   holdRecords: HoldRecord[];
   /** Slower, shorter or lower-scoring reps late in the session; null with fewer than 6 reps. */
   fatigue: FatigueSigns | null;
+  /** Joint-load estimate for exercises that have one (pose/effort.ts). */
+  effort: EffortSummary | null;
 }
 
 const PHASE_LABELS: Record<string, Record<RepState, string>> = {
@@ -145,6 +152,7 @@ const PHASE_LABELS: Record<string, Record<RepState, string>> = {
   knee_down: { READY: 'READY', RAISING: 'BENDING', AT_TOP: 'HOLD', LOWERING: 'STANDING UP' },
   sit_to_stand: { READY: 'READY', RAISING: 'STANDING UP', AT_TOP: 'HOLD', LOWERING: 'SITTING DOWN' },
   jump: { READY: 'READY', RAISING: 'JUMPING', AT_TOP: 'IN THE AIR', LOWERING: 'LANDING' },
+  curl: { READY: 'READY', RAISING: 'LIFTING', AT_TOP: 'HOLD', LOWERING: 'LOWERING' },
 };
 
 const STANCE_LIFT_FRACTION = 0.05; // TUNE: lifted ankle must be this far (of body height) above the other
@@ -170,11 +178,13 @@ interface Extremes {
   minKneeL: number | null;
   minKneeR: number | null;
   maxHipDrop: number | null;
+  /** Highest joint-load estimate during the rep, N·m. */
+  peakTorque: number | null;
 }
 
 const emptyExtremes = (): Extremes => ({
   maxValgusL: null, maxValgusR: null, maxTorsoLean: null, maxHeelRise: null,
-  minSymmetry: null, minKneeL: null, minKneeR: null, maxHipDrop: null,
+  minSymmetry: null, minKneeL: null, minKneeR: null, maxHipDrop: null, peakTorque: null,
 });
 
 const maxN = (a: number | null, b: number | null) => (b === null ? a : a === null ? b : Math.max(a, b));
@@ -295,9 +305,9 @@ export class SessionEngine {
       if (landmarks && !this.opts.side) this.pickAutoSide(landmarks);
       const s = SIDE_LANDMARKS[this.autoSide];
       req.push(s.shoulder, s.hip, s.knee, s.ankle);
-      if (this.config.primaryAngle && 'joint' in this.config.primaryAngle && this.config.primaryAngle.joint === 'shoulder') {
-        req.push(s.elbow);
-      }
+      const joint = this.config.primaryAngle && 'joint' in this.config.primaryAngle ? this.config.primaryAngle.joint : null;
+      if (joint === 'shoulder') req.push(s.elbow);
+      if (joint === 'elbow') req.push(s.elbow, s.wrist);
     }
     return [...new Set(req)];
   }
@@ -461,7 +471,7 @@ export class SessionEngine {
     const keys: MetricKey[] = [
       'shoulderL', 'shoulderR', 'elbowL', 'elbowR', 'kneeL', 'kneeR', 'torsoLean', 'valgusL', 'valgusR',
       'hipDrop', 'midHipX', 'midHipY', 'hipWidth', 'bodyHeight', 'heelLY', 'heelRY', 'ankleLY', 'ankleRY',
-      'shoulderForward',
+      'shoulderForward', 'forearmDownL', 'forearmDownR', 'armDownL', 'armDownR',
     ];
     for (const k of keys) out[k] = this.smooth.update(k, raw ? raw[k] : null, this.dtMs);
     return out;
@@ -746,12 +756,26 @@ export class SessionEngine {
     e.minKneeL = minN(e.minKneeL, m.kneeL);
     e.minKneeR = minN(e.minKneeR, m.kneeR);
     e.maxHipDrop = maxN(e.maxHipDrop, m.hipDrop);
+    e.peakTorque = maxN(e.peakTorque, this.jointLoad(m));
     const bodyH = b?.bodyHeight;
     if (bodyH) {
       const rise = (base: number | null | undefined, now: number | null) =>
         base == null || now === null ? null : (base - now) / bodyH;
       e.maxHeelRise = maxN(e.maxHeelRise, maxN(rise(b?.heelLY, m.heelLY), rise(b?.heelRY, m.heelRY)));
     }
+  }
+
+  /** Joint-load estimate for this frame (tracked arm, or the mean of both arms), N·m. */
+  private jointLoad(m: Record<MetricKey, number | null>): number | null {
+    const joint = this.config.effort;
+    if (!joint) return null;
+    const key = joint === 'elbow' ? 'forearmDown' : 'armDown';
+    const sides: Side[] = this.config.side === 'both' && !this.opts.side ? ['left', 'right'] : [this.side ?? 'left'];
+    const loads = sides.flatMap((s) => {
+      const a = m[`${key}${s === 'left' ? 'L' : 'R'}` as MetricKey];
+      return a === null ? [] : [jointTorque(joint, a, this.opts.loadKg ?? 0)];
+    });
+    return loads.length ? loads.reduce((x, y) => x + y, 0) / loads.length : null;
   }
 
   private statusLabel(): string {
@@ -772,7 +796,9 @@ export class SessionEngine {
           ? PHASE_LABELS.sit_to_stand
           : id === 'jump_landing'
             ? PHASE_LABELS.jump
-            : this.config.targetAngle < this.config.startAngle
+            : this.config.primaryAngle && 'joint' in this.config.primaryAngle && this.config.primaryAngle.joint === 'elbow'
+              ? PHASE_LABELS.curl
+              : this.config.targetAngle < this.config.startAngle
               ? PHASE_LABELS.knee_down
               : PHASE_LABELS.default;
       return labels[this.counter.state];
@@ -817,6 +843,9 @@ export class SessionEngine {
       repRecords: [...this.repRecords],
       holdRecords: [...this.holdRecords],
       fatigue: this.counter ? analyseFatigue(this.counter.results) : null,
+      effort: this.config.effort
+        ? summariseEffort(this.repRecords.map((r) => r.peakTorque), this.config.effort, this.opts.loadKg ?? 0)
+        : null,
     };
   }
 }

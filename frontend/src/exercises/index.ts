@@ -1,3 +1,4 @@
+import { elbowCurl } from './elbow';
 import { kneeGuided, miniSquat, singleLegBalance, sitToStand } from './knee';
 import { jumpLanding, singleLegSquat, squatScreen } from './screening';
 import { shoulderAbduction, shoulderFlexion, shoulderGuided } from './shoulder';
@@ -10,6 +11,7 @@ export const EXERCISES: AnyExercise[] = [
   shoulderAbduction,
   shoulderFlexion,
   ...shoulderGuided,
+  elbowCurl,
   miniSquat,
   sitToStand,
   singleLegBalance,
