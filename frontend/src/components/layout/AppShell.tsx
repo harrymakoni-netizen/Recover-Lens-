@@ -1,5 +1,5 @@
 // Sidebar on ≥768 px, fixed bottom tab bar below (SPEC §7.1).
-import { Dumbbell, HeartHandshake, House, ShieldCheck, Stethoscope, UsersRound } from 'lucide-react';
+import { Dumbbell, HeartHandshake, House, Languages, ShieldCheck, Stethoscope, UserRound, UsersRound } from 'lucide-react';
 import { type ReactNode, type RefObject, Suspense, useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import type { Patient } from '../../api/types';
@@ -19,20 +19,19 @@ const NAV = [
   { to: '/coach', icon: UsersRound, label: 'nav.coach', short: 'nav.coach_short' },
 ];
 
-const darkSelect = 'mt-1 block min-h-10 w-full rounded-lg border border-white/20 bg-white px-2 text-sm text-navy';
+const headerSelect =
+  'min-h-10 max-w-[9.5rem] truncate rounded-lg border border-line-strong bg-white px-2 text-sm text-navy sm:max-w-[13rem]';
 
-function UserPanel() {
+/** Viewing as + language, always in the top bar so they are visible without scrolling. */
+function HeaderControls() {
   const { lang, setLang, t, patientId, setPatientId } = useApp();
   const { data: patients } = useApi<Patient[]>('/patients', { poll: false });
   return (
-    <div className="space-y-3 border-t border-white/10 p-4">
-      <label className="block text-xs text-white/75">
-        {t('viewing_as')}
-        <select
-          className={darkSelect}
-          value={patientId}
-          onChange={(e) => setPatientId(e.target.value)}
-        >
+    <div className="flex flex-wrap items-center gap-2">
+      <label className="flex items-center gap-2 text-xs font-medium text-navy-soft">
+        <UserRound size={16} aria-hidden className="shrink-0 sm:hidden" />
+        <span className="hidden sm:inline">{t('viewing_as')}</span>
+        <select aria-label={t('viewing_as')} className={headerSelect} value={patientId} onChange={(e) => setPatientId(e.target.value)}>
           {(patients ?? [{ id: patientId, name: t('common.patient') } as Patient]).map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -40,13 +39,10 @@ function UserPanel() {
           ))}
         </select>
       </label>
-      <label className="block text-xs text-white/75">
-        {t('language')}
-        <select
-          className={darkSelect}
-          value={lang}
-          onChange={(e) => setLang(e.target.value as Lang)}
-        >
+      <label className="flex items-center gap-2 text-xs font-medium text-navy-soft">
+        <Languages size={16} aria-hidden className="shrink-0 sm:hidden" />
+        <span className="hidden sm:inline">{t('language')}</span>
+        <select aria-label={t('language')} className={headerSelect} value={lang} onChange={(e) => setLang(e.target.value as Lang)}>
           {LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>
               {l.label}
@@ -82,7 +78,7 @@ function usePageTitleAndFocus(main: RefObject<HTMLElement | null>) {
 }
 
 export function AppShell({ children }: { children?: ReactNode }) {
-  const { t, lang, setLang } = useApp();
+  const { t } = useApp();
   const main = useRef<HTMLElement | null>(null);
   usePageTitleAndFocus(main);
   return (
@@ -131,29 +127,19 @@ export function AppShell({ children }: { children?: ReactNode }) {
             {t('brand.private')} <span className="font-semibold text-white underline underline-offset-2">{t('priv.link')}</span>
           </span>
         </Link>
-        <UserPanel />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Header (connection dot; logo + language on phones) */}
-        <header className="sticky top-0 z-30 flex print:hidden min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-white/90 px-4 backdrop-blur md:border-none md:bg-transparent md:px-8 md:pt-2 md:backdrop-blur-none">
-          <div className="md:hidden">
-            <Logo size={26} compact />
-          </div>
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
+        {/* Header: logo on phones, connection, viewing as and language on every screen */}
+        <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line bg-white/90 px-4 py-2 backdrop-blur md:px-8 print:hidden">
+          <div className="flex items-center gap-3 md:ml-auto">
+            <span className="md:hidden">
+              <Logo size={26} compact />
+            </span>
             <ConnectionDot />
-            <select
-              aria-label={t('language')}
-              className="min-h-10 rounded-lg border border-line-strong bg-white px-2 text-sm md:hidden"
-              value={lang}
-              onChange={(e) => setLang(e.target.value as Lang)}
-            >
-              {LANGUAGES.map((l) => (
-                <option key={l.code} value={l.code}>
-                  {l.code.toUpperCase()}
-                </option>
-              ))}
-            </select>
+          </div>
+          <div className="ml-auto md:ml-0">
+            <HeaderControls />
           </div>
         </header>
         <main

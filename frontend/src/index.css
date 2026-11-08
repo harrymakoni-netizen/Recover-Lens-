@@ -39,13 +39,15 @@ body,
 
 /* Keep a focused control clear of the sticky header and the phone tab bar (WCAG 2.4.11). */
 html {
-  scroll-padding-top: 4.5rem;
+  /* The phone header has two rows: logo and status, then viewing as and language. */
+  scroll-padding-top: 7rem;
   /* Phone tab bar plus the floating Display and reading button. */
   scroll-padding-bottom: 9.5rem;
 }
 
 @media (min-width: 768px) {
   html {
+    scroll-padding-top: 4.5rem;
     scroll-padding-bottom: 6rem;
   }
 }
