@@ -185,3 +185,41 @@ def plan_prompt(extraction: dict[str, Any], library: list[dict[str, Any]], minut
         ensure_ascii=False,
     )
     return system, user
+
+
+# --- Re-engagement message -----------------------------------------------------------------
+
+NUDGES = ["gentle", "small_step", "progress", "social"]
+
+MESSAGE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {"message": {"type": "string"}},
+    "required": ["message"],
+    "additionalProperties": False,
+}
+
+MESSAGE_STYLES = {
+    "gentle": "Reassure them that missing a few days is normal and that coming back is what counts.",
+    "small_step": "Invite them to try one very small session today, just a few minutes.",
+    "progress": "Remind them that their progress is kept, using the numbers given (active days in the last 4 weeks, total active days).",
+    "social": "Suggest doing today's session with a family member or helper nearby.",
+}
+
+MESSAGE_SYSTEM = """You write one short message to welcome someone back to their home rehabilitation exercises after a few days away. Return only JSON that matches the schema.
+
+Rules:
+- Write in {language}. At most two short sentences and 220 characters.
+- Speak to the person as "you". Warm and plain. No names, no emoji.
+- Never blame, never use guilt or pressure, never mention a "streak", never say they failed or fell behind.
+- Never diagnose or promise a medical result.
+- Style: {style}
+- If a barrier is given, acknowledge it kindly in a few words."""
+
+
+def message_prompt(language: str, nudge: str, barrier: str | None, days_since: int, active_days_28: int, total_active_days: int) -> tuple[str, str]:
+    system = MESSAGE_SYSTEM.replace("{language}", LANGUAGES.get(language, "English")).replace("{style}", MESSAGE_STYLES.get(nudge, MESSAGE_STYLES["gentle"]))
+    user = json.dumps(
+        {"daysSinceLastSession": days_since, "activeDaysLast4Weeks": active_days_28, "totalActiveDays": total_active_days, "barrier": barrier},
+        ensure_ascii=False,
+    )
+    return system, user

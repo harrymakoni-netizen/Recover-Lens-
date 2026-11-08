@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PatientDetail, SessionRecord } from '../api/types';
 import { CoachCheckIn } from '../components/coach/CoachCheckIn';
+import { ComebackCard } from '../components/coach/ComebackCard';
 import { InsightsCard } from '../components/dashboard/Insights';
 import { PainCheckIn } from '../components/dashboard/PainCheckIn';
 import { ScoreRing } from '../components/dashboard/ScoreRing';
@@ -11,12 +12,13 @@ import { Sparkline } from '../components/dashboard/TrendChart';
 import { Disclaimer } from '../components/layout/Disclaimer';
 import { Badge, Button, Card, CardTitle, Empty } from '../components/ui';
 import { type AnyExercise, LIBRARY, getExercise, isLive } from '../exercises';
-import { libraryFor } from '../coach';
+import { type Barrier, lapseStatus, libraryFor } from '../coach';
 import { useApi } from '../hooks/useApi';
 import { useLocalSessions, useMerged } from '../hooks/useLocalData';
 import { loadPoseLandmarker } from '../hooks/usePoseLandmarker';
 import { type T, exerciseDescription, exerciseName, formatDate } from '../i18n';
 import { useApp } from '../lib/appContext';
+import { readCoachChoice } from '../lib/coachPrefs';
 import { cn, round } from '../lib/format';
 import { FatigueBadge } from '../lib/fatigueText';
 import { voice } from '../voice/voiceEngine';
@@ -64,9 +66,11 @@ export function useStartExercise(caregiver = false) {
 
 /** "3 sets × 10 reps" or "3 sets × 30s hold" for an exercise plan. */
 export function planText(t: T, ex: AnyExercise | undefined, sets: number, reps: number): string {
-  return ex && isLive(ex) && ex.kind === 'hold'
-    ? t('plan.sets_hold', { sets, seconds: ex.holdSeconds ?? 0 })
-    : t('plan.sets_reps', { sets, reps });
+  if (ex && isLive(ex) && ex.kind === 'hold') {
+    const seconds = ex.holdSeconds ?? 0;
+    return sets === 1 ? t('plan.one_set_hold', { seconds }) : t('plan.sets_hold', { sets, seconds });
+  }
+  return sets === 1 ? t('plan.one_set_reps', { reps }) : t('plan.sets_reps', { sets, reps });
 }
 
 function ExerciseCard({ ex, onStart, caregiver }: { ex: AnyExercise; onStart: () => void; caregiver?: boolean }) {
@@ -151,6 +155,20 @@ export default function Home() {
   const firstName = patient?.name.split(' ')[0];
   const programs = patient?.programs.filter((p) => p.active) ?? [];
   const coachLibrary = useMemo(() => libraryFor(programs), [patient]); // eslint-disable-line react-hooks/exhaustive-deps
+  const sessionTimes = useMemo(() => sessions.map((s) => s.started_at), [sessions]);
+  const lapse = useMemo(() => lapseStatus(sessionTimes, programs.length > 0), [sessionTimes, programs.length]);
+  const aiAllowed = patient?.coach_ai_allowed !== false;
+  const [preset, setPreset] = useState<Barrier | null>(null);
+  const dismissKey = `rl.coach.comebackDismissed.${patientId}`;
+  const [dismissTick, setDismissTick] = useState(0);
+  const comebackDismissed = useMemo(() => {
+    try {
+      return localStorage.getItem(dismissKey) === new Date().toDateString();
+    } catch {
+      return false;
+    }
+  }, [dismissKey, dismissTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setPreset(null), [patientId]);
   const score = scoreOf(sessions);
   const spark = sessions
     .filter((s) => s.movement_score !== null)
@@ -249,8 +267,34 @@ export default function Home() {
         </p>
       )}
 
-      <div className="mt-6">
+      {lapse.state === 'lapsed' && !comebackDismissed && (
+        <div className="mt-6">
+          <ComebackCard
+            key={patientId}
+            status={lapse}
+            sessionTimes={sessionTimes}
+            useAi={aiAllowed && readCoachChoice() === 'ai'}
+            onBarrier={(b) => {
+              setPreset(b);
+              document.getElementById('todays-checkin')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            onDismiss={() => {
+              try {
+                localStorage.setItem(dismissKey, new Date().toDateString());
+              } catch {
+                // per visit only
+              }
+              setDismissTick((n) => n + 1);
+            }}
+          />
+        </div>
+      )}
+
+      <div id="todays-checkin" className="mt-6">
         <CoachCheckIn
+          key={patientId}
+          preset={preset}
+          aiAllowed={aiAllowed}
           library={coachLibrary}
           onUsualProgramme={() => {
             const h = document.getElementById('todays-program');

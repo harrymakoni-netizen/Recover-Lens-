@@ -5,7 +5,7 @@ import { collectRedFlags } from './redFlags';
 import { redact } from './redact';
 import { rulesPlan } from './rulesPlan';
 import { parseExtraction, parsePlan } from './schema';
-import type { BodyArea, CheckIn, Extraction, RedFlag } from './types';
+import type { BodyArea, CheckIn, Extraction, RedFlag, Technique } from './types';
 import { EMPTY_EXTRACTION } from './types';
 import { validatePlan, type Validated } from './validator';
 
@@ -38,7 +38,7 @@ export type CoachOutcome =
 
 /** What the one-tap answers already say, before any model call. */
 export function chipExtraction(c: CheckIn): Extraction {
-  return { ...EMPTY_EXTRACTION, painLevel: c.pain, energy: c.energy, minutesAvailable: c.minutes };
+  return { ...EMPTY_EXTRACTION, painLevel: c.pain, energy: c.energy, minutesAvailable: c.minutes, barriers: c.barriers ?? [] };
 }
 
 /**
@@ -61,20 +61,24 @@ export function mergeExtraction(chips: Extraction, model: Extraction): Extractio
 
 export async function runCheckIn(
   checkIn: CheckIn,
-  opts: { library: readonly LibraryEntry[]; language: CoachLanguage; useAi: boolean; deps: CoachDeps },
+  opts: {
+    library: readonly LibraryEntry[];
+    language: CoachLanguage;
+    useAi: boolean;
+    deps: CoachDeps;
+    /** Technique a rules-only plan names (the comeback leans on the barrier's technique). */
+    technique?: Technique;
+  },
 ): Promise<CoachOutcome> {
   const first = collectRedFlags(checkIn);
   if (first.length) return { kind: 'red_flag', flags: first };
 
   const chips = chipExtraction(checkIn);
-  const rules = (extraction: Extraction, fallback: boolean): CoachOutcome => ({
-    kind: 'plan',
-    result: rulesPlan(opts.library, extraction, [], checkIn.minutes),
-    extraction,
-    source: 'rules',
-    model: null,
-    fallback,
-  });
+  const rules = (extraction: Extraction, fallback: boolean): CoachOutcome => {
+    const result = rulesPlan(opts.library, extraction, [], checkIn.minutes);
+    if (opts.technique) result.plan.technique = opts.technique;
+    return { kind: 'plan', result, extraction, source: 'rules', model: null, fallback };
+  };
   if (!opts.useAi || opts.library.length === 0) return rules(chips, false);
 
   let extraction = chips;

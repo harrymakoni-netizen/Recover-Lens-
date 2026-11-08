@@ -23,6 +23,8 @@ class Patient(SQLModel, table=True):
     condition: str
     clinician_id: str = Field(foreign_key="clinician.id")
     created_at: datetime = Field(default_factory=utcnow)
+    # Set by the physiotherapist (SPEC §17.3). None or True: the AI coach may be used; False: rules only.
+    coach_ai_allowed: Optional[bool] = None
 
 
 class Program(SQLModel, table=True):

@@ -3,6 +3,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlmodel import Session, col, select
 
 from ..alerts import adherence, check_adherence
@@ -43,6 +44,7 @@ def _summary(db: Session, p: Patient, check_alerts: bool = False) -> dict[str, A
         "last_session_at": iso(last),
         "session_count": len(sessions),
         "programs": [program_out(pr) for pr in programs],
+        "coach_ai_allowed": p.coach_ai_allowed is not False,
         "_sessions": sessions,
     }
 
@@ -113,5 +115,21 @@ def replace_programs(patient_id: str, body: ProgramsIn, db: Session = Depends(ge
         old.active = False
         db.add(old)
     _add_programs(db, patient_id, body.programs)
+    db.commit()
+    return get_patient(patient_id, db)
+
+
+class CoachSettingsIn(BaseModel):
+    ai_allowed: bool
+
+
+@router.put("/{patient_id}/coach")
+def set_coach(patient_id: str, body: CoachSettingsIn, db: Session = Depends(get_db)) -> dict[str, Any]:
+    """The physiotherapist turns the AI coach on or off for this patient (SPEC §17.3)."""
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(404, "Patient not found")
+    patient.coach_ai_allowed = body.ai_allowed
+    db.add(patient)
     db.commit()
     return get_patient(patient_id, db)

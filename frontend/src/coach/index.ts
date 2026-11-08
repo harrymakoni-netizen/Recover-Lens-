@@ -6,3 +6,6 @@ export * from './schema';
 export * from './validator';
 export * from './rulesPlan';
 export * from './flow';
+export * from './lapse';
+export * from './bandit';
+export * from './comeback';

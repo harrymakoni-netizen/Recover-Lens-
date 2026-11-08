@@ -5,6 +5,8 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { coachDeps } from '../../api/coach';
 import {
+  ADAPTATIONS,
+  type Barrier,
   type CheckIn,
   type CoachOutcome,
   type Energy,
@@ -55,7 +57,19 @@ function Chip({ pressed, onClick, children }: { pressed: boolean; onClick: () =>
   );
 }
 
-export function CoachCheckIn({ library, onUsualProgramme }: { library: LibraryEntry[]; onUsualProgramme: () => void }) {
+export function CoachCheckIn({
+  library,
+  onUsualProgramme,
+  preset = null,
+  aiAllowed = true,
+}: {
+  library: LibraryEntry[];
+  onUsualProgramme: () => void;
+  /** Barrier from the comeback card: a smaller session, recorded with the check-in. */
+  preset?: Barrier | null;
+  /** False when the physiotherapist has switched the AI coach off for this patient. */
+  aiAllowed?: boolean;
+}) {
   const { t, lang, patientId } = useApp();
   const navigate = useNavigate();
   const ids = { text: useId(), hint: useId(), result: useId() };
@@ -72,7 +86,15 @@ export function CoachCheckIn({ library, onUsualProgramme }: { library: LibraryEn
   const [outcome, setOutcome] = useState<CoachOutcome | null>(saved?.outcome ?? null);
   const [outcomePain, setOutcomePain] = useState(saved?.pain ?? 2);
 
-  const useAi = choice === 'ai';
+  const useAi = choice === 'ai' && aiAllowed;
+
+  useEffect(() => {
+    if (!preset) return;
+    setMinutes(ADAPTATIONS[preset].minutes);
+    setEnergy(ADAPTATIONS[preset].energy);
+    setOutcome(null);
+    setRedFlag(null);
+  }, [preset]);
   const sent = redact(text);
 
   useEffect(() => {
@@ -90,10 +112,16 @@ export function CoachCheckIn({ library, onUsualProgramme }: { library: LibraryEn
       setOutcome({ kind: 'red_flag', flags: [] });
       return;
     }
-    const checkIn: CheckIn = { text, pain, redFlags: [], minutes, energy };
+    const checkIn: CheckIn = { text, pain, redFlags: [], minutes, energy, barriers: preset ? [preset] : undefined };
     setBusy(true);
     try {
-      const out = await runCheckIn(checkIn, { library, language: lang, useAi, deps: coachDeps(patientId ?? undefined) });
+      const out = await runCheckIn(checkIn, {
+        library,
+        language: lang,
+        useAi,
+        deps: coachDeps(patientId ?? undefined),
+        technique: preset ? ADAPTATIONS[preset].technique : undefined,
+      });
       setOutcome(out);
       setOutcomePain(pain);
       if (out.kind === 'plan') {
@@ -120,7 +148,9 @@ export function CoachCheckIn({ library, onUsualProgramme }: { library: LibraryEn
     });
   };
 
-  const aiToggle = choice && (
+  const aiToggle = !aiAllowed ? (
+    <span className="text-xs text-navy-soft">{t('checkin.ai_off_by_physio')}</span>
+  ) : choice && (
     <button
       type="button"
       role="switch"
@@ -141,7 +171,7 @@ export function CoachCheckIn({ library, onUsualProgramme }: { library: LibraryEn
         {t('checkin.title')}
       </CardTitle>
 
-      {!choice ? (
+      {!choice && aiAllowed ? (
         <div className="rounded-2xl bg-teal-soft/60 p-4">
           <h3 className="font-semibold text-navy">{t('checkin.consent_title')}</h3>
           <p className="mt-1 text-sm text-navy-soft">{t('checkin.consent_body')}</p>
@@ -168,6 +198,7 @@ export function CoachCheckIn({ library, onUsualProgramme }: { library: LibraryEn
         />
       ) : (
         <div className="space-y-5">
+          {preset && <Badge tone="teal">{t('comeback.preset', { barrier: t(`comeback.barrier.${preset}`) })}</Badge>}
           <p className="text-sm text-navy-soft">{t('checkin.subtitle')}</p>
           <div>
             <label htmlFor={ids.text} className="mb-1.5 block text-sm font-medium text-navy-soft">
@@ -296,7 +327,9 @@ function Result({
         <h3 id={headingId} ref={headingRef} tabIndex={-1} className="font-semibold text-navy">
           {t('checkin.plan_title')}
         </h3>
-        {items.length > 0 && <Badge tone="teal">{t('checkin.plan_minutes', { n: result.minutes })}</Badge>}
+        {items.length > 0 && (
+          <Badge tone="teal">{result.minutes <= 1 ? t('checkin.plan_minute') : t('checkin.plan_minutes', { n: result.minutes })}</Badge>
+        )}
       </div>
       {why && <p className="mt-2 text-navy-soft">{why}</p>}
 
@@ -309,7 +342,13 @@ function Result({
               <div className="min-w-0">
                 <div className="font-medium">{name(it.exerciseId)}</div>
                 <div className="text-sm text-navy-soft">
-                  {it.holdSeconds ? t('plan.sets_hold', { sets: it.sets, seconds: it.holdSeconds }) : t('plan.sets_reps', { sets: it.sets, reps: it.reps })}
+                  {it.holdSeconds
+                    ? it.sets === 1
+                      ? t('plan.one_set_hold', { seconds: it.holdSeconds })
+                      : t('plan.sets_hold', { sets: it.sets, seconds: it.holdSeconds })
+                    : it.sets === 1
+                      ? t('plan.one_set_reps', { reps: it.reps })
+                      : t('plan.sets_reps', { sets: it.sets, reps: it.reps })}
                 </div>
               </div>
               <Button size="sm" onClick={() => onStart(it)}>

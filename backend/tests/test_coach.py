@@ -143,3 +143,55 @@ def test_status_reports_configuration_and_the_last_call_without_the_key(client, 
     assert "secret-value" not in str(body)
     monkeypatch.delenv("GEMINI_API_KEY")
     assert client.get("/api/coach/status").json()["configured"] is False
+
+
+def test_message_uses_the_nudge_style_and_language_and_logs(client, monkeypatch):
+    seen = {}
+
+    def fake(system, user, name, schema):
+        seen.update(system=system, user=user, name=name)
+        return {"message": "Welcome back. Your progress is still here."}, "stub"
+
+    monkeypatch.setattr(coach, "call_model", fake)
+    r = client.post("/api/coach/message", json={"language": "sn", "nudge": "progress", "barrier": "time", "days_since": 4, "active_days_28": 9, "total_active_days": 31, "patient_id": "tariro"})
+    assert r.status_code == 200
+    assert r.json() == {"message": "Welcome back. Your progress is still here.", "model": "stub"}
+    assert "chiShona" in seen["system"] and "progress is kept" in seen["system"]
+    assert '"barrier": "time"' in seen["user"] and '"totalActiveDays": 31' in seen["user"]
+    assert "streak" in seen["system"]  # the rule against streak language is in the prompt
+    (ev,) = events(client)
+    assert ev.kind == "message" and ev.patient_id == "tariro"
+
+
+def test_message_validates_input_and_falls_back(client, monkeypatch):
+    assert client.post("/api/coach/message", json={"days_since": -1}).status_code == 422
+    assert client.post("/api/coach/message", json={"days_since": 3, "nudge": "guilt"}).status_code == 422
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    r = client.post("/api/coach/message", json={"days_since": 3})
+    assert r.status_code == 503 and r.json()["detail"]["fallback"] == "rules"
+
+
+def test_physio_can_turn_the_ai_coach_off_and_see_the_audit_log(tmp_path, monkeypatch):
+    from app.seed import reset_and_seed
+
+    app = create_app(f"sqlite:///{tmp_path / 'seeded.db'}", seed=False)
+    reset_and_seed(app.state.engine)
+    calls = []
+    monkeypatch.setattr(coach, "call_model", lambda *a: calls.append(a) or ({"message": "Welcome back."}, "stub"))
+    with TestClient(app) as c:
+        assert c.get("/api/patients/tariro").json()["coach_ai_allowed"] is True
+        assert c.post("/api/coach/message", json={"patient_id": "tariro", "days_since": 3}).status_code == 200
+        r = c.put("/api/patients/tariro/coach", json={"ai_allowed": False})
+        assert r.status_code == 200 and r.json()["coach_ai_allowed"] is False
+        for path, body in [
+            ("/api/coach/extract", {"patient_id": "tariro", "text": "tired"}),
+            ("/api/coach/plan", {"patient_id": "tariro", "extraction": {}, "library": LIBRARY}),
+            ("/api/coach/message", {"patient_id": "tariro", "days_since": 3}),
+        ]:
+            res = c.post(path, json=body)
+            assert res.status_code == 403 and res.json()["detail"]["fallback"] == "rules"
+        assert len(calls) == 1
+        log = c.get("/api/coach/events", params={"patient_id": "tariro"}).json()
+        assert [e["kind"] for e in log] == ["message"] and log[0]["output"] == {"message": "Welcome back."}
+        assert c.get("/api/coach/events", params={"patient_id": "nobody"}).json() == []
+        assert c.put("/api/patients/nobody/coach", json={"ai_allowed": False}).status_code == 404

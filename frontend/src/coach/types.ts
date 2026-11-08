@@ -25,6 +25,8 @@ export interface CheckIn {
   redFlags: RedFlag[];
   minutes: number | null;
   energy: Energy | null;
+  /** What got in the way, from the comeback's one-tap barrier question. */
+  barriers?: Barrier[];
 }
 
 /** Structured facts from the check-in text (model output after parseExtraction). */

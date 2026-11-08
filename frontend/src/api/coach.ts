@@ -1,5 +1,5 @@
 // Adaptive coach API (SPEC §17). Answers are proposals: coach/flow.ts validates them.
-import type { CoachDeps, CoachLanguage, PlanRequest } from '../coach';
+import type { CoachDeps, CoachLanguage, MessageRequest, PlanRequest } from '../coach';
 import { api } from './client';
 
 // The server tries several models within 9 s; allow for the network on top of that.
@@ -24,4 +24,9 @@ export function coachDeps(patientId?: string): CoachDeps {
         COACH_TIMEOUT_MS,
       ),
   };
+}
+
+export function sendComebackMessage(patientId?: string) {
+  return (body: MessageRequest) =>
+    api<{ message: unknown; model: string }>('/coach/message', { method: 'POST', body: JSON.stringify({ ...body, patient_id: patientId }) }, COACH_TIMEOUT_MS);
 }

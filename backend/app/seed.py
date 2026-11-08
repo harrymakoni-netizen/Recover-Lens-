@@ -196,6 +196,11 @@ def reset_and_seed(engine: Engine) -> None:
                 condition="Sports return-to-play (ankle sprain)", clinician_id="dr-demo",
                 created_at=at(21),
             ),
+            Patient(
+                id="tendai", name="Tendai Sibanda", contact="+263 78 220 4117",
+                condition="Knee osteoarthritis (home exercise programme)", clinician_id="dr-demo",
+                created_at=at(26),
+            ),
         ]
         for p in patients:
             db.add(p)
@@ -206,6 +211,8 @@ def reset_and_seed(engine: Engine) -> None:
             Program(id="prog-liam-squat", patient_id="liam", exercise_id="mini_squat", sets=3, reps=10, target_angle=135),
             Program(id="prog-amina-squat", patient_id="amina", exercise_id="mini_squat", sets=3, reps=12, target_angle=135),
             Program(id="prog-amina-balance", patient_id="amina", exercise_id="single_leg_balance", sets=2, reps=1, target_angle=None),
+            Program(id="prog-tendai-sts", patient_id="tendai", exercise_id="sit_to_stand", sets=2, reps=8, target_angle=None),
+            Program(id="prog-tendai-squat", patient_id="tendai", exercise_id="mini_squat", sets=2, reps=10, target_angle=135),
         ]
         for pr in programs:
             db.add(pr)
@@ -257,6 +264,20 @@ def reset_and_seed(engine: Engine) -> None:
             sessions.append(
                 _session("amina", "mini_squat", at(d, 7), 36, 28, round(76 + rng.uniform(-1, 1), 1), 136, 2, 2)
             )
+
+        # Tendai: three steady weeks, then nothing for 4 days: the comeback card's demo (SPEC §17.5).
+        tendai_days = [24, 22, 21, 19, 17, 16, 14, 12, 11, 9, 7, 4]
+        for i, d in enumerate(tendai_days):
+            k = i / (len(tendai_days) - 1)
+            sessions.append(
+                _session("tendai", "sit_to_stand", at(d, 18), 16, round(11 + 4 * k), round(72 + 10 * k + rng.uniform(-1, 1), 1),
+                         round(150 + 8 * k, 1), 3 if k < 0.5 else 2, 3 if k < 0.5 else 2)
+            )
+            if i % 2 == 0:
+                sessions.append(
+                    _session("tendai", "mini_squat", at(d, 18), 20, round(13 + 5 * k), round(70 + 9 * k + rng.uniform(-1, 1), 1),
+                             round(141 - 4 * k, 1), 3, 3, "knee_valgus" if k < 0.4 else None)
+                )
 
         # Insert in time order, running the alert check like the real API does.
         for s in sorted(sessions, key=lambda x: x.started_at):

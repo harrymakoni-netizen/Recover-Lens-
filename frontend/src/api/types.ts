@@ -26,6 +26,21 @@ export interface Patient {
   last_session_at: string | null;
   session_count: number;
   programs: Program[];
+  /** False when the physiotherapist has switched the AI coach off (SPEC §17.3). */
+  coach_ai_allowed?: boolean;
+}
+
+/** One entry of the coach audit log (SPEC §17.3). */
+export interface CoachEvent {
+  id: string;
+  kind: 'extract' | 'plan' | 'message';
+  created_at: string;
+  model: string | null;
+  ok: boolean;
+  latency_ms: number;
+  input: Record<string, unknown> | null;
+  output: unknown;
+  error: string | null;
 }
 
 export type SessionMode = 'self' | 'caregiver';

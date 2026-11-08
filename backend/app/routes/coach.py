@@ -10,7 +10,7 @@ from sqlmodel import Session, col, select
 
 from .. import coach
 from ..db import get_db
-from ..models import CoachEvent
+from ..models import CoachEvent, Patient
 
 router = APIRouter(prefix="/coach", tags=["coach"])
 
@@ -71,6 +71,33 @@ def _log(db: Session, kind: str, patient_id: Optional[str], started: float, inp:
     db.commit()
 
 
+class MessageIn(BaseModel):
+    patient_id: Optional[str] = Field(None, max_length=64)
+    language: Language = "en"
+    nudge: Literal["gentle", "small_step", "progress", "social"] = "gentle"
+    barrier: Optional[Barrier] = None
+    days_since: int = Field(ge=0, le=3650)
+    active_days_28: int = Field(0, ge=0, le=28)
+    total_active_days: int = Field(0, ge=0, le=100000)
+
+
+@router.post("/message")
+def message(body: MessageIn, db: Session = Depends(get_db)) -> dict[str, Any]:
+    """A short, blame-free welcome-back message. The browser checks its length and falls back to a
+    translated template when the model is unavailable."""
+    _check_allowed(db, body.patient_id)
+    started = time.monotonic()
+    system, user = coach.message_prompt(body.language, body.nudge, body.barrier, body.days_since, body.active_days_28, body.total_active_days)
+    inp = body.model_dump(exclude={"patient_id"})
+    try:
+        out, model = coach.call_model(system, user, "comeback_message", coach.MESSAGE_SCHEMA)
+    except coach.CoachUnavailable as exc:
+        _log(db, "message", body.patient_id, started, inp, None, None, str(exc))
+        raise _unavailable(str(exc)) from exc
+    _log(db, "message", body.patient_id, started, inp, out, model, None)
+    return {"message": out.get("message", "") if isinstance(out, dict) else "", "model": model}
+
+
 @router.get("/status")
 def status(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Whether the model is configured and how the last call went. Makes no model call and never
@@ -85,12 +112,43 @@ def status(db: Session = Depends(get_db)) -> dict[str, Any]:
     }
 
 
+def _check_allowed(db: Session, patient_id: Optional[str]) -> None:
+    """A physiotherapist can switch the AI coach off for a patient; then no model is called."""
+    if patient_id:
+        patient = db.get(Patient, patient_id)
+        if patient and patient.coach_ai_allowed is False:
+            raise HTTPException(403, {"error": "The AI coach is turned off for this patient", "fallback": "rules"})
+
+
+@router.get("/events")
+def list_events(patient_id: str, limit: int = 20, db: Session = Depends(get_db)) -> list[dict[str, Any]]:
+    """The audit log for one patient, newest first, for the clinician (SPEC §17.3)."""
+    rows = db.exec(
+        select(CoachEvent).where(CoachEvent.patient_id == patient_id).order_by(col(CoachEvent.created_at).desc()).limit(max(1, min(limit, 50)))
+    ).all()
+    return [
+        {
+            "id": e.id,
+            "kind": e.kind,
+            "created_at": e.created_at.isoformat().replace("+00:00", "Z") if e.created_at.tzinfo else e.created_at.isoformat() + "Z",
+            "model": e.model,
+            "ok": e.ok,
+            "latency_ms": e.latency_ms,
+            "input": e.input_json,
+            "output": e.output_json,
+            "error": e.error,
+        }
+        for e in rows
+    ]
+
+
 def _unavailable(reason: str) -> HTTPException:
     return HTTPException(503, {"error": "The coach model is unavailable", "reason": reason, "fallback": "rules"})
 
 
 @router.post("/extract")
 def extract(body: ExtractIn, db: Session = Depends(get_db)) -> dict[str, Any]:
+    _check_allowed(db, body.patient_id)
     started = time.monotonic()
     text = coach.redact(body.text)
     system, user = coach.extraction_prompt(text, body.language)
@@ -109,6 +167,7 @@ def plan(body: PlanIn, db: Session = Depends(get_db)) -> dict[str, Any]:
     # Defence in depth: the browser never asks for a plan after a red flag, and neither does this.
     if body.extraction.redFlags:
         raise HTTPException(409, {"error": "A red flag was reported; no plan is made", "red_flag": True})
+    _check_allowed(db, body.patient_id)
     started = time.monotonic()
     extraction = body.extraction.model_dump()
     library = [item.model_dump(exclude_none=True) for item in body.library]
