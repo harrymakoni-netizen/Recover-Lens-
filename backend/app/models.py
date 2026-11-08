@@ -90,3 +90,21 @@ class Alert(SQLModel, table=True):
     message: str
     created_at: datetime = Field(default_factory=utcnow)
     resolved: bool = False
+
+
+class CoachEvent(SQLModel, table=True):
+    """Audit log of every coach model call (SPEC §17.3): what was sent, what came back, which model.
+
+    patient_id is not a foreign key: a check-in can come from a device not yet linked to a patient.
+    """
+
+    id: str = Field(primary_key=True)
+    patient_id: Optional[str] = Field(default=None, index=True)
+    kind: str  # extract | plan
+    created_at: datetime = Field(default_factory=utcnow)
+    model: Optional[str] = None
+    ok: bool = True
+    latency_ms: int = 0
+    input_json: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    output_json: Optional[Any] = Field(default=None, sa_column=Column(JSON))
+    error: Optional[str] = None

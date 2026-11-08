@@ -664,3 +664,44 @@ Backup: a 60-second screen recording of steps 1–7, in case venue Wi-Fi or ligh
 - **Model load time**: preload the model on the Home page so the Mirror opens fast.
 - **One state machine instance per set.** Don't recreate it on every React render; keep it in a `useRef`.
 - **Don't run detection in React state.** Per-frame data goes through refs; update React state for the HUD at most ~10 times per second.
+
+---
+
+## 17. Adaptive coach (Hack2skill Challenge 09 upgrade)
+
+The coach turns RecoverLens from a tracker into an adaptive recovery-adherence loop: check in, get a plan that fits today, exercise, and come back after a lapse without losing progress. The model (Gemini) personalises; plain code decides what a patient may do. Plan: `docs/atu/RecoverLens-Hack2skill-upgrade-plan.pdf`.
+
+### 17.1 The loop
+
+1. **Check-in**: free text ("knee sore, only 10 minutes") plus the one-tap answers: pain slider, red-flag boxes, minutes, energy.
+2. **Red-flag rules** (`frontend/src/coach/redFlags.ts`), before any model call: ticked boxes, pain ≥ 8 (the same threshold as §8.1) and English text patterns for chest pain, numbness, swelling, a fall, dizziness, breathlessness and severe pain.
+3. **Extraction** (`POST /api/coach/extract`): the model returns structured JSON (pain, body areas, symptoms, energy, minutes, barriers, red flags). The red-flag rules run again on it: **the model can add a red flag, never clear one.**
+4. **Plan** (`POST /api/coach/plan`): the model picks and doses exercises **only from the library** and writes a short "why" in the person's language, naming one behaviour-change technique.
+5. **Validator** (`frontend/src/coach/validator.ts`): enforces the limits below, removes or clamps anything outside them and lists every change.
+6. **Session**: unchanged (§5–§7). 7. **Lapse engine** and 8. **re-engagement**: next milestone.
+
+### 17.2 Safety rules
+
+- **A red flag means no plan.** The person sees the §8.1 advice (Continue anyway / Skip today); continuing runs their programme as prescribed, never an AI-adapted one. The server also refuses to plan for an extraction with a red flag (409). This keeps CLAUDE.md rule 2: the coach advises, it never blocks.
+- **The library is the patient's active programme** (exercises, sets and reps their physiotherapist prescribed). Without one, it is the patient library at default doses. Sports screens are never in a plan. `frontend/src/coach/library.ts`.
+- **Validator limits** (`LIMITS`, all `// TUNE:` and to be reviewed by a physiotherapist): sets ≤ prescribed; reps ≤ prescribed + 10%; pain 4–6 where the exercise loads → reps ≤ 70%; pain ≥ 7 in a named area → exercises loading it are left out; at least 3 reps (or the prescription if lower); holds ≤ prescribed; at most 6 exercises; at most 30 minutes, trimmed to the minutes available (fewer sets, then fewer reps, then fewer exercises). The validator never adds an exercise.
+- **Rules-only fallback** (`rulesPlan.ts`): used when the model is unavailable, offline or turned off. Same validator.
+- Model output is parsed by `schema.ts`: malformed JSON becomes empty data, never an exception.
+
+### 17.3 Privacy and audit
+
+- Video and landmarks never leave the device. Only the check-in text is sent, after `redact` removes emails, links and long numbers (best-effort: names cannot be detected, so the check-in asks people not to type them). The server redacts again.
+- The API key stays on the server (`GEMINI_API_KEY`). Gemini is called through its OpenAI-compatible endpoint, so the provider can be swapped (`COACH_MODEL_URL`, `GEMINI_MODELS`).
+- Every model call is logged in `CoachEvent`: redacted input, output, model, latency and error.
+- **Before release:** a consent screen with a "what is sent" view, and updated privacy text: the current privacy page says only session numbers leave the device, which is no longer true once check-in text is sent.
+
+### 17.4 Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | none | Without it the endpoints answer 503 and the app uses the rules-only plan |
+| `GEMINI_MODELS` | `gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.6-flash` | Tried in order; a busy (503/429) or slow model falls through |
+| `COACH_TIMEOUT_S` | 9 | Budget for one request across all models |
+| `COACH_MODEL_TIMEOUT_S` | 5 | Cap per model, so one that hangs cannot use the whole budget |
+
+`npm run coach:check -- http://localhost:8000` runs sample check-ins through a running API and the validator.

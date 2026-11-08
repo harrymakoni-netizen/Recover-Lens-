@@ -33,8 +33,8 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 135 Vitest tests
-cd backend && pytest        # 22 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
+cd frontend && npm test     # 159 Vitest tests
+cd backend && pytest        # 30 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
 The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping, sports screening analysis, and translations: every screen string and voice cue must exist in Shona and Ndebele with the same placeholders. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
@@ -89,6 +89,12 @@ All of this runs on the phone, offline, from the same pose data; video never lea
 - **Joint load** (`frontend/src/pose/effort.ts`): the turning force (N·m) gravity puts on the elbow or shoulder from the limb and anything held, from Winter's body-segment tables for an average adult (70 kg, 1.70 m). Shown on the summary for shoulder abduction, shoulder flexion and the new **elbow curl**, whose check-in asks what is held (nothing, a 500 ml bottle, 1 kg, 2 kg). A static estimate, labelled as one. Checked against OpenSim's elbow torque on a public 8-person curl dataset: the same physics form reached R² 0.85 (leave-one-subject-out) on lab-measured angles.
 
 The backend stores the fatigue fields (`fatigue_level`, `fatigue_slower_pct`, `fatigue_shorter_pct`, `fatigue_form_points`). A database created by an older version gains the new columns automatically on start-up (`add_missing_columns` in `backend/app/db.py`).
+
+## Adaptive coach (in progress)
+
+The Hack2skill upgrade (SPEC §17) adds a check-in, a Gemini-personalised plan and a lapse loop. Built so far: the safety core in plain TypeScript (`frontend/src/coach/`: red-flag rules, the approved library, schema parsing, the plan validator and a rules-only fallback) and two API endpoints, `POST /api/coach/extract` and `POST /api/coach/plan`, with an audit log. The check-in screen, lapse engine and outcome simulation come next.
+
+To use the model, set `GEMINI_API_KEY` on the backend (on Vercel: Project Settings, Environment Variables). Without it the app falls back to the rules-only plan. Try it with `npm run coach:check -- http://localhost:8000` against a running backend.
 
 ## For clinicians and patients
 
