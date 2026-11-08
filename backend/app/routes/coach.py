@@ -6,7 +6,7 @@ from typing import Annotated, Any, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlmodel import Session
+from sqlmodel import Session, col, select
 
 from .. import coach
 from ..db import get_db
@@ -69,6 +69,20 @@ def _log(db: Session, kind: str, patient_id: Optional[str], started: float, inp:
         )
     )
     db.commit()
+
+
+@router.get("/status")
+def status(db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Whether the model is configured and how the last call went. Makes no model call and never
+    reveals the key, so it is safe to leave public; the app can use it to say AI is available."""
+    last = db.exec(select(CoachEvent).order_by(col(CoachEvent.created_at).desc()).limit(1)).first()
+    return {
+        "configured": coach.configured(),
+        "models": coach.models(),
+        "last_call": None
+        if last is None
+        else {"kind": last.kind, "ok": last.ok, "model": last.model, "at": last.created_at, "error": last.error},
+    }
 
 
 def _unavailable(reason: str) -> HTTPException:

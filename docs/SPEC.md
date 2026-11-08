@@ -704,4 +704,6 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 | `COACH_TIMEOUT_S` | 9 | Budget for one request across all models |
 | `COACH_MODEL_TIMEOUT_S` | 5 | Cap per model, so one that hangs cannot use the whole budget |
 
+`GET /api/coach/status` reports whether a key is configured, the model chain and the last call's result (no model call, never the key).
+
 `npm run coach:check -- http://localhost:8000` runs sample check-ins through a running API and the validator.

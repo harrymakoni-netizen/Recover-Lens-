@@ -34,7 +34,7 @@ Useful URLs:
 
 ```sh
 cd frontend && npm test     # 159 Vitest tests
-cd backend && pytest        # 30 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
+cd backend && pytest        # 31 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
 The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping, sports screening analysis, and translations: every screen string and voice cue must exist in Shona and Ndebele with the same placeholders. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.

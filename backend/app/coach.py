@@ -36,6 +36,10 @@ class CoachUnavailable(Exception):
     """No model answered usefully; the browser falls back to the rules-only plan."""
 
 
+def configured() -> bool:
+    return bool(os.environ.get("GEMINI_API_KEY"))
+
+
 def models() -> list[str]:
     return [m.strip() for m in os.environ.get("GEMINI_MODELS", DEFAULT_MODELS).split(",") if m.strip()]
 

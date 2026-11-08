@@ -129,3 +129,17 @@ def test_call_model_tries_the_next_model_and_stops_on_a_bad_key(monkeypatch):
 
 def test_redact_matches_the_frontend_rules():
     assert coach.redact("Call +263 77 123 4567 or tariro@example.com, www.x.com, pain 6") == "Call [number] or [email], [link], pain 6"
+
+
+def test_status_reports_configuration_and_the_last_call_without_the_key(client, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "secret-value")
+    monkeypatch.setenv("GEMINI_MODELS", "a,b")
+    r = client.get("/api/coach/status")
+    assert r.json() == {"configured": True, "models": ["a", "b"], "last_call": None}
+    monkeypatch.setattr(coach, "call_model", lambda *a: ({"painLevel": None, "bodyAreas": [], "symptoms": [], "energy": None, "minutesAvailable": None, "barriers": [], "redFlags": []}, "a"))
+    client.post("/api/coach/extract", json={"text": "fine today"})
+    body = client.get("/api/coach/status").json()
+    assert body["last_call"]["ok"] is True and body["last_call"]["model"] == "a"
+    assert "secret-value" not in str(body)
+    monkeypatch.delenv("GEMINI_API_KEY")
+    assert client.get("/api/coach/status").json()["configured"] is False
