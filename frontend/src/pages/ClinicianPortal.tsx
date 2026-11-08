@@ -1,5 +1,5 @@
 // Clinician Portal (SPEC §8.5). Fetch on mount + poll every 5 s; cached data when offline.
-import { AlertTriangle, Bell, CheckCircle2, Search, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, Bell, CheckCircle2, FlaskConical, Search, UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { post } from '../api/client';
@@ -151,9 +151,17 @@ export default function ClinicianPortal() {
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{t('nav.clinician')}</h1>
           <p className="text-navy-soft">{t('clin.subtitle', { clinician: 'Dr. Demo', n: all.length })}</p>
         </div>
-        <Button onClick={() => setAdding(true)}>
-          <UserPlus size={18} /> {t('clin.add_patient')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/outcomes"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line-strong bg-white px-4 font-medium text-navy hover:bg-teal-soft"
+          >
+            <FlaskConical size={18} aria-hidden /> {t('out.link')}
+          </Link>
+          <Button onClick={() => setAdding(true)}>
+            <UserPlus size={18} /> {t('clin.add_patient')}
+          </Button>
+        </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">

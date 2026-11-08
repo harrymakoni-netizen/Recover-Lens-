@@ -679,7 +679,8 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 4. **Plan** (`POST /api/coach/plan`): the model picks and doses exercises **only from the library** and writes a short "why" in the person's language, naming one behaviour-change technique.
 5. **Validator** (`frontend/src/coach/validator.ts`): enforces the limits below, removes or clamps anything outside them and lists every change.
 6. **Session**: unchanged (§5–§7). Starting an exercise from the plan opens the Mirror with the planned sets and reps (`?sets=&reps=`) and the check-in pain as pain-before.
-7. **Lapse engine** and 8. **re-engagement**: next milestone.
+7. **Lapse engine** (§17.5): after 2 whole days without a session, Home shows the comeback card instead of starting from zero.
+8. **Re-engagement** (§17.5): a blame-free message, one barrier question, a session adapted to that barrier and an optional reminder time.
 
 ### 17.1a The check-in card (`components/coach/CoachCheckIn.tsx`, on Home)
 
@@ -693,7 +694,7 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 
 ### 17.2 Safety rules
 
-- **A red flag means no plan.** The person sees the §8.1 advice (Continue anyway / Skip today); continuing runs their programme as prescribed, never an AI-adapted one. The server also refuses to plan for an extraction with a red flag (409). This keeps CLAUDE.md rule 2: the coach advises, it never blocks.
+- **A red flag means no plan.** The person sees the §8.1 advice (Skip today / Do my usual programme); continuing runs their programme as prescribed, never an AI-adapted one. The server also refuses to plan for an extraction with a red flag (409). This keeps CLAUDE.md rule 2: the coach advises, it never blocks.
 - **The library is the patient's active programme** (exercises, sets and reps their physiotherapist prescribed). Without one, it is the patient library at default doses. Sports screens are never in a plan. `frontend/src/coach/library.ts`.
 - **Validator limits** (`LIMITS`, all `// TUNE:` and to be reviewed by a physiotherapist): sets ≤ prescribed; reps ≤ prescribed + 10%; pain 4–6 where the exercise loads → reps ≤ 70%; pain ≥ 7 in a named area → exercises loading it are left out; at least 3 reps (or the prescription if lower); holds ≤ prescribed; at most 6 exercises; at most 30 minutes, trimmed to the minutes available (fewer sets, then fewer reps, then fewer exercises). The validator never adds an exercise.
 - **Rules-only fallback** (`rulesPlan.ts`): used when the model is unavailable, offline or turned off. Same validator.
@@ -703,7 +704,8 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 
 - Video and landmarks never leave the device. Only the check-in text is sent, after `redact` removes emails, links and long numbers (best-effort: names cannot be detected, so the check-in asks people not to type them). The server redacts again.
 - The API key stays on the server (`GEMINI_API_KEY`). Gemini is called through its OpenAI-compatible endpoint, so the provider can be swapped (`COACH_MODEL_URL`, `GEMINI_MODELS`).
-- Every model call is logged in `CoachEvent`: redacted input, output, model, latency and error.
+- Every model call is logged in `CoachEvent`: redacted input, output, model, latency and error. `GET /api/coach/events?patient_id=` lists them; Patient Detail shows them as the **AI coach log** (what was sent, the reply, the model, whether the rules took over).
+- **Physio switch:** the **AI coach** card on Patient Detail turns the AI coach off or on for that patient (`PUT /api/patients/{id}/coach`, `Patient.coach_ai_allowed`). When off, the coach endpoints answer 403 without calling a model, the patient's check-in card says their physiotherapist has turned it off, and plans come from the rules only. The patient can still exercise as normal.
 - The consent choice and the "what is sent" view are on the check-in card; the Privacy page has an "AI coach" section in all three languages. The ATU proposal still says only session numbers leave the device and needs the same update.
 
 ### 17.4 Configuration
@@ -718,3 +720,23 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 `GET /api/coach/status` reports whether a key is configured, the model chain and the last call's result (no model call, never the key).
 
 `npm run coach:check -- http://localhost:8000` runs sample check-ins through a running API and the validator.
+
+### 17.5 Lapse engine and comeback (`coach/lapse.ts`, `coach/bandit.ts`, `coach/comeback.ts`, `components/coach/ComebackCard.tsx`)
+
+- **Lapse:** 2 whole days without a session while a programme is active (`LAPSE_DAYS`, `// TUNE:`). Consistency is shown as active days in the last 28, a 4-week bar chart and total active days. **It never resets**: there are no streaks to lose.
+- **Comeback card** on Home, above today's check-in: "Good to see you again", the message, the kept progress, and "What got in the way?" (pain, no time, low motivation, forgot, no space, something else). "Not now" closes it for the day.
+- **Adaptation per barrier** (`ADAPTATIONS`): minutes, energy, whether a reminder helps and the behaviour-change technique. Picking a barrier presets the check-in (which still asks the safety questions and still runs the validator).
+- **Nudge choice:** a Thompson-sampling bandit over four message styles (gentle, small step, progress, social). A nudge counts as a success when a session follows within 3 days. State is per patient on the device.
+- **Message:** `POST /api/coach/message` writes it in the person's language in the chosen style. The browser rejects anything over 300 characters or containing blame words (streak, fail, lazy) and falls back to a translated template. With the AI coach off, only templates are used.
+- **Reminder:** morning, afternoon or evening, saved on the device, with a WhatsApp link that sends the reminder text to the person themselves. Real push reminders, SMS and Health Connect are roadmap items.
+
+### 17.6 Outcome simulation (`sim/cohort.ts`, `/outcomes`, linked from the Clinician Portal)
+
+- 300 simulated people in 5 groups (busy worker, low motivation, depends on a carer, low literacy, disability), each run through 3 arms over 12 weeks: a static programme, generic reminders, and RecoverLens (adapted sessions, barrier question and the real nudge bandit). Seeded, so the numbers are the same every time.
+- Measures: weekly persistence, return within 7 days after a lapse, week-12 retention, range regained, the gap between the best and worst group, and how often the bandit found each person's best nudge.
+- Every assumption is listed on the page and marked `// TUNE:` in code; a cautious run halves every RecoverLens effect. The page carries a "Simulated data" banner: it shows how the loop behaves under stated assumptions, **not** evidence that it works on people (CLAUDE.md rule 8). The pilot replaces these numbers.
+
+### 17.7 FHIR export (`lib/exportFhir.ts`)
+
+- "Download data (FHIR)" on Patient Detail, beside the CSV: a FHIR R4 `Bundle` (type `collection`) with the Patient and one `Observation` (category `activity`) per session. Components carry reps, reps with good form, movement score, top angle, duration, weight and estimated joint load with UCUM units; pain before and after use LOINC 72514-3. Form faults are a note, worded as observations.
+

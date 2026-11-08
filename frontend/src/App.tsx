@@ -15,6 +15,7 @@ const ClinicianPortal = lazy(() => import('./pages/ClinicianPortal'));
 const PatientDetail = lazy(() => import('./pages/PatientDetail'));
 const CoachPortal = lazy(() => import('./pages/CoachPortal'));
 const Privacy = lazy(() => import('./pages/Privacy'));
+const Outcomes = lazy(() => import('./pages/Outcomes'));
 
 function Loading() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
               <Route path="/clinician/:patientId" element={<PatientDetail />} />
               <Route path="/coach" element={<CoachPortal />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/outcomes" element={<Outcomes />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

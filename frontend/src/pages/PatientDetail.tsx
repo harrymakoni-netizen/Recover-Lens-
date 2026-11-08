@@ -1,10 +1,11 @@
 // Patient detail (SPEC §8.5): score / angle / pain trends (one measure per chart), adherence,
 // session table, edit program.
-import { ArrowLeft, ClipboardList, Download, Pencil, Printer, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Download, FileJson, Pencil, Printer, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { put } from '../api/client';
 import type { Alert, PatientDetail as Detail, Program } from '../api/types';
+import { CoachAuditCard } from '../components/dashboard/CoachAuditCard';
 import { InsightsCard } from '../components/dashboard/Insights';
 import { ProgramEditor, type ProgramDraft } from '../components/dashboard/ProgramEditor';
 import { TrendChart } from '../components/dashboard/TrendChart';
@@ -15,6 +16,7 @@ import { useApi } from '../hooks/useApi';
 import { exerciseName, formatDate } from '../i18n';
 import { useApp } from '../lib/appContext';
 import { downloadText, sessionsCsv } from '../lib/exportCsv';
+import { patientBundle } from '../lib/exportFhir';
 import { cn, round } from '../lib/format';
 import { FatigueBadge, fatigueLine } from '../lib/fatigueText';
 import { faultLabel } from '../lib/sessionRecord';
@@ -117,6 +119,20 @@ export default function PatientDetail() {
             }
           >
             <Download size={16} aria-hidden /> {t('pd.export_csv')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() =>
+              downloadText(
+                `recoverlens-${patient.id}-${new Date().toISOString().slice(0, 10)}.fhir.json`,
+                JSON.stringify(patientBundle(patient, (id) => exerciseName(t, id)), null, 2),
+                'application/fhir+json',
+                false,
+              )
+            }
+          >
+            <FileJson size={16} aria-hidden /> {t('pd.export_fhir')}
           </Button>
           <Button variant="secondary" size="sm" onClick={() => window.print()}>
             <Printer size={16} aria-hidden /> {t('pd.print')}
@@ -309,6 +325,10 @@ export default function PatientDetail() {
             </ul>
           )}
         </Card>
+      </div>
+
+      <div className="mt-6">
+        <CoachAuditCard patientId={patient.id} allowed={patient.coach_ai_allowed !== false} onChanged={refresh} />
       </div>
     </div>
   );

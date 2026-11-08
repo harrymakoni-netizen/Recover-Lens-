@@ -23,9 +23,9 @@ export function sessionsCsv(sessions: readonly SessionRecord[], exerciseName: (i
 }
 
 /** Save text as a file in the browser. */
-export function downloadText(filename: string, text: string, type = 'text/csv;charset=utf-8'): void {
-  // A byte-order mark so Excel opens the UTF-8 file with the right characters.
-  const blob = new Blob(['﻿', text], { type });
+export function downloadText(filename: string, text: string, type = 'text/csv;charset=utf-8', bom = true): void {
+  // A byte-order mark so Excel opens the UTF-8 file with the right characters (not for JSON).
+  const blob = new Blob(bom ? ['﻿', text] : [text], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

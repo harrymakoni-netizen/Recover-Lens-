@@ -33,8 +33,8 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 166 Vitest tests
-cd backend && pytest        # 31 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
+cd frontend && npm test     # 188 Vitest tests
+cd backend && pytest        # 34 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
 The frontend tests cover every rep-counter case in SPEC §12.2, including holding 3 s at the top. They also cover form rules, scoring, geometry, the voice queue, cue mapping, sports screening analysis, and translations: every screen string and voice cue must exist in Shona and Ndebele with the same placeholders. End-to-end engine tests run on a synthetic body: calibration "step back", 10/10 reps with pauses, amber within 0.5 s of leaning, squats, single-leg balance, single-arm abduction, visibility flicker, and counting at 4 fps.
@@ -90,9 +90,16 @@ All of this runs on the phone, offline, from the same pose data; video never lea
 
 The backend stores the fatigue fields (`fatigue_level`, `fatigue_slower_pct`, `fatigue_shorter_pct`, `fatigue_form_points`). A database created by an older version gains the new columns automatically on start-up (`add_missing_columns` in `backend/app/db.py`).
 
-## Adaptive coach (in progress)
+## Adaptive coach
 
-The Hack2skill upgrade (SPEC §17) adds a check-in, a Gemini-personalised plan and a lapse loop. Built so far: the safety core in plain TypeScript (`frontend/src/coach/`: red-flag rules, the approved library, schema parsing, the plan validator, a rules-only fallback and the check-in flow), the API (`POST /api/coach/extract`, `POST /api/coach/plan`, `GET /api/coach/status`) with an audit log, and the **Today's check-in** card on Home: consent, a live view of what is sent, the plan and a "Why am I seeing this?" panel, in English, chiShona and isiNdebele. The lapse engine and outcome simulation come next.
+The Hack2skill upgrade (SPEC §17) turns RecoverLens into an adaptive recovery-adherence loop. The model (Gemini) personalises; plain code decides what a patient may do.
+
+- **Today's check-in** on Home: consent, free text with a live view of what is sent, minutes, energy, pain and a red-flag question. Red flags are checked before and after the model, and the model can add one but never clear one. The plan only uses the patient's prescribed exercises and passes the validator; "Why am I seeing this?" lists who planned it and every change made.
+- **Comeback after a lapse** (2 days without a session): a blame-free welcome-back message chosen by a nudge bandit, progress that never resets, "What got in the way?", a session adapted to the answer and a reminder time with a WhatsApp link.
+- **Physiotherapist control:** an AI coach switch per patient and the AI coach log (every model call, redacted) on Patient Detail.
+- **Outcome simulation** (`/outcomes`): 300 simulated people, three arms, 12 weeks, every assumption shown and clearly labelled as simulated.
+- **FHIR R4 export** beside the CSV on Patient Detail.
+- Everything works without the model: the rules-only plan and translated templates take over.
 
 To use the model, set `GEMINI_API_KEY` on the backend (on Vercel: Project Settings, Environment Variables). Without it the app falls back to the rules-only plan. Try it with `npm run coach:check -- http://localhost:8000` against a running backend.
 
