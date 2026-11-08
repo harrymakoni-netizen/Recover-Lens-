@@ -678,7 +678,18 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 3. **Extraction** (`POST /api/coach/extract`): the model returns structured JSON (pain, body areas, symptoms, energy, minutes, barriers, red flags). The red-flag rules run again on it: **the model can add a red flag, never clear one.**
 4. **Plan** (`POST /api/coach/plan`): the model picks and doses exercises **only from the library** and writes a short "why" in the person's language, naming one behaviour-change technique.
 5. **Validator** (`frontend/src/coach/validator.ts`): enforces the limits below, removes or clamps anything outside them and lists every change.
-6. **Session**: unchanged (§5–§7). 7. **Lapse engine** and 8. **re-engagement**: next milestone.
+6. **Session**: unchanged (§5–§7). Starting an exercise from the plan opens the Mirror with the planned sets and reps (`?sets=&reps=`) and the check-in pain as pain-before.
+7. **Lapse engine** and 8. **re-engagement**: next milestone.
+
+### 17.1a The check-in card (`components/coach/CoachCheckIn.tsx`, on Home)
+
+- **Consent first, either way forward:** "Use the AI coach" or "Rules only, no AI", saved per device (`lib/coachPrefs.ts`) and switchable from the card header. Neither choice stops anyone exercising.
+- **Inputs:** free text (with a "no names or phone numbers" hint), minutes (5/10/20/30), energy (low/OK/high), the pain slider and one red-flag question: "Chest pain, numbness, new swelling, a fall or dizziness since your last session?". A "yes" goes straight to the advice with no model call.
+- **What is sent** is shown live below the text when the AI coach is on: the redacted text, and how many contact details were removed.
+- **Result:** the plan (exercise, sets × reps, about N minutes, a Start button each) and the model's reason, or the rules' reason in the person's language. **"Why am I seeing this?"** shows who planned it (the AI model by name, the rules, or the rules because the AI was unavailable), the behaviour-change technique, every change the validator made, and the limits.
+- **Red flag:** the §8.1 advice with "Skip today" and "Do my usual programme" (moves focus to today's programme; no AI plan).
+- Today's plan is cached on the device, so it is still there offline or after a reload the same day.
+- Strings use the `checkin.*` namespace (`coach.*` belongs to the sports Coach Portal).
 
 ### 17.2 Safety rules
 
@@ -693,7 +704,7 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 - Video and landmarks never leave the device. Only the check-in text is sent, after `redact` removes emails, links and long numbers (best-effort: names cannot be detected, so the check-in asks people not to type them). The server redacts again.
 - The API key stays on the server (`GEMINI_API_KEY`). Gemini is called through its OpenAI-compatible endpoint, so the provider can be swapped (`COACH_MODEL_URL`, `GEMINI_MODELS`).
 - Every model call is logged in `CoachEvent`: redacted input, output, model, latency and error.
-- **Before release:** a consent screen with a "what is sent" view, and updated privacy text: the current privacy page says only session numbers leave the device, which is no longer true once check-in text is sent.
+- The consent choice and the "what is sent" view are on the check-in card; the Privacy page has an "AI coach" section in all three languages. The ATU proposal still says only session numbers leave the device and needs the same update.
 
 ### 17.4 Configuration
 

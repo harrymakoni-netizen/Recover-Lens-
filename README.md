@@ -33,7 +33,7 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 159 Vitest tests
+cd frontend && npm test     # 166 Vitest tests
 cd backend && pytest        # 31 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
@@ -92,7 +92,7 @@ The backend stores the fatigue fields (`fatigue_level`, `fatigue_slower_pct`, `f
 
 ## Adaptive coach (in progress)
 
-The Hack2skill upgrade (SPEC §17) adds a check-in, a Gemini-personalised plan and a lapse loop. Built so far: the safety core in plain TypeScript (`frontend/src/coach/`: red-flag rules, the approved library, schema parsing, the plan validator and a rules-only fallback) and two API endpoints, `POST /api/coach/extract` and `POST /api/coach/plan`, with an audit log. The check-in screen, lapse engine and outcome simulation come next.
+The Hack2skill upgrade (SPEC §17) adds a check-in, a Gemini-personalised plan and a lapse loop. Built so far: the safety core in plain TypeScript (`frontend/src/coach/`: red-flag rules, the approved library, schema parsing, the plan validator, a rules-only fallback and the check-in flow), the API (`POST /api/coach/extract`, `POST /api/coach/plan`, `GET /api/coach/status`) with an audit log, and the **Today's check-in** card on Home: consent, a live view of what is sent, the plan and a "Why am I seeing this?" panel, in English, chiShona and isiNdebele. The lapse engine and outcome simulation come next.
 
 To use the model, set `GEMINI_API_KEY` on the backend (on Vercel: Project Settings, Environment Variables). Without it the app falls back to the rules-only plan. Try it with `npm run coach:check -- http://localhost:8000` against a running backend.
 

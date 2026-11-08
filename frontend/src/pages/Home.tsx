@@ -1,8 +1,9 @@
 // Patient home (SPEC §8.1).
 import { Dumbbell, Footprints, History, PersonStanding, Play, Timer, TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PatientDetail, SessionRecord } from '../api/types';
+import { CoachCheckIn } from '../components/coach/CoachCheckIn';
 import { InsightsCard } from '../components/dashboard/Insights';
 import { PainCheckIn } from '../components/dashboard/PainCheckIn';
 import { ScoreRing } from '../components/dashboard/ScoreRing';
@@ -10,6 +11,7 @@ import { Sparkline } from '../components/dashboard/TrendChart';
 import { Disclaimer } from '../components/layout/Disclaimer';
 import { Badge, Button, Card, CardTitle, Empty } from '../components/ui';
 import { type AnyExercise, LIBRARY, getExercise, isLive } from '../exercises';
+import { libraryFor } from '../coach';
 import { useApi } from '../hooks/useApi';
 import { useLocalSessions, useMerged } from '../hooks/useLocalData';
 import { loadPoseLandmarker } from '../hooks/usePoseLandmarker';
@@ -148,6 +150,7 @@ export default function Home() {
 
   const firstName = patient?.name.split(' ')[0];
   const programs = patient?.programs.filter((p) => p.active) ?? [];
+  const coachLibrary = useMemo(() => libraryFor(programs), [patient]); // eslint-disable-line react-hooks/exhaustive-deps
   const score = scoreOf(sessions);
   const spark = sessions
     .filter((s) => s.movement_score !== null)
@@ -182,7 +185,9 @@ export default function Home() {
             )}
             {patient && <p className="mt-1 text-lg text-white/80">{conditionLabel(patient.condition)}</p>}
 
-            <h2 className="mt-6 text-sm font-semibold uppercase tracking-wider text-white/75">{t('home.todays_program')}</h2>
+            <h2 id="todays-program" tabIndex={-1} className="mt-6 text-sm font-semibold uppercase tracking-wider text-white/75">
+              {t('home.todays_program')}
+            </h2>
             {loading && !patient ? (
               <div className="mt-3 h-20 animate-pulse rounded-2xl bg-white/10" />
             ) : programs.length === 0 ? (
@@ -243,6 +248,17 @@ export default function Home() {
           {t('home.offline_notice')}
         </p>
       )}
+
+      <div className="mt-6">
+        <CoachCheckIn
+          library={coachLibrary}
+          onUsualProgramme={() => {
+            const h = document.getElementById('todays-program');
+            h?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            h?.focus({ preventScroll: true });
+          }}
+        />
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <InsightsCard sessions={sessions} programs={programs} />

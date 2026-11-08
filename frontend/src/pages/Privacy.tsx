@@ -1,5 +1,5 @@
 // Privacy: what RecoverLens keeps, where, and who sees it (SPEC §10), in plain words.
-import { Brain, CloudOff, Database, Eye, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { Brain, CloudOff, Database, Eye, ShieldCheck, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { Card } from '../components/ui';
 import { useApp } from '../lib/appContext';
 
@@ -9,6 +9,7 @@ const SECTIONS = [
   { icon: Eye, key: 'priv.who' },
   { icon: CloudOff, key: 'priv.offline' },
   { icon: Brain, key: 'priv.ai' },
+  { icon: Sparkles, key: 'priv.coach' },
   { icon: SlidersHorizontal, key: 'priv.choices' },
 ] as const;
 

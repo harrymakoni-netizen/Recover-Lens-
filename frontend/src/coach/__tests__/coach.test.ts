@@ -195,7 +195,7 @@ describe('rules-only plan', () => {
   it('follows the prescription on an ordinary day', () => {
     const v = rulesPlan(lib, ex(), []);
     expect(v.plan.source).toBe('rules');
-    expect(v.plan.whyKey).toBe('coach.why_rules');
+    expect(v.plan.whyKey).toBe('checkin.why_rules');
     expect(v.plan.items.map((i) => [i.exerciseId, i.sets, i.reps])).toEqual([
       ['shoulder_abduction', 3, 10],
       ['mini_squat', 3, 10],
@@ -205,7 +205,7 @@ describe('rules-only plan', () => {
 
   it('is lighter on a tired day and fits the time', () => {
     const v = rulesPlan(lib, ex({ energy: 'low' }), [], 8);
-    expect(v.plan.whyKey).toBe('coach.why_rules_lighter');
+    expect(v.plan.whyKey).toBe('checkin.why_rules_lighter');
     expect(v.plan.items[0].sets).toBeLessThan(3);
     expect(v.minutes).toBeLessThanOrEqual(8);
   });

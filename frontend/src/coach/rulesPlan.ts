@@ -22,7 +22,7 @@ export function rulesPlan(
     })),
     technique: 'graded_tasks',
     why: '',
-    whyKey: lighter ? 'coach.why_rules_lighter' : 'coach.why_rules',
+    whyKey: lighter ? 'checkin.why_rules_lighter' : 'checkin.why_rules',
     source: 'rules',
   };
   return validatePlan(plan, { library, extraction, redFlags, minutesAvailable });
