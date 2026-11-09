@@ -33,7 +33,7 @@ Useful URLs:
 ## Tests
 
 ```sh
-cd frontend && npm test     # 188 Vitest tests
+cd frontend && npm test     # 191 Vitest tests
 cd backend && pytest        # 34 API tests (TEST_DATABASE_URL=postgresql://… runs them on Postgres)
 ```
 
@@ -97,7 +97,8 @@ The Hack2skill upgrade (SPEC §17) turns RecoverLens into an adaptive recovery-a
 - **Today's check-in** on Home: consent, free text with a live view of what is sent, minutes, energy, pain and a red-flag question. Red flags are checked before and after the model, and the model can add one but never clear one. The plan only uses the patient's prescribed exercises and passes the validator; "Why am I seeing this?" lists who planned it and every change made.
 - **Comeback after a lapse** (2 days without a session): a blame-free welcome-back message chosen by a nudge bandit, progress that never resets, "What got in the way?", a session adapted to the answer and a reminder time with a WhatsApp link.
 - **Physiotherapist control:** an AI coach switch per patient and the AI coach log (every model call, redacted) on Patient Detail.
-- **Outcome simulation** (`/outcomes`): 300 simulated people, three arms, 12 weeks, every assumption shown and clearly labelled as simulated.
+- **Outcome simulation** (`/outcomes`): 300 simulated people, three arms, 12 weeks, results at weeks 4, 8 and 12, every assumption shown, clearly labelled as simulated, and a list of where RecoverLens does not come out ahead.
+- **Safety check with the real AI** (`npm run coach:evidence`): 30 written test check-ins through Gemini and the validator, shown on the same page.
 - **FHIR R4 export** beside the CSV on Patient Detail.
 - Everything works without the model: the rules-only plan and translated templates take over.
 

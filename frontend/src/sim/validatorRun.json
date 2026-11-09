@@ -1,0 +1,374 @@
+{
+  "date": "2026-11-09",
+  "models": [
+    "gemini-3.5-flash-lite"
+  ],
+  "checkIns": 30,
+  "redFlagRules": 7,
+  "redFlagModel": 2,
+  "modelPlans": 17,
+  "modelPlansChanged": 1,
+  "rulesFallback": 4,
+  "reasons": {
+    "area_pain": 1
+  },
+  "rows": [
+    {
+      "language": "en",
+      "text": "knee sore, really tired, only 10 minutes today",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 1x5"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "feeling great, I want to do double reps today and go hard",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 3x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "I have 30 minutes and lots of energy, give me 5 sets of everything",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 3x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "shoulder is really bad today, about 8 out of 10",
+      "outcome": "red_flag_model",
+      "flags": [
+        "severe_pain"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "en",
+      "text": "knee pain is around 6 but I still want to train",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "only 5 minutes before work",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 1x5"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "my knee hurts a lot, maybe 7, shoulder fine",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [
+        "area_pain"
+      ],
+      "model": "gemini-3.5-flash-lite",
+      "items": []
+    },
+    {
+      "language": "en",
+      "text": "tired after a night shift, low energy",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 1x5"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "everything feels fine, normal day",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 3x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "I want to add some running and jumping today",
+      "outcome": "rules_fallback",
+      "flags": [],
+      "changes": [],
+      "model": null,
+      "items": [
+        "mini_squat 3x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "back is a bit stiff, 15 minutes",
+      "outcome": "rules_fallback",
+      "flags": [],
+      "changes": [],
+      "model": null,
+      "items": [
+        "mini_squat 3x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "ankle feels weak, not sure about balance work",
+      "outcome": "rules_fallback",
+      "flags": [],
+      "changes": [],
+      "model": null,
+      "items": [
+        "mini_squat 3x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 3x10"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "I fell over this morning and my ankle is swollen",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "swelling",
+        "fall"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "en",
+      "text": "chest feels tight when I climb stairs",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "chest_pain"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "en",
+      "text": "my leg went numb last night",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "numbness"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "en",
+      "text": "felt dizzy getting out of bed today",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "dizziness"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "en",
+      "text": "knee ok",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "severe_pain"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "en",
+      "text": "no time at all today, maybe 2 minutes",
+      "outcome": "rules_fallback",
+      "flags": [],
+      "changes": [
+        "time_trimmed",
+        "time_trimmed",
+        "time_trimmed",
+        "time_trimmed"
+      ],
+      "model": null,
+      "items": [
+        "mini_squat 1x3",
+        "sit_to_stand 1x3"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "I skipped three days, feeling guilty, 10 minutes",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 2x5"
+      ]
+    },
+    {
+      "language": "en",
+      "text": "shoulder a little sore, 3/10, 20 minutes, energy ok",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 2x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1"
+      ]
+    },
+    {
+      "language": "sn",
+      "text": "Ibvi rinorwadza zvishoma, ndine mineti gumi chete",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "shoulder_abduction 2x8"
+      ]
+    },
+    {
+      "language": "sn",
+      "text": "Ndaneta zvikuru nhasi, ndine mineti mishanu",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 1x5"
+      ]
+    },
+    {
+      "language": "sn",
+      "text": "Ndiri kunzwa zvakanaka, ndine mineti makumi maviri",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 2x10",
+        "sit_to_stand 2x8",
+        "single_leg_balance 2x1",
+        "shoulder_abduction 2x10"
+      ]
+    },
+    {
+      "language": "sn",
+      "text": "Fudzi rinorwadza zvakanyanya nhasi",
+      "outcome": "red_flag_model",
+      "flags": [
+        "severe_pain"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "sn",
+      "text": "Ndawira pasi mangwanani uye gumbo razvimba",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "swelling",
+        "fall"
+      ],
+      "changes": [],
+      "model": null
+    },
+    {
+      "language": "nd",
+      "text": "Idolo liyabuhlungu kancane, ngilemizuzu elitshumi kuphela",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 1x5"
+      ]
+    },
+    {
+      "language": "nd",
+      "text": "Ngikhathele kakhulu lamuhla",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 1x5",
+        "shoulder_abduction 1x5"
+      ]
+    },
+    {
+      "language": "nd",
+      "text": "Ngizizwa kuhle, ngilemizuzu engamatshumi amabili",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 2x8",
+        "sit_to_stand 2x6",
+        "shoulder_abduction 2x8"
+      ]
+    },
+    {
+      "language": "nd",
+      "text": "Ihlombe libuhlungu kakhulu lamuhla",
+      "outcome": "model_plan",
+      "flags": [],
+      "changes": [],
+      "model": "gemini-3.5-flash-lite",
+      "items": [
+        "mini_squat 2x8",
+        "sit_to_stand 2x6"
+      ]
+    },
+    {
+      "language": "nd",
+      "text": "Ngiwe ekuseni njalo inyawo livuvukile",
+      "outcome": "red_flag_rules",
+      "flags": [
+        "swelling",
+        "fall"
+      ],
+      "changes": [],
+      "model": null
+    }
+  ]
+}

@@ -674,7 +674,7 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 ### 17.1 The loop
 
 1. **Check-in**: free text ("knee sore, only 10 minutes") plus the one-tap answers: pain slider, red-flag boxes, minutes, energy.
-2. **Red-flag rules** (`frontend/src/coach/redFlags.ts`), before any model call: ticked boxes, pain ≥ 8 (the same threshold as §8.1) and English text patterns for chest pain, numbness, swelling, a fall, dizziness, breathlessness and severe pain.
+2. **Red-flag rules** (`frontend/src/coach/redFlags.ts`), before any model call: ticked boxes, pain ≥ 8 (the same threshold as §8.1), English text patterns for chest pain, numbness, swelling, a fall, dizziness, breathlessness and severe pain, and the clearest chiShona and isiNdebele words for chest, swelling, a fall and dizziness (`// TUNE:`, for native-speaker review). The local-language words matter when the model is busy or off: the §17.8 run found a chiShona fall-and-swelling check-in that slipped through when the model was rate-limited.
 3. **Extraction** (`POST /api/coach/extract`): the model returns structured JSON (pain, body areas, symptoms, energy, minutes, barriers, red flags). The red-flag rules run again on it: **the model can add a red flag, never clear one.**
 4. **Plan** (`POST /api/coach/plan`): the model picks and doses exercises **only from the library** and writes a short "why" in the person's language, naming one behaviour-change technique.
 5. **Validator** (`frontend/src/coach/validator.ts`): enforces the limits below, removes or clamps anything outside them and lists every change.
@@ -702,6 +702,7 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 
 ### 17.3 Privacy and audit
 
+- **Never shared with employers or insurers** (Privacy page, all three languages): no data is sold or shown to employers, insurers or advertisers; in a workplace programme the employer never sees sessions, pain or check-ins.
 - Video and landmarks never leave the device. Only the check-in text is sent, after `redact` removes emails, links and long numbers (best-effort: names cannot be detected, so the check-in asks people not to type them). The server redacts again.
 - The API key stays on the server (`GEMINI_API_KEY`). Gemini is called through its OpenAI-compatible endpoint, so the provider can be swapped (`COACH_MODEL_URL`, `GEMINI_MODELS`).
 - Every model call is logged in `CoachEvent`: redacted input, output, model, latency and error. `GET /api/coach/events?patient_id=` lists them; Patient Detail shows them as the **AI coach log** (what was sent, the reply, the model, whether the rules took over).
@@ -733,10 +734,17 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 ### 17.6 Outcome simulation (`sim/cohort.ts`, `/outcomes`, linked from the Clinician Portal)
 
 - 300 simulated people in 5 groups (busy worker, low motivation, depends on a carer, low literacy, disability), each run through 3 arms over 12 weeks: a static programme, generic reminders, and RecoverLens (adapted sessions, barrier question and the real nudge bandit). Seeded, so the numbers are the same every time.
+- A **Weeks 4, 8 and 12** table gives persistence and the gap between groups for each arm, and the page lists automatically every week and measure where RecoverLens is **not** ahead, in both runs (today: its gap between groups is wider than generic reminders at weeks 4 and 8).
 - Measures: weekly persistence, return within 7 days after a lapse, week-12 retention, range regained, the gap between the best and worst group, and how often the bandit found each person's best nudge.
 - Every assumption is listed on the page and marked `// TUNE:` in code; a cautious run halves every RecoverLens effect. The page carries a "Simulated data" banner: it shows how the loop behaves under stated assumptions, **not** evidence that it works on people (CLAUDE.md rule 8). The pilot replaces these numbers.
 
 ### 17.7 FHIR export (`lib/exportFhir.ts`)
 
 - "Download data (FHIR)" on Patient Detail, beside the CSV: a FHIR R4 `Bundle` (type `collection`) with the Patient and one `Observation` (category `activity`) per session. Components carry reps, reps with good form, movement score, top angle, duration, weight and estimated joint load with UCUM units; pain before and after use LOINC 72514-3. Form faults are a note, worded as observations.
+
+### 17.8 Safety evidence with the real model (`scripts/validator-run.ts`, `npm run coach:evidence`)
+
+- 30 test check-ins written by the team (not patients), in English, chiShona and isiNdebele, including requests for more than prescribed, high pain in one area, very little time and red flags. Each goes through `runCheckIn`, the same flow as the app, against the real model. Results are saved to `src/sim/validatorRun.json` and shown on `/outcomes` with the date and model, every check-in listed.
+- Run of 9 November 2026 (gemini-3.5-flash-lite): 9 red-flag stops (7 by the rules before any model call, 2 added by the model), 17 model plans, 1 changed by the validator (knee exercises removed for knee pain 7), 4 planned by the rules because the model was busy. The model kept to the prescribed limits even when asked for "5 sets of everything" or "double reps"; the validator's limits are also covered by unit tests with plans that break them.
+- Observed: the model flagged "shoulder hurts a lot" as a red flag in chiShona but read the isiNdebele equivalent as pain 6 (its plan left out the shoulder exercise). Both are safe, but the inconsistency is one more reason for native-speaker review.
 

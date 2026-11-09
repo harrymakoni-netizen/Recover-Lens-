@@ -1,10 +1,11 @@
 // Outcome simulation (SPEC §17.6). Simulated people, labelled as such everywhere (CLAUDE.md rule 8):
 // how the adaptive loop behaves under stated assumptions, not evidence that it works on people.
-import { FlaskConical, Info } from 'lucide-react';
+import { FlaskConical, Info, ShieldCheck } from 'lucide-react';
 import { useMemo } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardTitle } from '../components/ui';
 import { useApp } from '../lib/appContext';
+import run from '../sim/validatorRun.json';
 import { ARCHETYPES, ARMS, type Arm, DEFAULT_ASSUMPTIONS as A, pessimistic, simulate } from '../sim/cohort';
 
 const COLORS: Record<Arm, string> = { static: '#8A94A6', reminders: '#3B6FB6', recoverlens: '#0E8C7A' };
@@ -27,6 +28,25 @@ export default function Outcomes() {
     { key: 'equity', value: (a, r) => t('out.points', { n: Math.round(r.arms[a].equityGap) }) },
   ];
   const nudgeEffects = ARCHETYPES.flatMap((k) => Object.values(A.nudgeEffect[k]));
+  const WEEKS = [4, 8, 12] as const;
+  // Every week and measure where RecoverLens is not ahead of another arm, in either run (plan §6.3).
+  const notAhead = [
+    { run: 'main', r: main },
+    { run: 'cautious', r: low },
+  ].flatMap(({ run, r }) =>
+    WEEKS.flatMap((wk) =>
+      ARMS.filter((a) => a !== 'recoverlens').flatMap((a) => {
+        const rl = r.arms.recoverlens;
+        const other = r.arms[a];
+        const out: string[] = [];
+        if (rl.persistence[wk - 1] <= other.persistence[wk - 1])
+          out.push(t('out.behind.persistence', { week: wk, arm: armName(a), rl: pct(rl.persistence[wk - 1]), other: pct(other.persistence[wk - 1]) }));
+        if (Math.round(rl.equityGapWeekly[wk - 1]) > Math.round(other.equityGapWeekly[wk - 1]))
+          out.push(t('out.behind.gap', { week: wk, arm: armName(a), rl: Math.round(rl.equityGapWeekly[wk - 1]), other: Math.round(other.equityGapWeekly[wk - 1]) }));
+        return out.map((line) => (run === 'cautious' ? `${t('out.cautious_run')}: ${line}` : line));
+      }),
+    ),
+  );
 
   return (
     <div className="space-y-6">
@@ -82,6 +102,64 @@ export default function Outcomes() {
       </Card>
 
       <Card>
+        <CardTitle>{t('out.weeks_title')}</CardTitle>
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t('out.weeks_title')}>
+          <table className="w-full min-w-[520px] text-sm">
+            <thead>
+              <tr className="text-left text-navy-soft">
+                <th scope="col" rowSpan={2} className="py-2 pr-3 align-bottom font-medium">
+                  {t('out.arm_col')}
+                </th>
+                <th scope="colgroup" colSpan={3} className="pt-2 pr-3 text-right font-medium">
+                  {t('out.col_active')}
+                </th>
+                <th scope="colgroup" colSpan={3} className="pt-2 pr-3 text-right font-medium">
+                  {t('out.col_gap')}
+                </th>
+              </tr>
+              <tr className="text-right text-navy-soft">
+                {[...WEEKS, ...WEEKS].map((wk, i) => (
+                  <th key={i} scope="col" className="pb-2 pr-3 font-medium">
+                    {t('out.week_n', { n: wk })}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ARMS.map((a) => (
+                <tr key={a} className="border-t border-line">
+                  <th scope="row" className="py-2 pr-3 text-left font-medium">
+                    {armName(a)}
+                  </th>
+                  {WEEKS.map((wk) => (
+                    <td key={`p${wk}`} className="py-2 pr-3 text-right tabular-nums">
+                      {pct(main.arms[a].persistence[wk - 1])}
+                    </td>
+                  ))}
+                  {WEEKS.map((wk) => (
+                    <td key={`g${wk}`} className="py-2 pr-3 text-right tabular-nums">
+                      {t('out.points', { n: Math.round(main.arms[a].equityGapWeekly[wk - 1]) })}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-sm text-navy-soft">{t('out.gap_note')}</p>
+        <h3 className="mt-5 text-sm font-semibold text-navy">{t('out.behind_title')}</h3>
+        {notAhead.length ? (
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-navy-soft">
+            {notAhead.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-navy-soft">{t('out.behind_none')}</p>
+        )}
+      </Card>
+
+      <Card>
         <CardTitle>{t('out.groups_title')}</CardTitle>
         <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t('out.groups_title')}>
           <table className="w-full min-w-[480px] text-sm">
@@ -112,6 +190,41 @@ export default function Outcomes() {
           </table>
         </div>
         <p className="mt-3 text-sm text-navy-soft">{t('out.bandit', { share: pct(main.arms.recoverlens.bestNudgeShare ?? 0) })}</p>
+      </Card>
+
+      <Card>
+        <CardTitle icon={<ShieldCheck size={18} />}>{t('out.safety_title')}</CardTitle>
+        <p className="text-sm text-navy-soft">{t('out.safety_intro', { n: run.checkIns, date: run.date, model: run.models.join(', ') })}</p>
+        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ['red', run.redFlagRules + run.redFlagModel],
+            ['plans', run.modelPlans],
+            ['changed', run.modelPlansChanged],
+            ['fallback', run.rulesFallback],
+          ].map(([k, v]) => (
+            <div key={k} className="rounded-xl bg-page p-3">
+              <dt className="text-xs text-navy-soft">{t(`out.safety.${k}`)}</dt>
+              <dd className="text-2xl font-semibold tabular-nums">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-3 text-sm text-navy-soft">
+          {t('out.safety_red_split', { rules: run.redFlagRules, model: run.redFlagModel })} {t('out.safety_note')}
+        </p>
+        <details className="mt-3 text-sm">
+          <summary className="min-h-10 cursor-pointer py-2 font-medium text-teal-dark">{t('out.safety_details')}</summary>
+          <ul className="mt-2 space-y-1.5">
+            {run.rows.map((r, i) => (
+              <li key={i} className="rounded-lg bg-page px-3 py-2">
+                <span lang={r.language}>“{r.text}”</span>
+                <span className="block text-xs text-navy-soft">
+                  {t(`out.safety_outcome.${r.outcome}`)}
+                  {r.changes.length ? ` · ${t('out.safety_changed_by', { reasons: [...new Set(r.changes)].map((c) => t(`out.reason.${c}`)).join(', ') })}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">

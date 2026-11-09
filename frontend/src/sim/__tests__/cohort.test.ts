@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARCHETYPES, DEFAULT_ASSUMPTIONS, pessimistic, simulate } from '../cohort';
+import { ARCHETYPES, ARMS, DEFAULT_ASSUMPTIONS, pessimistic, simulate } from '../cohort';
 
 describe('simulated cohort', () => {
   const main = simulate();
@@ -37,5 +37,17 @@ describe('simulated cohort', () => {
     expect(low.arms.static).toEqual(main.arms.static);
     expect(low.arms.reminders).toEqual(main.arms.reminders);
     expect(low.arms.recoverlens.persistence[11]).toBeLessThan(main.arms.recoverlens.persistence[11]);
+  });
+});
+
+describe('weekly breakdown', () => {
+  const r = simulate();
+  it('reports each group and the gap for every week, matching week 12', () => {
+    for (const a of ARMS) {
+      const arm = r.arms[a];
+      expect(arm.equityGapWeekly).toHaveLength(12);
+      expect(arm.equityGapWeekly[11]).toBeCloseTo(arm.equityGap, 6);
+      for (const k of ARCHETYPES) expect(arm.byArchetypeWeekly[k][11]).toBeCloseTo(arm.byArchetype[k], 6);
+    }
   });
 });

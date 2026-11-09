@@ -95,8 +95,12 @@ export interface ArmResult {
   functionalChange: number;
   /** Week-12 persistence per archetype. */
   byArchetype: Record<Archetype, number>;
+  /** Weekly persistence per archetype, weeks 1–12. */
+  byArchetypeWeekly: Record<Archetype, number[]>;
   /** Best minus worst archetype at week 12, percentage points. */
   equityGap: number;
+  /** Best minus worst archetype each week, percentage points, weeks 1–12. */
+  equityGapWeekly: number[];
   /** For the bandit: how often it picked each person's best nudge in their last lapses. */
   bestNudgeShare: number | null;
 }
@@ -183,11 +187,16 @@ export function simulate(opts: { assumptions?: Assumptions; perArchetype?: numbe
     let rom = 0;
     const best: number[] = [];
     const byArchetype = {} as Record<Archetype, number>;
+    const byArchetypeWeekly = {} as Record<Archetype, number[]>;
     ARCHETYPES.forEach((arch, k) => {
       let w12 = 0;
+      const archWeeks = new Array<number>(12).fill(0);
       for (let i = 0; i < n; i++) {
         const r = simulatePerson(arch, arm, a, rng(seed * 1000 + k * 100 + i + armIndex * 0));
-        r.weeks.forEach((on, w) => (weeks[w] += on ? 1 : 0));
+        r.weeks.forEach((on, w) => {
+          weeks[w] += on ? 1 : 0;
+          archWeeks[w] += on ? 1 : 0;
+        });
         if (r.weeks[11]) w12++;
         lapses += r.lapses;
         returned += r.returned;
@@ -195,6 +204,7 @@ export function simulate(opts: { assumptions?: Assumptions; perArchetype?: numbe
         if (r.bestShare !== null) best.push(r.bestShare);
       }
       byArchetype[arch] = w12 / n;
+      byArchetypeWeekly[arch] = archWeeks.map((c) => c / n);
     });
     const total = n * ARCHETYPES.length;
     const vals = Object.values(byArchetype);
@@ -204,7 +214,12 @@ export function simulate(opts: { assumptions?: Assumptions; perArchetype?: numbe
       retention: weeks[11] / total,
       functionalChange: rom / total,
       byArchetype,
+      byArchetypeWeekly,
       equityGap: (Math.max(...vals) - Math.min(...vals)) * 100,
+      equityGapWeekly: weeks.map((_, w) => {
+        const v = ARCHETYPES.map((k) => byArchetypeWeekly[k][w]);
+        return (Math.max(...v) - Math.min(...v)) * 100;
+      }),
       bestNudgeShare: best.length ? best.reduce((s, x) => s + x, 0) / best.length : null,
     };
   });

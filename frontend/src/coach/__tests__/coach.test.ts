@@ -37,6 +37,23 @@ describe('red flags', () => {
     expect(redFlagsFromText('severe pain in my shoulder')).toEqual(['severe_pain']);
   });
 
+  it('finds the clearest red flags in chiShona and isiNdebele, without the model', () => {
+    expect(redFlagsFromText('Ndawira pasi mangwanani uye gumbo razvimba')).toEqual(['swelling', 'fall']);
+    expect(redFlagsFromText('Ndadonha nezuro')).toEqual(['fall']);
+    expect(redFlagsFromText('Chipfuva chinorwadza')).toEqual(['chest_pain']);
+    expect(redFlagsFromText('Ndine dzungu nhasi')).toEqual(['dizziness']);
+    expect(redFlagsFromText('Ngiwe ekuseni njalo inyawo livuvukile')).toEqual(['swelling', 'fall']);
+    expect(redFlagsFromText('Isifuba sibuhlungu')).toEqual(['chest_pain']);
+    expect(redFlagsFromText('Ngilesiyezi lamuhla')).toEqual(['dizziness']);
+  });
+
+  it('does not flag ordinary chiShona and isiNdebele check-ins', () => {
+    expect(redFlagsFromText('Ibvi rinorwadza zvishoma, ndine mineti gumi chete')).toEqual([]);
+    expect(redFlagsFromText('Ndaneta zvikuru nhasi, ndine mineti mishanu')).toEqual([]);
+    expect(redFlagsFromText('Idolo liyabuhlungu kancane, ngilemizuzu elitshumi kuphela')).toEqual([]);
+    expect(redFlagsFromText('Ngizizwa kuhle, ngilemizuzu engamatshumi amabili')).toEqual([]);
+  });
+
   it('does not flag ordinary words', () => {
     expect(redFlagsFromText('knee a bit sore, tired, I might fall asleep')).toEqual([]);
   });
