@@ -162,10 +162,12 @@ export function HudMetricsPanel({ hud, config }: { hud: HudState; config: Exerci
 export function HudCompactBar({ hud, config, caregiver }: { hud: HudState; config: ExerciseConfig; caregiver: boolean }) {
   const { t } = useApp();
   return (
-    <div className={cn('hud-panel grid grid-cols-4 gap-2 rounded-xl px-3 py-2 text-white', caregiver && 'ring-2 ring-care')}>
+    // Status gets twice the width and may wrap: the longest labels ("CALIBRATING", "MIRAI MAKADARO")
+    // must stay readable on a 360 px phone, never cut to "CALIBRATI…".
+    <div className={cn('hud-panel grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-2 rounded-xl px-3 py-2 text-white', caregiver && 'ring-2 ring-care')}>
       <div className="min-w-0">
         <div className="text-xs text-white/75">{t('hud.short_status')}</div>
-        <div className={cn('truncate text-sm font-semibold', statusColor(hud))}>{statusText(t, hud.status)}</div>
+        <div className={cn('text-sm font-semibold leading-tight [overflow-wrap:anywhere]', statusColor(hud))}>{statusText(t, hud.status)}</div>
       </div>
       <div>
         <div className="text-xs text-white/75">{config.kind === 'reps' ? t('hud.short_rep') : t('hud.short_hold')}</div>

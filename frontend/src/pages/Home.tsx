@@ -321,7 +321,7 @@ export default function Home() {
             {spark.length > 1 ? (
               <div>
                 <div className="text-xs text-navy-soft">{t('home.score_trend', { n: spark.length })}</div>
-                <Sparkline data={spark} name={t('home.score_series')} />
+                <Sparkline data={spark} name={t('home.score_series')} className="h-16 lg:h-36" />
               </div>
             ) : (
               <p className="text-sm text-navy-soft">{t('home.no_sessions_hint')}</p>

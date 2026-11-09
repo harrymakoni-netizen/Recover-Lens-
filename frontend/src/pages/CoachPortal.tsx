@@ -108,7 +108,7 @@ export default function CoachPortal() {
                   );
                   return (
                     <Fragment key={athlete.id}>
-                      <tr className={cn('align-top', !expanded && 'border-b border-line last:border-0')}>
+                      <tr className={cn('align-middle', !expanded && 'border-b border-line last:border-0')}>
                         <td className="px-5 py-3">
                           {latest ? (
                             <button

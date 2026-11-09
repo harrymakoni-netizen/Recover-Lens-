@@ -141,15 +141,15 @@ export default function SportsScreening() {
             {screenings.slice(0, 10).map((s) => {
               const flags = s.results_json.observations.filter((o) => o.status === 'review');
               return (
-                <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <div>
+                <li key={s.id} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
                     <div className="font-medium">{s.athlete_name}</div>
                     <div className="text-sm text-navy-soft">
                       {sportName(t, s.sport)} · {formatDateTime(s.created_at, lang)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {flags.length > 0 && <span className="text-sm text-navy-soft">{t('sports.to_review', { n: flags.length })}</span>}
+                  <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
+                    {flags.length > 0 && <span className="whitespace-nowrap text-sm text-navy-soft">{t('sports.to_review', { n: flags.length })}</span>}
                     <Badge tone={s.overall === 'review' ? 'review' : 'good'}>
                       {s.overall === 'review' ? t('common.review') : t('common.good')}
                     </Badge>

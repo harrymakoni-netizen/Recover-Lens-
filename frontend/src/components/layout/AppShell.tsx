@@ -90,7 +90,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         {t('a11y.skip')}
       </a>
       {/* Desktop sidebar */}
-      <aside className="bg-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col text-white md:flex print:hidden">
+      <aside className="bg-sidebar sticky top-0 hidden h-screen h-dvh w-64 shrink-0 flex-col overflow-y-auto overscroll-contain text-white md:flex print:hidden">
         <div className="px-5 pb-5 pt-6">
           <Logo onDark size={40} />
           <p className="mt-2.5 text-[0.625rem] font-medium uppercase tracking-[0.14em] text-white/70">{t('brand.tagline')}</p>
@@ -120,7 +120,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
         </nav>
         <Link
           to="/privacy"
-          className="mx-3 mb-3 flex items-start gap-2.5 rounded-xl bg-white/5 p-3 text-xs leading-snug text-white/80 transition-colors hover:bg-white/10"
+          className="mx-3 mb-3 mt-2 flex shrink-0 items-start gap-2.5 rounded-xl bg-white/5 p-3 text-xs leading-snug text-white/80 transition-colors hover:bg-white/10"
         >
           <ShieldCheck size={18} className="mt-0.5 shrink-0 text-mint" aria-hidden />
           <span>

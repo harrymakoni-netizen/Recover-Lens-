@@ -96,8 +96,8 @@ export function ComebackCard({
     <Card className="border-l-4 border-l-mint">
       <section aria-labelledby={ids.title}>
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-soft text-teal">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-teal">
               <HeartHandshake size={18} aria-hidden />
             </span>
             <h2 id={ids.title} className="text-lg font-semibold text-navy">
@@ -107,7 +107,7 @@ export function ComebackCard({
           <button
             type="button"
             onClick={onDismiss}
-            className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-sm text-navy-soft hover:bg-navy/5"
+            className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2 text-sm text-navy-soft hover:bg-navy/5"
           >
             <X size={16} aria-hidden /> {t('comeback.not_now')}
           </button>

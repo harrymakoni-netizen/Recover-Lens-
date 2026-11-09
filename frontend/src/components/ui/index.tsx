@@ -51,8 +51,9 @@ export function Card({ className, children }: { className?: string; children: Re
 
 export function CardTitle({ icon, children, action }: { icon?: ReactNode; children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+    // The action drops to its own line when the title needs the width (narrow phones, long translations).
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <h2 className="flex min-w-0 items-center gap-2.5 text-lg font-semibold tracking-tight">
         {icon && (
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-soft text-teal" aria-hidden>
             {icon}
@@ -131,9 +132,13 @@ export function Modal({
       }
     };
     window.addEventListener('keydown', onKey);
+    // The page behind stays put while the dialog is open.
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     ref.current?.querySelector<HTMLElement>('input,select,button')?.focus();
     return () => {
       window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
       opener?.focus?.();
     };
   }, [open, onClose]);
@@ -147,7 +152,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          'max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl',
+          'max-h-[92vh] max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl',
           wide ? 'sm:max-w-2xl' : 'sm:max-w-md',
         )}
         onClick={(e) => e.stopPropagation()}
@@ -156,7 +161,7 @@ export function Modal({
           <h2 id={titleId} className="text-lg font-semibold">
             {title}
           </h2>
-          <button type="button" aria-label={t('common.close')} className="rounded-lg p-2 hover:bg-page" onClick={onClose}>
+          <button type="button" aria-label={t('common.close')} className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg hover:bg-page" onClick={onClose}>
             <X size={20} aria-hidden />
           </button>
         </div>

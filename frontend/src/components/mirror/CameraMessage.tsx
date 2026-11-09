@@ -39,8 +39,10 @@ export function CameraMessage({
   const { t } = useApp();
   const accent = caregiver ? 'text-orange-300' : 'text-good';
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto bg-[radial-gradient(800px_400px_at_50%_-10%,#123a5a_0%,#0b0d10_70%)] p-4 text-white">
-      <div className="rise w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl shadow-black/40 backdrop-blur">
+    // Auto margins (not items-center) centre the card, so on a short screen (a phone held sideways)
+    // it scrolls from its top instead of being cut off at both ends.
+    <div className="absolute inset-0 z-20 flex overflow-y-auto overscroll-contain bg-[radial-gradient(800px_400px_at_50%_-10%,#123a5a_0%,#0b0d10_70%)] px-4 py-16 text-white [@media(max-height:500px)]:px-16 [@media(max-height:500px)]:py-4">
+      <div className="rise m-auto w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl shadow-black/40 backdrop-blur">
         {status === 'intro' || status === 'idle' || status === 'starting' ? (
           <>
             <div className="mb-3 flex items-center gap-2.5">

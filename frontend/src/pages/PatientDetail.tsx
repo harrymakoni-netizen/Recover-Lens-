@@ -103,8 +103,11 @@ export default function PatientDetail() {
         <Avatar initials={patient.initials} alert={patient.unresolved_alerts > 0} />
         <div className="min-w-0 flex-1">
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{patient.name}</h1>
-          <p className="text-navy-soft [overflow-wrap:anywhere]">
-            {patient.condition} · {patient.contact || t('pd.no_contact')}
+          <p className="text-navy-soft">
+            {patient.condition}
+            <span aria-hidden> · </span>
+            {/* Kept on one line so a phone number never breaks in the middle; long emails may still wrap. */}
+            <span className="inline-block max-w-full [overflow-wrap:anywhere] sm:whitespace-nowrap">{patient.contact || t('pd.no_contact')}</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">

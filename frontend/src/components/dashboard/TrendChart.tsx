@@ -80,10 +80,10 @@ export function TrendChart({
 }
 
 /** Tiny line for the last few sessions; hover shows the value. */
-export function Sparkline({ data, color = '#0D7362', name }: { data: TrendPoint[]; color?: string; name: string }) {
+export function Sparkline({ data, color = '#0D7362', name, className = 'h-14' }: { data: TrendPoint[]; color?: string; name: string; className?: string }) {
   const summary = useChartSummary(data, name);
   return (
-    <div className="h-14 w-full" role="img" aria-label={summary}>
+    <div className={`${className} w-full`} role="img" aria-label={summary}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 6, right: 6, bottom: 6, left: 6 }}>
           <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />

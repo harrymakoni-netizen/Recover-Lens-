@@ -56,7 +56,7 @@ function ManualLog({ patientId }: { patientId: string }) {
   return (
     <Card className="mt-6">
       <CardTitle icon={<ClipboardPen size={18} className="text-care" />}>{t('cg.log_title')}</CardTitle>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-[2fr_1fr_1fr] [&>*:first-child]:col-span-2 lg:[&>*:first-child]:col-span-1">
         <Field label={t('cg.log_exercise')}>
           <select className={inputClass} value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
             {LIBRARY.map((e) => (
@@ -102,15 +102,18 @@ export default function Caregiver() {
       </div>
       <p className="mt-1 text-navy-soft">{t('cg.helping', { name: patient?.name ?? t('cg.the_patient') })}</p>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+      {/* A row each on phones and tablets (icon beside the text); three columns once there is room. */}
+      <div className="mt-6 grid gap-3 xl:grid-cols-3 xl:gap-4">
         {SETUP.map(({ icon: Icon, key }, i) => (
-          <div key={key} className="rounded-2xl border-2 border-care/30 bg-care-soft p-5">
-            <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-care">
-              <Icon size={34} />
+          <div key={key} className="flex items-start gap-4 rounded-2xl border-2 border-care/30 bg-care-soft p-4 xl:block xl:p-5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-care xl:mb-3 xl:h-16 xl:w-16">
+              <Icon size={30} aria-hidden />
             </div>
-            <div className="text-xs font-bold text-care">{t('cg.step', { n: i + 1 })}</div>
-            <h2 className="text-lg font-semibold">{t(`${key}_title`)}</h2>
-            <p className="mt-1 text-sm text-navy-soft">{t(`${key}_body`)}</p>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-care">{t('cg.step', { n: i + 1 })}</div>
+              <h2 className="text-lg font-semibold leading-snug">{t(`${key}_title`)}</h2>
+              <p className="mt-1 text-sm text-navy-soft">{t(`${key}_body`)}</p>
+            </div>
           </div>
         ))}
       </div>

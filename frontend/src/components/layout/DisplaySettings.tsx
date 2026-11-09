@@ -14,7 +14,8 @@ const SIZES: Array<{ value: TextSize; label: string; sample: string }> = [
 
 /**
  * Floating "Display and reading" button, always in the same place on every page: bottom right,
- * above the phone tab bar. Round on phones, a labelled pill on wider screens.
+ * above the phone tab bar. Round wherever it would sit over page content (phones, tablets, laptops);
+ * a labelled pill only on wide desktops, where it fits in the empty margin.
  */
 export function DisplaySettingsButton({ className }: { className?: string }) {
   const { t } = useApp();
@@ -25,6 +26,7 @@ export function DisplaySettingsButton({ className }: { className?: string }) {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
+        title={t('a11y.display')}
         className={cn(
           'bg-brand-gradient fixed right-4 z-40 inline-flex h-14 min-w-14 items-center justify-center gap-2 rounded-full px-4 text-white shadow-[var(--shadow-lift)] ring-2 ring-white transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100',
           'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-6 md:right-6 print:hidden',
@@ -32,8 +34,8 @@ export function DisplaySettingsButton({ className }: { className?: string }) {
         )}
       >
         <Accessibility size={24} aria-hidden />
-        <span className="hidden font-medium md:inline">{t('a11y.display')}</span>
-        <span className="sr-only md:hidden">{t('a11y.display')}</span>
+        <span className="hidden font-medium min-[1880px]:inline">{t('a11y.display')}</span>
+        <span className="sr-only min-[1880px]:hidden">{t('a11y.display')}</span>
       </button>
       <DisplaySettingsDialog open={open} onClose={() => setOpen(false)} />
     </>
