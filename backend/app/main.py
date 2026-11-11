@@ -51,6 +51,14 @@ def create_app(database_url: Optional[str] = None, seed: bool = True) -> FastAPI
         state = demo_state(request)
         return {"seeded_at": state.seeded_at if state else None, "source": state.source if state else None}
 
+    def too_soon(request: Request) -> None:
+        cooldown = float(os.environ.get("SEED_COOLDOWN_S", "30"))
+        state = demo_state(request)
+        if state and cooldown > 0:
+            last = state.seeded_at if state.seeded_at.tzinfo else state.seeded_at.replace(tzinfo=timezone.utc)
+            if (datetime.now(timezone.utc) - last).total_seconds() < cooldown:
+                raise HTTPException(429, "The demo data was reset moments ago")
+
     @api.post("/seed")
     def reseed(request: Request) -> dict[str, Any]:
         """Reset demo data (the "Reset demo data" button). Disabled when ENABLE_SEED_ENDPOINT=false;
@@ -61,12 +69,7 @@ def create_app(database_url: Optional[str] = None, seed: bool = True) -> FastAPI
         key = os.environ.get("SEED_KEY")
         if key and not hmac.compare_digest(request.headers.get("x-seed-key", ""), key):
             raise HTTPException(403, "A valid X-Seed-Key header is required")
-        cooldown = float(os.environ.get("SEED_COOLDOWN_S", "30"))
-        state = demo_state(request)
-        if state and cooldown > 0:
-            last = state.seeded_at if state.seeded_at.tzinfo else state.seeded_at.replace(tzinfo=timezone.utc)
-            if (datetime.now(timezone.utc) - last).total_seconds() < cooldown:
-                raise HTTPException(429, "The demo data was reset moments ago")
+        too_soon(request)
         reset_and_seed(request.app.state.engine, source="button")
         return {"status": "seeded"}
 
@@ -80,6 +83,8 @@ def create_app(database_url: Optional[str] = None, seed: bool = True) -> FastAPI
         secret = os.environ.get("CRON_SECRET")
         if secret and not hmac.compare_digest(request.headers.get("authorization", ""), f"Bearer {secret}"):
             raise HTTPException(401, "Not the scheduled job")
+        if not secret:
+            too_soon(request)  # without a secret anyone can call it, so it gets the button's cooldown
         reset_and_seed(request.app.state.engine, source="nightly")
         return {"status": "seeded"}
 

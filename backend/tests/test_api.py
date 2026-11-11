@@ -300,8 +300,9 @@ def test_nightly_reseed_needs_the_cron_secret_when_set(client, monkeypatch):
 
 def test_nightly_reseed_keeps_the_demo_patients_current(client, monkeypatch):
     # However long ago the data was first created, a reseed puts Tendai back at 4 days since the last session.
+    assert client.get("/api/cron/reseed").status_code == 429  # no secret: the public cooldown applies
     monkeypatch.setenv("SEED_COOLDOWN_S", "0")
-    client.get("/api/cron/reseed")
+    assert client.get("/api/cron/reseed").json() == {"status": "seeded"}
     tendai = client.get("/api/patients/tendai").json()
     from datetime import datetime, timezone
 

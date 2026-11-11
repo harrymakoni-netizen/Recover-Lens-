@@ -509,7 +509,7 @@ GET  /api/athletes
 POST /api/screenings
 GET  /api/screenings?sport=
 POST /api/seed                     "Reset demo data" button (30 s cooldown; X-Seed-Key if SEED_KEY is set)
-GET  /api/cron/reseed              nightly job (Bearer CRON_SECRET if set)
+GET  /api/cron/reseed              nightly job (Bearer CRON_SECRET if set; without it, the 30 s cooldown)
 GET  /api/demo                     when the demo data was last created, and how
 ```
 
