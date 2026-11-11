@@ -800,5 +800,19 @@
   "out.reason.reps_raised": "kudzokorora kwakawedzerwa",
   "out.reason.hold_capped": "kumira kwakapfupiswa",
   "out.reason.pain_reduced": "kudzokorora kwakaderedzwa nekuda kwemarwadzo",
-  "out.reason.time_trimmed": "zvakapfupiswa kuti zvikwane nguva"
+  "out.reason.time_trimmed": "zvakapfupiswa kuti zvikwane nguva",
+
+  "demo.reset": "Dzorera data yekuedza",
+  "demo.title": "Dzorera data yekuedza here?",
+  "demo.body": "Izvi zvinodzorera varwere vekuedza, kurovedza, yambiro nevatambi sezvavanga vakaita, zvine mazuva anotangira nhasi. Varwere vakawedzerwa neshanduko dzakaitwa pano zvinobviswa. Pachishandiso ichi zvinobvisawo zvanyorwa zvezuva nekugamuchira, kuitira kuti kuedza kutange patsva. Zvinozviitira pachazvo usiku hwega hwega.",
+  "demo.last": "Data yekuedza yakagadzirwa pekupedzisira {when}",
+  "demo.source.start": "pakatanga app",
+  "demo.source.button": "nebhatani iri",
+  "demo.source.nightly": "nekudzorera kwousiku",
+  "demo.confirm": "Dzorera zvino",
+  "demo.resetting": "Kudzorera…",
+  "demo.too_soon": "Data yekuedza yadzorerwa izvozvi. Edzai zvakare mushure mehafu yeminiti.",
+  "demo.failed": "Hazvina kugoneka kudzorera data yekuedza. Tarisai kubatana muedze zvakare.",
+
+  "demo.note": "Data yekuedza. Inodzorerwa sezvayanga yakaita usiku hwega hwega."
 }

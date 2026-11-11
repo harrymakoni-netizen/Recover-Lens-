@@ -16,6 +16,15 @@ class Clinician(SQLModel, table=True):
     name: str
 
 
+class DemoState(SQLModel, table=True):
+    """When the demo data was last created (SPEC §9.5): shown beside the reset button, and used to
+    stop the public reset being pressed over and over."""
+
+    id: str = Field(default="demo", primary_key=True)
+    seeded_at: datetime
+    source: str = "start"  # start | button | nightly
+
+
 class Patient(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str

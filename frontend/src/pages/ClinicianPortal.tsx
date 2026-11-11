@@ -1,8 +1,8 @@
 // Clinician Portal (SPEC §8.5). Fetch on mount + poll every 5 s; cached data when offline.
-import { AlertTriangle, Bell, CheckCircle2, FlaskConical, Search, UserPlus, Users } from 'lucide-react';
-import { useState } from 'react';
+import { AlertTriangle, Bell, CheckCircle2, FlaskConical, RotateCcw, Search, UserPlus, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { post } from '../api/client';
+import { ApiError, api, clearCache, post } from '../api/client';
 import type { Alert, Patient } from '../api/types';
 import { ProgramEditor, type ProgramDraft, draftFor } from '../components/dashboard/ProgramEditor';
 import { Badge, Button, Card, CardTitle, Empty, Field, Modal, Skeleton, Stat, inputClass } from '../components/ui';
@@ -21,6 +21,76 @@ export function Avatar({ initials, alert }: { initials: string; alert?: boolean 
       </div>
       {alert && <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-alert" role="img" aria-label={t('clin.has_alerts')} />}
     </div>
+  );
+}
+
+/**
+ * "Reset demo data" (SPEC §9.5): puts the demo patients, sessions and alerts back with today's dates,
+ * as the nightly job does. Also clears this device's check-in and comeback state, so a recording
+ * starts clean. Language, the patient being viewed and display settings are kept.
+ */
+function DemoResetButton() {
+  const { t, lang } = useApp();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [last, setLast] = useState<{ seeded_at: string | null; source: string | null } | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    setError(null);
+    api<{ seeded_at: string | null; source: string | null }>('/demo').then(setLast, () => setLast(null));
+  }, [open]);
+
+  const reset = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await post('/seed', {});
+      clearCache();
+      try {
+        for (const k of Object.keys(localStorage)) if (k.startsWith('rl.coach')) localStorage.removeItem(k);
+      } catch {
+        // storage blocked: the server data is still reset
+      }
+      window.location.reload();
+    } catch (e) {
+      setError(e instanceof ApiError && e.status === 429 ? t('demo.too_soon') : t('demo.failed'));
+      setBusy(false);
+    }
+  };
+
+  const source = last?.source === 'nightly' || last?.source === 'button' || last?.source === 'start' ? last.source : null;
+  return (
+    <>
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-line-strong px-4 py-3 text-sm text-navy-soft print:hidden">
+        <span>{t('demo.note')}</span>
+        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          <RotateCcw size={16} aria-hidden /> {t('demo.reset')}
+        </Button>
+      </div>
+      <Modal open={open} onClose={() => !busy && setOpen(false)} title={t('demo.title')}>
+        <p className="text-navy-soft">{t('demo.body')}</p>
+        {last?.seeded_at && (
+          <p className="mt-3 rounded-xl bg-page p-3 text-sm">
+            {t('demo.last', { when: formatDateTime(last.seeded_at, lang) })}
+            {source && ` · ${t(`demo.source.${source}`)}`}
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-alert">
+            {error}
+          </p>
+        )}
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <Button variant="secondary" onClick={() => setOpen(false)} disabled={busy}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={() => void reset()} disabled={busy}>
+            <RotateCcw size={18} aria-hidden /> {busy ? t('demo.resetting') : t('demo.confirm')}
+          </Button>
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -212,8 +282,10 @@ export default function ClinicianPortal() {
                   <Link to={`/clinician/${p.id}`} className="-mx-2 flex items-center gap-3 rounded-xl px-2 py-3 hover:bg-page">
                     <Avatar initials={p.initials} alert={p.unresolved_alerts > 0} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold">{p.name}</div>
-                      <div className="truncate text-sm text-navy-soft">{p.condition}</div>
+                      <div className="font-semibold leading-snug">{p.name}</div>
+                      <div className="line-clamp-2 text-sm text-navy-soft">{p.condition}</div>
+                      {/* The last-session column needs width; below that it sits under the condition. */}
+                      <div className="text-xs text-navy-soft xl:hidden">{relativeDays(t, p.last_session_at)}</div>
                     </div>
                     {p.session_count === 0 ? (
                       <Badge>{t('clin.awaiting')}</Badge>
@@ -229,7 +301,7 @@ export default function ClinicianPortal() {
                         </div>
                       </div>
                     )}
-                    <div className="hidden w-24 text-right text-xs text-navy-soft sm:block">{relativeDays(t, p.last_session_at)}</div>
+                    <div className="hidden w-24 text-right text-xs text-navy-soft xl:block">{relativeDays(t, p.last_session_at)}</div>
                   </Link>
                 </li>
               ))}
@@ -254,6 +326,8 @@ export default function ClinicianPortal() {
           )}
         </Card>
       </div>
+
+      <DemoResetButton />
 
       <AddPatientModal
         open={adding}

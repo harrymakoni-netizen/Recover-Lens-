@@ -263,13 +263,49 @@ def test_old_database_gains_new_columns(tmp_path):
 
 
 def test_seed_key_protects_the_reset(client, monkeypatch):
+    monkeypatch.setenv("SEED_COOLDOWN_S", "0")
     monkeypatch.setenv("SEED_KEY", "s3cret")
     assert client.post("/api/seed").status_code == 403
     assert client.post("/api/seed", headers={"X-Seed-Key": "wrong"}).status_code == 403
     assert client.post("/api/seed", headers={"X-Seed-Key": "s3cret"}).json() == {"status": "seeded"}
 
 
-def test_seed_endpoint_resets(client):
+def test_seed_endpoint_resets(client, monkeypatch):
+    monkeypatch.setenv("SEED_COOLDOWN_S", "0")
     client.post("/api/sessions", json=session_body())
     assert client.post("/api/seed").json() == {"status": "seeded"}
     assert client.get("/api/patients/tariro").json()["session_count"] == 12
+
+
+def test_reset_button_has_a_cooldown_and_reports_when_it_ran(client, monkeypatch):
+    # The fixture has just seeded, so an immediate press is refused, and nothing changes.
+    client.post("/api/sessions", json=session_body())
+    assert client.post("/api/seed").status_code == 429
+    assert client.get("/api/patients/tariro").json()["session_count"] == 13
+    monkeypatch.setenv("SEED_COOLDOWN_S", "0")
+    assert client.post("/api/seed").json() == {"status": "seeded"}
+    demo = client.get("/api/demo").json()
+    assert demo["source"] == "button" and demo["seeded_at"]
+
+
+def test_nightly_reseed_needs_the_cron_secret_when_set(client, monkeypatch):
+    client.post("/api/sessions", json=session_body())
+    monkeypatch.setenv("CRON_SECRET", "night")
+    assert client.get("/api/cron/reseed").status_code == 401
+    assert client.get("/api/cron/reseed", headers={"Authorization": "Bearer wrong"}).status_code == 401
+    assert client.get("/api/cron/reseed", headers={"Authorization": "Bearer night"}).json() == {"status": "seeded"}
+    assert client.get("/api/patients/tariro").json()["session_count"] == 12
+    assert client.get("/api/demo").json()["source"] == "nightly"
+
+
+def test_nightly_reseed_keeps_the_demo_patients_current(client, monkeypatch):
+    # However long ago the data was first created, a reseed puts Tendai back at 4 days since the last session.
+    monkeypatch.setenv("SEED_COOLDOWN_S", "0")
+    client.get("/api/cron/reseed")
+    tendai = client.get("/api/patients/tendai").json()
+    from datetime import datetime, timezone
+
+    last = datetime.fromisoformat(tendai["last_session_at"].replace("Z", "+00:00"))
+    days = (datetime.now(timezone.utc) - last).total_seconds() / 86400
+    assert 3.5 <= days <= 5.5
+

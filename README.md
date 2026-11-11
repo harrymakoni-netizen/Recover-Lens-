@@ -28,7 +28,8 @@ Useful URLs:
 - `/mirror/shoulder_abduction?reps=5`: short demo set (SPEC §15)
 - add `&debug=1` for the debug panel: FPS, raw and smoothed angle, state, and a **Record landmarks** button
 - `/mirror/shoulder_abduction?mode=caregiver`: caregiver mode
-- `POST /api/seed`: reset the demo data
+- `POST /api/seed`: reset the demo data (the "Reset demo data" button at the bottom of the Clinician Portal)
+- `GET /api/cron/reseed`: the nightly reset (Vercel scheduled job, 22:00 UTC = midnight in Harare)
 
 ## Tests
 

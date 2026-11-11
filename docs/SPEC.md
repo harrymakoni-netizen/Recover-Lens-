@@ -508,7 +508,9 @@ POST /api/alerts/{id}/resolve
 GET  /api/athletes
 POST /api/screenings
 GET  /api/screenings?sport=
-POST /api/seed                     dev only, resets demo data
+POST /api/seed                     "Reset demo data" button (30 s cooldown; X-Seed-Key if SEED_KEY is set)
+GET  /api/cron/reseed              nightly job (Bearer CRON_SECRET if set)
+GET  /api/demo                     when the demo data was last created, and how
 ```
 
 CORS: allow the frontend origin. Every frontend request has a 5 s timeout.
@@ -536,7 +538,9 @@ Adherence % = sessions completed in last 14 days ÷ sessions prescribed in last 
 - The Home screen and patient's own history read local data merged with server data, so the patient sees their session instantly.
 
 ### 9.6 Seed data
-`seed.py` creates: clinician "Dr. Demo"; patients Tariro Moyo (shoulder, improving, 12 sessions), Liam Ncube (knee, pain went up in latest session → 1 alert), Amina Dube (sports return-to-play, high adherence); 6 athletes across 4 sports with screenings (4 Good, 2 Review). Sessions spread over the last 21 days with realistic upward trends.
+`seed.py` creates: clinician "Dr. Demo"; patients Tariro Moyo (shoulder, improving, 12 sessions), Liam Ncube (knee, pain went up in latest session → 1 alert), Amina Dube (sports return-to-play, high adherence); 6 athletes across 4 sports with screenings (4 Good, 2 Review). Sessions spread over the last 21 days with realistic upward trends; Tendai Sibanda (knee OA) last exercised 4 days ago, for the comeback demo (§17.5).
+
+**Keeping the demo current.** All seed dates are relative to the moment of seeding. With a persistent database (Neon) a once-only seed would drift: after a week Tendai would be 11 days lapsed and every patient would carry adherence alerts. So a Vercel scheduled job (`vercel.json` `crons`, 22:00 UTC = midnight in Harare) calls `GET /api/cron/reseed` every night, which recreates the demo data with today's dates and undoes visitors' changes. The presenter can do the same at any time with **Reset demo data** at the bottom of the Clinician Portal, which also clears this device's check-in and comeback state (`rl.coach*`) and the cached answers, then reloads. `DemoState` records when and how (start, button, nightly) the data was last made. A reset also clears the AI coach log.
 
 ---
 

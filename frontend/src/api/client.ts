@@ -58,7 +58,21 @@ export function readCache<T>(path: string): T | undefined {
   }
 }
 
+// Set by clearCache: answers to requests sent before a reset must not be cached again afterwards.
+let cacheFrozen = false;
+
+/** Forget every cached answer, and cache nothing more until the page reloads (the demo reset). */
+export function clearCache(): void {
+  cacheFrozen = true;
+  try {
+    for (const k of Object.keys(localStorage)) if (k.startsWith(CACHE_PREFIX)) localStorage.removeItem(k);
+  } catch {
+    // storage unavailable: nothing was cached
+  }
+}
+
 export function writeCache(path: string, data: unknown): void {
+  if (cacheFrozen) return;
   try {
     localStorage.setItem(CACHE_PREFIX + path, JSON.stringify(data));
   } catch {

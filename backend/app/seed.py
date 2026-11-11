@@ -18,7 +18,7 @@ from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, select
 
 from .alerts import rerun_session_alerts
-from .models import Athlete, Clinician, ExerciseSession, Patient, Program, Screening, utcnow
+from .models import Athlete, Clinician, DemoState, ExerciseSession, Patient, Program, Screening, utcnow
 
 # Copied from docs/exercise_library.json → sports_screening.risk_flag_recommendations
 REC_VALGUS = (
@@ -168,7 +168,7 @@ def _shoulder_load(arm_angle: float, load_kg: float) -> float:
     return round(9.81 * lever * (0.05 * 70 * 0.53 * length + load_kg * (length + 0.06)), 1)
 
 
-def reset_and_seed(engine: Engine) -> None:
+def reset_and_seed(engine: Engine, source: str = "start") -> None:
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     rng = random.Random(2026)
@@ -179,6 +179,7 @@ def reset_and_seed(engine: Engine) -> None:
         return t if t <= now else t - timedelta(days=1)  # never in the future, whatever the time of day
 
     with Session(engine) as db:
+        db.add(DemoState(seeded_at=utcnow(), source=source))
         db.add(Clinician(id="dr-demo", name="Dr. Demo"))
         patients = [
             Patient(

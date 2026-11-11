@@ -48,5 +48,11 @@
       "src": "/(.*)",
       "dest": "/frontend/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/reseed",
+      "schedule": "0 22 * * *"
+    }
   ]
 }

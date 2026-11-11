@@ -800,5 +800,19 @@
   "out.reason.reps_raised": "ukuphinda kwengeziwe",
   "out.reason.hold_capped": "ukubamba kufinyeziwe",
   "out.reason.pain_reduced": "ukuphinda kwehlisiwe ngenxa yobuhlungu",
-  "out.reason.time_trimmed": "kufinyeziwe ukuze kulingane lesikhathi"
+  "out.reason.time_trimmed": "kufinyeziwe ukuze kulingane lesikhathi",
+
+  "demo.reset": "Buyisela idatha yokuhlola",
+  "demo.title": "Buyisela idatha yokuhlola?",
+  "demo.body": "Lokhu kubuyisela iziguli zokuhlola, ukuzivocavoca, izexwayiso labadlali njengoba bebenjalo, kulezinsuku eziqala lamuhla. Iziguli ezengeziweyo lezinguquko ezenziwe lapha ziyasuswa. Kulesi sixhobo kususa lokubhaliweyo kwansuku zonke lokwamukelwa futhi, ukuze ukuhlola kuqale kutsha. Kuzenzakalela ubusuku ngabunye.",
+  "demo.last": "Idatha yokuhlola yenziwe okokucina {when}",
+  "demo.source.start": "lapho i-app iqalisa",
+  "demo.source.button": "ngale nkinobho",
+  "demo.source.nightly": "ngokubuyisela kobusuku",
+  "demo.confirm": "Buyisela khathesi",
+  "demo.resetting": "Kuyabuyiselwa…",
+  "demo.too_soon": "Idatha yokuhlola ibuyiselwe khathesi nje. Zama futhi ngemva kwengxenye yomzuzu.",
+  "demo.failed": "Akukhonanga ukubuyisela idatha yokuhlola. Hlola uxhumano uzame futhi.",
+
+  "demo.note": "Idatha yokuhlola. Ibuyiselwa njengoba ibinjalo ubusuku ngabunye."
 }

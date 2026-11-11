@@ -719,5 +719,19 @@
   "out.reason.reps_raised": "reps raised to a useful set",
   "out.reason.hold_capped": "hold shortened",
   "out.reason.pain_reduced": "reps lowered for pain",
-  "out.reason.time_trimmed": "shortened to fit the time"
+  "out.reason.time_trimmed": "shortened to fit the time",
+
+  "demo.reset": "Reset demo data",
+  "demo.title": "Reset the demo data?",
+  "demo.body": "This puts the demo patients, sessions, alerts and athletes back as they were, dated from today. Patients added and changes made on this site are removed. On this device it also clears the check-in and welcome-back state, so the demo starts fresh. It runs by itself every night.",
+  "demo.last": "Demo data last created {when}",
+  "demo.source.start": "when the app started",
+  "demo.source.button": "with this button",
+  "demo.source.nightly": "by the nightly reset",
+  "demo.confirm": "Reset now",
+  "demo.resetting": "Resetting…",
+  "demo.too_soon": "The demo data was reset moments ago. Try again in half a minute.",
+  "demo.failed": "Could not reset the demo data. Check the connection and try again.",
+
+  "demo.note": "Demonstration data. It is put back as it was every night."
 }
