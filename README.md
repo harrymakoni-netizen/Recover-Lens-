@@ -115,7 +115,7 @@ To use the model, set `GEMINI_API_KEY` on the backend (on Vercel: Project Settin
 
 ## Brand
 
-The logo lives in `frontend/public/brand/`: the mark for light and dark backgrounds, app icons (192, 512, maskable), the Apple touch icon and a link-preview image. The wordmark is set in Outfit, which is now self-hosted (`@fontsource/outfit`), so the app makes no third-party requests and the font works offline.
+The logo (a teal pulse line on a light rounded tile) lives in `frontend/public/brand/` as SVG: `mark.svg` for light backgrounds, `mark-dark.svg` for dark ones, `pulse.svg` and `favicon.svg`, plus PNG app icons (192, 512, maskable), the Apple touch icon and a link-preview image rendered from the SVG. The wordmark is set in Outfit, which is now self-hosted (`@fontsource/outfit`), so the app makes no third-party requests and the font works offline.
 
 ## Accessibility (WCAG 2.2 AA)
 

@@ -1,4 +1,5 @@
 // Patient home (SPEC §8.1).
+import { PulseLine } from '../components/layout/Brand';
 import { Dumbbell, Footprints, History, PersonStanding, Play, Timer, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -183,12 +184,7 @@ export default function Home() {
   return (
     <div>
       <section className="bg-brand-gradient rise relative overflow-hidden rounded-3xl p-5 text-white shadow-[var(--shadow-lift)] sm:p-8">
-        <img
-          src="/brand/mark-dark.webp"
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 hidden w-80 opacity-[0.07] sm:block"
-        />
+        <PulseLine className="pointer-events-none absolute -right-10 -top-12 hidden h-80 w-80 text-white opacity-[0.07] sm:block" />
         <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="min-w-0">
             <p className="text-sm font-medium uppercase tracking-[0.14em] text-mint">
