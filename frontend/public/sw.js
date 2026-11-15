@@ -3,7 +3,7 @@
 // - built assets: cache-first
 // - page navigations: network-first, falling back to the cached app shell
 // - /api: never cached here (the app keeps its own offline queue and data cache)
-const VERSION = 'rl-v2';
+const VERSION = 'rl-v3';
 const CORE = [
   '/',
   '/index.html',
