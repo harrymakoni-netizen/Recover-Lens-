@@ -3,15 +3,14 @@
 // - built assets: cache-first
 // - page navigations: network-first, falling back to the cached app shell
 // - /api: never cached here (the app keeps its own offline queue and data cache)
-const VERSION = 'rl-v3';
+const VERSION = 'rl-v2';
 const CORE = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/favicon.png',
-  '/brand/mark.svg',
-  '/brand/mark-dark.svg',
-  '/brand/favicon.svg',
+  '/brand/mark.webp',
+  '/brand/mark-dark.webp',
   '/models/pose_landmarker_lite.task',
 ];
 
