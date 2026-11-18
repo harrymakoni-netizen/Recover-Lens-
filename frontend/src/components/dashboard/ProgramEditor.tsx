@@ -36,6 +36,21 @@ export function ProgramEditor({ value, onChange }: { value: ProgramDraft[]; onCh
             {t('prog.reps')}
             <input className={inputClass} type="number" min={1} max={50} value={p.reps} onChange={(e) => update(i, { reps: Number(e.target.value) })} />
           </label>
+          {p.exercise_id === 'seated_reach' && (
+            <label className="col-span-full text-xs text-navy-soft">
+              {t('prog.reach_target')}
+              <input
+                className={inputClass}
+                type="number"
+                min={55}
+                max={130}
+                placeholder={t('prog.reach_target_empty')}
+                value={p.target_angle ?? ''}
+                onChange={(e) => update(i, { target_angle: e.target.value === '' ? null : Number(e.target.value) })}
+              />
+              <span className="mt-1 block">{t('prog.reach_target_hint')}</span>
+            </label>
+          )}
           <button
             type="button"
             aria-label={t('prog.remove', { exercise: exerciseName(t, p.exercise_id) })}

@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLiveExercise } from '../../exercises';
 import { type EngineEvent, type EngineFrame, SessionEngine, type EngineOptions } from '../sessionEngine';
+import { checkCalibration } from '../calibration';
 import { H, type Pose, W, makePose, seeded } from './simulator';
 
 const FRAME_MS = 1000 / 30;
@@ -458,5 +459,174 @@ describe('added exercises (reports/Live tracked rehab exercises.md)', () => {
       const keys = [c.intro, c.onRaising, c.onTop, c.onLowering, c.onRep, c.onSetComplete, c.onSessionComplete, ...Object.values(c.faults)];
       for (const lang of ['en', 'sn', 'nd'] as const) for (const k of keys) expect(PHRASES[lang][k!], `${id} ${lang} ${k}`).toBeTruthy();
     }
+  });
+});
+
+describe('live reach training (SPEC §17.12)', () => {
+  // Patient's left arm, side view, facing image-right: armL swings the wrist forward and up.
+  const rest = { armL: 15, armR: 15, elbowBend: 0 };
+  const out = { armL: 85, armR: 15, elbowBend: 0 };
+
+  /** Practice reach, then 3-2-1: returns once counting has started. */
+  const practiceThenStart = (d: Driver) => {
+    d.frames(rest, 1.5); // calibration gate, then the practice window opens
+    d.move(rest, out, 2);
+    d.frames(out, 1);
+    d.move(out, rest, 1.5);
+    d.frames(rest, 4.5);
+    expect(d.last.phase).toBe('active');
+  };
+  const reachRep = (d: Driver, holdS = 1.4) => {
+    d.move(rest, out, 1);
+    d.frames(out, holdS);
+    d.move(out, rest, 1);
+    d.frames(rest, 0.5);
+  };
+
+  it('sets the target from the practice reach and counts reps that enter it', () => {
+    const d = make('seated_reach', { targetReps: 3, sets: 1 });
+    practiceThenStart(d);
+    expect(d.count('practice')).toBe(1);
+    expect(d.last.target).not.toBeNull();
+    for (let i = 0; i < 3; i++) reachRep(d);
+    expect(d.last.reps).toBe(3);
+    expect(d.last.correctReps).toBe(3);
+    const s = d.engine.summary();
+    expect(s.reach?.targetPct).toBeGreaterThan(95); // ≈ 90 % of a ~125 % practice reach
+    expect(s.reach?.targetPct).toBeLessThan(125);
+    expect(s.reach?.avgPeakPct).toBeGreaterThan(100);
+    expect(s.reach?.avgHoldS).toBeGreaterThan(1);
+    expect(s.trackingCoverage).toBe(100);
+    expect(s.review).toEqual([]);
+  });
+
+  it('shows the target circle on the video, and marks a hit', () => {
+    const d = make('seated_reach', { targetReps: 3, sets: 1 });
+    practiceThenStart(d);
+    expect(d.last.target?.hit).toBe(false);
+    d.move(rest, out, 1);
+    d.frames(out, 0.3);
+    expect(d.last.target?.hit).toBe(true);
+  });
+
+  it("uses the clinician's target and skips the practice reach", () => {
+    const d = make('seated_reach', { targetReps: 2, sets: 1, reachTargetPct: 90 });
+    d.frames(rest, 5);
+    expect(d.last.phase).toBe('active');
+    expect(d.count('practice')).toBe(0);
+    reachRep(d);
+    expect(d.engine.summary().reach?.targetPct).toBe(90);
+  });
+
+  it('counts a rep whose hold is cut short, but not as a correct rep (rule 4)', () => {
+    const d = make('seated_reach', { targetReps: 2, sets: 1 });
+    practiceThenStart(d);
+    reachRep(d, 0.2);
+    expect(d.last.reps).toBe(1);
+    expect(d.last.correctReps).toBe(0);
+  });
+
+  it('flags reaching with the trunk instead of the arm, as an observation', () => {
+    const d = make('seated_reach', { targetReps: 2, sets: 1 });
+    practiceThenStart(d);
+    const lean = { ...out, lean: 28 };
+    d.move(rest, lean, 1);
+    d.frames(lean, 1.2);
+    d.move(lean, rest, 1);
+    d.frames(rest, 0.5);
+    expect(d.events.some((e) => e.type === 'fault' && e.id === 'trunk_lean')).toBe(true);
+    expect(d.engine.summary().reach?.maxTrunkDeg).toBeGreaterThan(12);
+  });
+
+  it('records the practice reach as unusable and falls back to the default target when it is too small', () => {
+    const d = make('seated_reach', { targetReps: 1, sets: 1 });
+    d.frames(rest, 1.5);
+    d.frames(rest, 8); // no practice reach at all
+    expect(d.last.phase).toBe('active');
+    expect(d.engine.summary().reach?.targetPct).toBe(100);
+  });
+});
+
+describe('tracking gaps and review flags (SPEC §17.12)', () => {
+  const up = { armL: 70, armR: 70, elbowBend: 0 };
+  const down = { armL: 70, armR: 70, elbowBend: 80 };
+
+  it('records how long the camera lost the person, and marks the result for review', () => {
+    const d = make('wall_push_up', { targetReps: 4, sets: 1 });
+    d.calibrate(up);
+    d.move(up, down, 1);
+    d.move(down, up, 1);
+    d.frames(null, 3); // the camera loses them: counting pauses
+    expect(d.last.phase).toBe('paused');
+    d.frames(up, 1);
+    d.move(up, down, 1);
+    d.move(down, up, 1);
+    const s = d.engine.summary();
+    expect(s.trackingLostS).toBeGreaterThan(2.5);
+    expect(s.trackingCoverage).toBeLessThan(90);
+    expect(s.review).toContain('tracking_gaps');
+  });
+
+  it('a clean session has full coverage and nothing to review', () => {
+    const d = make('wall_push_up', { targetReps: 2, sets: 1 });
+    d.calibrate(up);
+    for (let i = 0; i < 2; i++) {
+      d.move(up, down, 1);
+      d.move(down, up, 1);
+      d.frames(up, 0.4);
+    }
+    expect(d.engine.summary().trackingCoverage).toBe(100);
+    expect(d.engine.summary().review).toEqual([]);
+  });
+
+  it('timed test: arms off the chest are recorded; only the STEADI protocol sends it for review', () => {
+    const run = (protocol: 'practice' | 'assessment') => {
+      const config = { ...getLiveExercise('wall_push_up'), timeLimitSeconds: 60, armsOnChest: true };
+      const d = new Driver(new SessionEngine(config, { targetReps: 3, sets: 1, protocol }));
+      d.calibrate(up); // arms hanging, so the wrist is well below the chest
+      for (let i = 0; i < 2; i++) {
+        d.move(up, down, 1);
+        d.move(down, up, 1);
+        d.frames(up, 0.4);
+      }
+      return d.engine.summary();
+    };
+    const practice = run('practice');
+    expect(practice.armsUsedReps).toBe(2);
+    expect(practice.reps).toBe(2); // every stand still counts
+    expect(practice.review).not.toContain('arms_used');
+    const test = run('assessment');
+    expect(test.review).toContain('arms_used');
+    expect(test.reps).toBe(2);
+  });
+});
+
+describe('camera setup check (SPEC §17.12)', () => {
+  const full = () => makePose({}, 0).landmarks;
+
+  it('names the arm when only the elbow and wrist are out of view', () => {
+    const lm = full();
+    for (const i of [13, 14, 15, 16]) lm[i] = { ...lm[i], visibility: 0.1 };
+    const check = checkCalibration(lm, [11, 23, 13, 15]);
+    expect(check.issue).toBe('show_arms');
+    expect(check.missing).toEqual([13, 15]);
+  });
+
+  it('names the ankles when only they are cut off at the bottom of the frame', () => {
+    const lm = full();
+    for (const i of [27, 28]) lm[i] = { x: 0.5, y: 1.04, z: 0, visibility: 0.1 };
+    const check = checkCalibration(lm, [11, 23, 25, 27, 28]);
+    expect(check.issue).toBe('show_feet');
+    expect(check.missing).toEqual([27, 28]);
+  });
+
+  it('highlights the joints the exercise needs while calibrating', () => {
+    const d = make('seated_reach');
+    d.frames(null, 0.3);
+    expect(d.last.setup?.required).toEqual(expect.arrayContaining([11, 13, 15, 23]));
+    expect(d.last.setup?.required).not.toContain(27); // seated: the feet are not needed
+    expect(d.last.setup?.missing.length).toBeGreaterThan(0);
+    d.frames({}, 0.5);
+    expect(d.last.setup?.missing).toEqual([]);
   });
 });

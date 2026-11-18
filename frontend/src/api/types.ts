@@ -72,6 +72,15 @@ export interface SessionRecord {
   /** Weight held in the hand (kg) and the joint-load estimate (pose/effort.ts), N·m. */
   load_kg?: number | null;
   peak_torque_nm?: number | null;
+  /** % of the active time the needed joints were in view; low values explain a low count. */
+  tracking_coverage?: number | null;
+  /** Comma list of reasons a person should look at the result: tracking_gaps, arms_used. */
+  review_flags?: string | null;
+  arms_used_reps?: number | null;
+  reach_target_pct?: number | null;
+  reach_peak_pct?: number | null;
+  reach_hold_s?: number | null;
+  trunk_lean_max_deg?: number | null;
 }
 
 export interface PatientDetail extends Patient {

@@ -53,6 +53,13 @@ export function buildSessionRecord(args: {
     fatigue_form_points: s.fatigue?.formPoints ?? null,
     load_kg: s.effort ? s.effort.loadKg : null,
     peak_torque_nm: s.effort ? r(s.effort.peakNm) : null,
+    tracking_coverage: s.trackingCoverage,
+    review_flags: s.review.length ? s.review.join(',') : null,
+    arms_used_reps: s.protocol ? s.armsUsedReps : null,
+    reach_target_pct: s.reach ? r(s.reach.targetPct) : null,
+    reach_peak_pct: s.reach ? r(s.reach.avgPeakPct) : null,
+    reach_hold_s: s.reach ? r(s.reach.avgHoldS) : null,
+    trunk_lean_max_deg: s.reach ? r(s.reach.maxTrunkDeg) : null,
   };
 }
 

@@ -183,6 +183,14 @@ const en: Record<string, string> = {
   keep_knees_straight: 'Keep your knees straight.',
   scap_intro: 'Thumbs up. Raise both arms up and slightly forward to shoulder height, keeping your shoulders down.',
   scap_raising: 'Raise your arms slowly, slightly forward.',
+  reach_practice: "First, reach forward as far as is comfortable, then bring your hand back to your lap.",
+  reach_intro: "Reach your hand into the circle, hold for a moment, then bring it back slowly.",
+  reach_out: "Reach towards the circle.",
+  reach_back: "Bring your hand back slowly.",
+  reach_keep_back: "Keep your back upright and reach with your arm.",
+  reach_further: "Try to reach a little further into the circle.",
+  cal_show_feet: "Move back until I can see both ankles.",
+  cal_show_arms: "I can't see your arm. Turn sideways so your shoulder, elbow and hand are in view.",
 };
 
 // Short pill text for long phrases (the pill holds ~40 characters).
@@ -223,6 +231,10 @@ const pillEn: Record<string, string> = {
   hr_intro: 'Rise onto your toes, lower slowly',
   scap_intro: 'Arms up and slightly forward',
   set_complete_turn: 'Set complete. Rest, then turn round',
+  reach_practice: "Reach as far as is comfortable",
+  reach_intro: "Hand into the circle, hold, return",
+  cal_show_feet: "Move back: show both ankles",
+  cal_show_arms: "Turn sideways: show your arm",
 };
 
 
@@ -388,6 +400,14 @@ const sn: Record<string, string> = {
   keep_knees_straight: 'Chengetai mabvi akatwasuka.',
   scap_intro: 'Zvigunwe kumusoro. Simudzai maoko ose kumusoro uye zvishoma kumberi kusvika pamapfudzi, mapfudzi akadzikama pasi.',
   scap_raising: 'Simudzai maoko zvishoma nezvishoma, zvishoma kumberi.',
+  reach_practice: "Kutanga, tambanudzai ruoko kumberi kusvika pamunogona zvakanaka, mozodzosera ruoko pachiuno.",
+  reach_intro: "Tambanudzai ruoko muende munzira yedenderedzwa, mumire kwechinguva, mozodzosera zvishoma nezvishoma.",
+  reach_out: "Tambanudzai ruoko kudenderedzwa.",
+  reach_back: "Dzosai ruoko zvishoma nezvishoma.",
+  reach_keep_back: "Chengetai musana wakatwasuka mutambanudze ruoko.",
+  reach_further: "Edzai kutambanudza ruoko zvishoma zvakare mukati medenderedzwa.",
+  cal_show_feet: "Dzokerai shure kusvikira ndaona mitezo yetsoka dzose.",
+  cal_show_arms: "Handioni ruoko rwenyu. Tendeukai rutivi kuti pfudzi, gokora neruoko ruonekwe.",
 };
 
 // isiNdebele. Needs a native speaker's review.
@@ -552,6 +572,14 @@ const nd: Record<string, string> = {
   keep_knees_straight: 'Gcinani amadolo eqondile.',
   scap_intro: 'Izithupha phezulu. Phakamisani izingalo zombili phezulu langaphambili kancane kuze kufike emahlombe, amahlombe ephansi.',
   scap_raising: 'Phakamisani izingalo kancane kancane, phambili kancane.',
+  reach_practice: "Kuqala, tshambisani isandla phambili ngokusemandleni enu ngokuthula, beselibuyisela isandla emathangeni.",
+  reach_intro: "Tshambisani isandla ngaphakathi kwesiyingi, limise okomzuzwana, beselibuyisela kancane kancane.",
+  reach_out: "Tshambisani isandla ngesiyingi.",
+  reach_back: "Buyisani isandla kancane kancane.",
+  reach_keep_back: "Gcinani umhlane uqondile litshambise isandla.",
+  reach_further: "Zamani ukutshambisa isandla kancane futhi ngaphakathi kwesiyingi.",
+  cal_show_feet: "Buyelani emuva kuze ngibone zombili izithende.",
+  cal_show_arms: "Angiyiboni ingalo yenu. Phenduka icele ukuze ihlombe, indololwane lesandla kubonakale.",
 };
 
 export const PHRASES: Record<Lang, Record<string, string>> = { en, sn, nd };
@@ -593,6 +621,10 @@ const pillSn: Record<string, string> = {
   hr_intro: 'Simukai pamino, dzikisai',
   scap_intro: 'Maoko kumusoro uye kumberi',
   set_complete_turn: 'Seti yapera. Zororai, motendeuka',
+  reach_practice: "Tambanudzai ruoko zvinoita",
+  reach_intro: "Ruoko mudenderedzwa, mumire, mudzoke",
+  cal_show_feet: "Dzokerai shure: tsoka dzose",
+  cal_show_arms: "Tendeukai rutivi: ruoko ruonekwe",
 };
 
 const pillNd: Record<string, string> = {
@@ -632,6 +664,10 @@ const pillNd: Record<string, string> = {
   hr_intro: 'Phakamani ngamazwane, lehlise',
   scap_intro: 'Izingalo phezulu langaphambili',
   set_complete_turn: 'Isethi iphelile. Phumula, uphenduke',
+  reach_practice: "Tshambisani isandla ngokuthula",
+  reach_intro: "Isandla esiyingini, limise, libuye",
+  cal_show_feet: "Buyelani emuva: izithende zombili",
+  cal_show_arms: "Phenduka icele: ingalo ibonakale",
 };
 
 export const PILLS: Record<Lang, Record<string, string>> = { en: pillEn, sn: pillSn, nd: pillNd };

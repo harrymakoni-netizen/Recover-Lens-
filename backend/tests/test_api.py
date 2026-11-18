@@ -328,3 +328,19 @@ def test_shared_habits_are_validated(client):
     assert client.put("/api/habits/tariro", json={"days": [{"day": "2026-11-18", "values": {"sleep": 30}}]}).status_code == 422
     assert client.put("/api/habits/tariro", json={"days": [{"day": "18/11/2026", "values": {"sleep": 7}}]}).status_code == 422
     assert client.put("/api/habits/nobody", json={"days": []}).status_code == 404
+
+
+def test_tracking_coverage_and_reach_fields_are_stored_and_validated(client):
+    body = session_body(
+        exercise_id="seated_reach", tracking_coverage=84, review_flags="tracking_gaps",
+        reach_target_pct=102.5, reach_peak_pct=108.0, reach_hold_s=1.3, trunk_lean_max_deg=6.0,
+    )
+    s = client.post("/api/sessions", json=body).json()["session"]
+    assert (s["tracking_coverage"], s["review_flags"]) == (84, "tracking_gaps")
+    assert (s["reach_target_pct"], s["reach_peak_pct"], s["reach_hold_s"], s["trunk_lean_max_deg"]) == (102.5, 108.0, 1.3, 6.0)
+    # They come back on the patient's session list, so the clinician can tell a low count from poor capture.
+    listed = client.get("/api/patients/tariro").json()["sessions"]
+    assert any(x["id"] == body["id"] and x["tracking_coverage"] == 84 for x in listed)
+    # Bad values are refused.
+    assert client.post("/api/sessions", json=session_body(tracking_coverage=140)).status_code == 422
+    assert client.post("/api/sessions", json=session_body(review_flags="<script>")).status_code == 422

@@ -25,6 +25,8 @@ export function CameraMessage({
   onRetry,
   caregiver,
   modelError,
+  protocol,
+  onProtocol,
 }: {
   status: CameraStatus | 'intro';
   exerciseName: string;
@@ -35,6 +37,9 @@ export function CameraMessage({
   modelError?: string | null;
   /** Test/demo mode: pick a recorded video instead of starting the camera. */
   onFile?: (file: File) => void;
+  /** Timed tests (chair stand): practice or the CDC STEADI test. */
+  protocol?: 'practice' | 'assessment';
+  onProtocol?: (p: 'practice' | 'assessment') => void;
 }) {
   const { t } = useApp();
   const accent = caregiver ? 'text-orange-300' : 'text-good';
@@ -64,6 +69,25 @@ export function CameraMessage({
                 <span>{caregiver ? t('cam.stand_back_cg') : t('cam.stand_back')}</span>
               </li>
             </ol>
+            {protocol && onProtocol && (
+              <fieldset className="mt-4">
+                <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/70">{t('cam.protocol_label')}</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['practice', 'assessment'] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      aria-pressed={protocol === p}
+                      onClick={() => onProtocol(p)}
+                      className={`min-h-11 rounded-xl border px-3 text-sm font-medium ${protocol === p ? 'border-good bg-good/15 text-white' : 'border-white/15 text-white/80'}`}
+                    >
+                      {t(p === 'practice' ? 'cam.protocol_practice' : 'cam.protocol_test')}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-sm text-white/75">{t(protocol === 'practice' ? 'cam.protocol_hint_practice' : 'cam.protocol_hint_test')}</p>
+              </fieldset>
+            )}
             <p className="mt-4 rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
               {caregiver ? t('cam.safety_cg') : t('cam.safety')}
             </p>

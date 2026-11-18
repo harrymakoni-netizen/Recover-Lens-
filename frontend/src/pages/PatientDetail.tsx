@@ -243,6 +243,20 @@ export default function PatientDetail() {
                       <td className="py-2.5">
                         {exerciseName(t, s.exercise_id)}
                         {s.mode === 'caregiver' && <Badge tone="care">{t('pd.caregiver')}</Badge>}
+                        {s.review_flags && (
+                          <span className="mt-0.5 block text-xs text-navy-soft">
+                            <Badge tone="review">{t('pd.review')}</Badge>{' '}
+                            {s.review_flags
+                              .split(',')
+                              .map((f) => t(`pd.review_${f}`, { n: s.arms_used_reps ?? 0, pct: s.tracking_coverage ?? 0 }))
+                              .join(' · ')}
+                          </span>
+                        )}
+                        {s.reach_peak_pct != null && (
+                          <span className="mt-0.5 block text-xs text-navy-soft">
+                            {t('pd.reach_line', { reached: Math.round(s.reach_peak_pct), target: Math.round(s.reach_target_pct ?? 0), lean: Math.round(s.trunk_lean_max_deg ?? 0) })}
+                          </span>
+                        )}
                       </td>
                       <td className="py-2.5 pl-4 text-right tabular-nums">{s.reps}</td>
                       <td className="py-2.5 pl-4 text-right tabular-nums">{s.correct_reps}</td>

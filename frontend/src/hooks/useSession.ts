@@ -110,7 +110,7 @@ export function useSession({
       lastLandmarksRef.current = landmarks;
 
       const frame = engine.update(landmarks, now, video.videoWidth, video.videoHeight, world);
-      drawSkeleton(canvas, landmarks, frame.skeletonColor);
+      drawSkeleton(canvas, landmarks, frame.skeletonColor, { setup: frame.setup, target: frame.target });
 
       const rec = recordRef.current;
       if (rec) rec.frames.push({ t: Math.round(now - rec.start), lm: encodeLandmarks(landmarks), w: encodeWorld(world) });

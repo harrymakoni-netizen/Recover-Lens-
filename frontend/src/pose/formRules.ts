@@ -13,11 +13,12 @@ export type FaultRuleId =
   | 'pelvis_drop'
   | 'not_high_enough'
   | 'body_line'
-  | 'knee_bend';
+  | 'knee_bend'
+  | 'trunk_lean';
 
 export const ALL_FAULTS: FaultRuleId[] = [
   'torso_lean', 'asymmetry', 'elbow_bend', 'back_arch', 'knee_valgus',
-  'weight_shift', 'heel_rise', 'pelvis_drop', 'not_high_enough', 'body_line', 'knee_bend',
+  'weight_shift', 'heel_rise', 'pelvis_drop', 'not_high_enough', 'body_line', 'knee_bend', 'trunk_lean',
 ];
 
 export const THRESHOLDS = {
@@ -33,6 +34,8 @@ export const THRESHOLDS = {
   bodyLineDeg: 160,
   // TUNE: a straight leg reads ~170–178° side-on in 2D; under this the knees are bending.
   kneeBendDeg: 155,
+  // TUNE: forward lean beyond the person's own starting posture that counts as reaching with the trunk.
+  trunkLeanDeg: 12,
 } as const;
 
 export const DEBOUNCE_MS = 300;
@@ -63,6 +66,8 @@ export interface FaultInput {
   bodyLine?: number | null;
   /** Smallest knee angle of both legs (2D, side view). */
   kneeAngle?: number | null;
+  /** Trunk lean beyond the posture at the start of the set, degrees (seated reach). */
+  trunkLeanDelta?: number | null;
 }
 
 export interface FaultResult {
@@ -126,6 +131,12 @@ export function evaluateRule(id: FaultRuleId, f: FaultInput): { triggered: boole
       if (f.bodyLine == null) return off;
       const triggered = f.bodyLine < THRESHOLDS.bodyLineDeg;
       return { triggered, severity: triggered ? Math.min(1, (THRESHOLDS.bodyLineDeg - f.bodyLine) / 30) : 0 };
+    }
+
+    case 'trunk_lean': {
+      if (f.trunkLeanDelta == null || !f.inMovement) return off;
+      const triggered = f.trunkLeanDelta > THRESHOLDS.trunkLeanDeg;
+      return { triggered, severity: triggered ? Math.min(1, (f.trunkLeanDelta - THRESHOLDS.trunkLeanDeg) / 20) : 0 };
     }
 
     case 'knee_bend': {

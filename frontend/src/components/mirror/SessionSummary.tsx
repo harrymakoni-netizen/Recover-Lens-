@@ -189,6 +189,26 @@ export function SessionSummaryCard({
               tone={toneOf(cmp?.rangeDelta)}
             />
           )}
+          {!guided && summary.reach && (
+            <Tile
+              label={t('sum.reach')}
+              value={summary.reach.avgPeakPct === null ? '—' : `${Math.round(summary.reach.avgPeakPct)}%`}
+              note={t('sum.reach_target', { n: Math.round(summary.reach.targetPct) })}
+            />
+          )}
+          {!guided && summary.reach && summary.reach.avgHoldS !== null && (
+            <Tile label={t('sum.reach_hold')} value={t('sum.seconds', { n: round(summary.reach.avgHoldS, 1) })} />
+          )}
+          {!guided && summary.reach && summary.reach.maxTrunkDeg !== null && (
+            <Tile label={t('sum.reach_trunk')} value={`${Math.max(0, Math.round(summary.reach.maxTrunkDeg))}°`} note={t('sum.reach_trunk_note')} />
+          )}
+          {!guided && summary.trackingCoverage !== null && summary.durationS > 0 && (
+            <Tile
+              label={t('sum.tracking')}
+              value={`${summary.trackingCoverage}%`}
+              note={summary.trackingLostS >= 1 ? t('sum.tracking_lost', { n: Math.round(summary.trackingLostS) }) : t('sum.tracking_good')}
+            />
+          )}
           {!guided && summary.effort && (
             <Tile
               label={t('effort.title')}
@@ -219,6 +239,19 @@ export function SessionSummaryCard({
               />
             )}
           </dl>
+        )}
+        {!guided && (summary.review.length > 0 || (summary.protocol === 'practice' && summary.armsUsedReps > 0)) && (
+          <div role="note" className="mt-4 rounded-xl bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <div className="font-semibold">{t('sum.review_title')}</div>
+            <ul className="mt-1 list-disc space-y-1 pl-5">
+              {summary.review.map((r) => (
+                <li key={r}>{t(`sum.review.${r}`, { n: summary.armsUsedReps, pct: summary.trackingCoverage ?? 0 })}</li>
+              ))}
+              {summary.protocol === 'practice' && summary.armsUsedReps > 0 && (
+                <li>{t('sum.arms_practice', { n: summary.armsUsedReps })}</li>
+              )}
+            </ul>
+          </div>
         )}
         {!guided && (
           <p className="mt-2 text-xs text-white/70">

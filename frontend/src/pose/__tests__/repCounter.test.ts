@@ -70,6 +70,22 @@ describe('RepCounter (SPEC §5.4 / §12.2)', () => {
     expect(counter.reps).toBe(1);
   });
 
+  it('counts a rep even when the pause at the top is cut short, but not as correct (rule 4)', () => {
+    const angles = [...hold(20, 0.3), ...ramp(20, 95, 1), ...hold(95, 0.4), ...ramp(95, 20, 1), ...hold(20, 0.3)];
+    const { counter, events } = run(angles, { holdSeconds: 1.5 });
+    expect(counter.reps).toBe(1);
+    expect(counter.correctReps).toBe(0);
+    const rep = events.find((e) => e.type === 'rep');
+    expect(rep && rep.type === 'rep' && rep.holdS).toBeGreaterThan(0.3);
+    expect(rep && rep.type === 'rep' && rep.holdS).toBeLessThan(1.5);
+  });
+
+  it('marks the rep correct once the pause is held', () => {
+    const angles = [...hold(20, 0.3), ...ramp(20, 95, 1), ...hold(95, 2), ...ramp(95, 20, 1), ...hold(20, 0.3)];
+    const { counter } = run(angles, { holdSeconds: 1.5 });
+    expect(counter.correctReps).toBe(1);
+  });
+
   it('does not count a partial rise 20→60→20', () => {
     const angles = [...hold(20, 0.3), ...ramp(20, 60, 1), ...ramp(60, 20, 1), ...hold(20, 0.3)];
     const { counter, events } = run(angles);

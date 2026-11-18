@@ -95,6 +95,7 @@ export const chairStand30: ExerciseConfig = {
   defaultSets: 1,
   defaultReps: 30,
   timeLimitSeconds: 30,
+  armsOnChest: true,
   cues: {
     ...sitToStand.cues,
     intro: 'chair30_intro',
@@ -229,4 +230,53 @@ export const scaption: ExerciseConfig = {
   cues: { ...shoulderAbduction.cues, intro: 'scap_intro', onRaising: 'scap_raising' },
 };
 
-export const STRENGTH: ExerciseConfig[] = [wallPushUp, kneePushUp, chairStand30, seatedKneeExtension, standingKneeCurl, heelRaise, scaption];
+/**
+ * Seated reach-to-target (SPEC §17.12): the wrist moves into a target circle drawn on the video, holds
+ * for a moment and returns. Reach is measured against torso size, so it does not depend on how far
+ * the person sits from the camera. A MediaPipe study showed reaching after stroke can be tracked in
+ * seven people; this is a prototype for local validation, not a validated measure.
+ */
+export const seatedReach: ExerciseConfig = {
+  tracking: 'live',
+  id: 'seated_reach',
+  name: 'Seated Reach',
+  region: 'shoulder',
+  kind: 'reps',
+  cameraView: 'side',
+  description: 'Sit side-on to the camera and reach your hand into the target circle on the screen, hold for a moment, then bring it back.',
+  steps: [
+    'Sit tall on a sturdy chair side-on to the camera, hands in your lap. Your shoulder, arm and hip must be in view.',
+    'First reach forward as far as is comfortable: the target is set from this practice reach.',
+    'Reach your hand into the circle, hold for a moment, then bring it back slowly. Keep your back upright.',
+  ],
+  requiredLandmarks: [LM.NOSE],
+  requiredJoints: ['shoulder', 'elbow', 'wrist', 'hip'],
+  // Progress towards the target circle, 0–100 % (0 = hand at rest, 100 = inside the circle).
+  primaryAngle: { metric: 'reach' },
+  side: 'auto',
+  startAngle: 0,
+  targetAngle: 100,
+  holdSeconds: 1,
+  defaultSets: 2,
+  defaultReps: 8,
+  minRepSeconds: 1.5,
+  faultRules: ['trunk_lean', 'not_high_enough'],
+  angleLabel: 'Reach',
+  // Seated: the lower body is not needed, and the body looks short.
+  calibration: { minBodyHeight: 0, maxBodyHeight: 2 },
+  // TUNE: every number below needs local validation. 100 % = a straight arm at shoulder height is
+  // about 120 % of torso length for most adults; the practice reach replaces the default target.
+  reach: { targetPct: 100, targetDropPct: 0, radiusPct: 22, minPct: 55, maxPct: 130, practiceSeconds: 5 },
+  cues: {
+    intro: 'reach_intro',
+    onRaising: 'reach_out',
+    onTop: 'hold',
+    onLowering: 'reach_back',
+    onRep: 'rep_of',
+    faults: { trunk_lean: 'reach_keep_back', not_high_enough: 'reach_further' },
+    onSetComplete: 'set_complete',
+    onSessionComplete: 'session_complete',
+  },
+};
+
+export const STRENGTH: ExerciseConfig[] = [wallPushUp, kneePushUp, chairStand30, seatedKneeExtension, standingKneeCurl, heelRaise, scaption, seatedReach];

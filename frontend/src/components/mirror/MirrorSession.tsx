@@ -47,6 +47,7 @@ export function MirrorSession({
   const [muted, setMuted] = useState(voice.muted);
   const [portraitHint, setPortraitHint] = useState(false);
   const startedRef = useRef(false);
+  const [protocol, setProtocol] = useState<'practice' | 'assessment'>(options.protocol ?? 'practice');
 
   const onModelReplaced = pose.replace;
   const running = camera.status === 'ready' && pose.status === 'ready' && !overlay;
@@ -223,6 +224,11 @@ export function MirrorSession({
           exerciseName={exerciseName(t, config.id)}
           steps={steps ?? exerciseSteps(t, config)}
           onStart={start}
+          protocol={config.timeLimitSeconds ? protocol : undefined}
+          onProtocol={(p) => {
+            setProtocol(p);
+            session.engine.setProtocol(p);
+          }}
           onRetry={fileMode ? camera.reset : start}
           onFile={
             fileMode

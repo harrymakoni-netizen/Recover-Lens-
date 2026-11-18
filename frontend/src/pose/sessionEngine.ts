@@ -12,7 +12,7 @@ import {
 import { type EffortSummary, jointTorque, summariseEffort } from './effort';
 import { type FatigueSigns, analyseFatigue, tiringInSet } from './fatigue';
 import { FaultDetector, type FaultInput, type FaultRuleId } from './formRules';
-import { type RawMetrics, computeRawMetrics, symmetry, torsoAlignment } from './geometry';
+import { type RawMetrics, computeRawMetrics, facingOf, reachPoint, symmetry, torsoAlignment } from './geometry';
 import { HoldTimer } from './holdTimer';
 import { type Landmark, SIDE_LANDMARKS, type Side, visibilityOf } from './landmarks';
 import { RepCounter, type RepEvent, type RepResult, type RepState, computeProgress } from './repCounter';
@@ -34,6 +34,13 @@ export interface EngineOptions {
   pauseAfterMs?: number;
   /** Weight held in the hand (kg), for the joint-load estimate. */
   loadKg?: number;
+  /** Seated reach: the clinician's target, forward reach in % of torso length (the programme value). */
+  reachTargetPct?: number;
+  /**
+   * Timed tests. 'practice' counts every stand and records arm use; 'assessment' follows the CDC
+   * STEADI protocol, where needing the arms to stand is a result for the clinician to review.
+   */
+  protocol?: 'practice' | 'assessment';
 }
 
 export type EngineEvent =
@@ -52,6 +59,7 @@ export type EngineEvent =
   | { type: 'paused' }
   | { type: 'resumed' }
   | { type: 'timeUp' }
+  | { type: 'practice' }
   | { type: 'holdStart' }
   | { type: 'holdBroken' }
   | { type: 'holdRemaining'; seconds: number }
@@ -71,6 +79,12 @@ export interface RepRecord extends RepResult {
   landingKneeMin: number | null;
   /** Highest joint-load estimate during the rep, N·m (exercises with `effort`). */
   peakTorque: number | null;
+  /** Seated reach: furthest forward wrist position in the rep, % of torso length. */
+  peakReachPct: number | null;
+  /** Seated reach: most the trunk leaned beyond its starting posture in the rep, degrees. */
+  maxTrunkDelta: number | null;
+  /** The wrist left the chest during the stand (chair stand). */
+  armsUsed: boolean;
 }
 
 export interface HoldRecord {
@@ -124,6 +138,12 @@ export interface EngineFrame {
   trackedSide: Side | null;
   /** Timed tests: seconds left and the total, once counting has started. */
   timer: { left: number; total: number } | null;
+  /** Camera setup check: the joints this exercise needs, and which of them are not visible yet. */
+  setup: { required: number[]; missing: number[] } | null;
+  /** Seated reach: the on-screen target in normalised image coordinates (radius as a fraction of height). */
+  target: { x: number; y: number; r: number; hit: boolean; holdProgress: number } | null;
+  /** Seated reach: the person is doing their practice reach before the countdown. */
+  practising: boolean;
   events: EngineEvent[];
 }
 
@@ -148,6 +168,17 @@ export interface SessionSummary {
   fatigue: FatigueSigns | null;
   /** Joint-load estimate for exercises that have one (pose/effort.ts). */
   effort: EffortSummary | null;
+  /** Share of the active time the required joints were visible, 0–100; low values explain a low count. */
+  trackingCoverage: number | null;
+  /** Seconds in the active time with the required joints out of view. */
+  trackingLostS: number;
+  /** Seated reach: target and what was reached. */
+  reach: { targetPct: number; avgPeakPct: number | null; avgHoldS: number | null; maxTrunkDeg: number | null } | null;
+  /** Chair stand: stands in which a wrist left the chest. */
+  armsUsedReps: number;
+  protocol: 'practice' | 'assessment' | null;
+  /** Reasons the result should be looked at by a person before it is relied on. */
+  review: Array<'tracking_gaps' | 'arms_used'>;
 }
 
 const PHASE_LABELS: Record<string, Record<RepState, string>> = {
@@ -160,6 +191,12 @@ const PHASE_LABELS: Record<string, Record<RepState, string>> = {
 
 const STANCE_LIFT_FRACTION = 0.05; // TUNE: lifted ankle must be this far (of body height) above the other
 const LANDING_WINDOW_MS = 600;
+// TUNE: a wrist this far (% of torso length) in front of, or below, the shoulder is off the chest.
+const ARMS_OFF_PCT = 70;
+// TUNE: time off the chest during one stand that counts as arm use.
+const ARMS_USED_MS = 250;
+// TUNE: below this share of the active time with the joints in view, the result is marked for review.
+export const REVIEW_COVERAGE_PCT = 90;
 const FEET_DOWN_MS = 800;
 
 type MetricKey = keyof Omit<RawMetrics, never>;
@@ -172,6 +209,7 @@ interface Baseline {
   heelRY: number | null;
   ankleLY: number | null;
   ankleRY: number | null;
+  torsoLean: number | null;
 }
 
 interface Extremes {
@@ -185,11 +223,14 @@ interface Extremes {
   maxHipDrop: number | null;
   /** Highest joint-load estimate during the rep, N·m. */
   peakTorque: number | null;
+  peakReachPct: number | null;
+  maxTrunkDelta: number | null;
 }
 
 const emptyExtremes = (): Extremes => ({
   maxValgusL: null, maxValgusR: null, maxTorsoLean: null, maxHeelRise: null,
   minSymmetry: null, minKneeL: null, minKneeR: null, maxHipDrop: null, peakTorque: null,
+  peakReachPct: null, maxTrunkDelta: null,
 });
 
 const maxN = (a: number | null, b: number | null) => (b === null ? a : a === null ? b : Math.max(a, b));
@@ -208,7 +249,7 @@ export class SessionEngine {
   private lostSince: number | null = null;
 
   private readonly smooth = new EmaBank<MetricKey>(0.35);
-  private readonly primarySmooth = new EmaBank<'L' | 'R' | 'hip' | 'heel'>(0.35);
+  private readonly primarySmooth = new EmaBank<'L' | 'R' | 'hip' | 'heel' | 'reach' | 'drop'>(0.35);
   private readonly faults: FaultDetector;
   private readonly display = new DisplayScore(0.2);
   private readonly counter: RepCounter | null;
@@ -236,6 +277,25 @@ export class SessionEngine {
   private readonly tiringSets = new Set<number>();
   private pendingLanding: { record: RepRecord; until: number } | null = null;
 
+  private reachTarget: { tx: number; ty: number; r: number; d0: number } | null = null;
+  private facing = 1;
+  private practiceMax: { reach: number; drop: number } | null = null;
+  private practiceAnnounced = false;
+  private reachNow: number | null = null;
+  private trunkDeltaNow: number | null = null;
+  private targetView: EngineFrame['target'] = null;
+  private missingNow: number[] = [];
+  private practiceActive = false;
+  private armsPoint: { reach: number; drop: number } | null = null;
+  /** Most the trunk leaned beyond its starting posture while moving, over the whole set. */
+  private sessionTrunkDelta: number | null = null;
+  private reachProgress: number | null = null;
+  private reachDrop: number | null = null;
+  private activeMs = 0;
+  private lostMs = 0;
+  private armsOffMs = 0;
+  private protocol: 'practice' | 'assessment' | null;
+
   private startMs: number | null = null;
   private lastMs = 0;
   private prevFrameMs: number | null = null;
@@ -251,6 +311,7 @@ export class SessionEngine {
     this.targetReps = opts.targetReps ?? config.defaultReps;
     this.sets = opts.sets ?? config.defaultSets;
     this.holdSeconds = opts.holdSeconds ?? config.holdSeconds ?? 30;
+    this.protocol = config.timeLimitSeconds ? (opts.protocol ?? 'practice') : null;
     this.gate = new CalibrationGate(opts.calibrationHoldMs ?? 1000);
     this.faults = new FaultDetector(config.faultRules);
     this.counter =
@@ -265,6 +326,11 @@ export class SessionEngine {
           })
         : null;
     if (opts.side) this.autoSide = opts.side;
+  }
+
+  /** Chair stand: choose practice or assessment before the test starts. */
+  setProtocol(p: 'practice' | 'assessment'): void {
+    if (this.config.timeLimitSeconds && this.phase === 'calibrating') this.protocol = p;
   }
 
   /** Rest/target angles in use (config values, or measured from the person for relative ranges). */
@@ -309,7 +375,8 @@ export class SessionEngine {
     if (this.config.side === 'auto' && this.config.kind === 'reps') {
       if (landmarks && !this.opts.side) this.pickAutoSide(landmarks);
       const s = SIDE_LANDMARKS[this.autoSide];
-      req.push(s.shoulder, s.hip, s.knee, s.ankle);
+      const joints = this.config.requiredJoints ?? ['shoulder', 'hip', 'knee', 'ankle'];
+      for (const j of joints) req.push(s[j]);
       const joint = this.config.primaryAngle && 'joint' in this.config.primaryAngle ? this.config.primaryAngle.joint : null;
       if (joint === 'shoulder') req.push(s.elbow);
       if (joint === 'elbow') req.push(s.elbow, s.wrist);
@@ -355,10 +422,12 @@ export class SessionEngine {
     // Smooth metrics every frame so values are warm when counting starts.
     const raw = landmarks && landmarks.length >= 33 ? computeRawMetrics(landmarks, width, height, { kneeDepth: this.kneeDepth, world }) : null;
     const m = this.smoothMetrics(raw);
+    this.reachFrame(landmarks, m, width, height);
     const { primaryRaw, primaryAngle, symmetryPct } = this.primary(raw, m);
 
     if (this.phase === 'calibrating') {
       const check = checkCalibration(landmarks, required, this.config.calibration);
+      this.missingNow = check.missing ?? [];
       if (check.issue !== this.lastIssue) {
         this.lastIssue = check.issue;
         if (check.issue) events.push({ type: 'calibration', issue: check.issue });
@@ -376,9 +445,22 @@ export class SessionEngine {
         this.lastIssue = undefined;
       } else {
         const elapsed = tMs - this.countdownStart;
-        const total = this.opts.countdownMs ?? 3000;
+        const countdownMs = this.opts.countdownMs ?? 3000;
+        // Seated reach: a few seconds of practice first, so the target fits this person's own reach.
+        const reachCfg = this.config.reach;
+        const practiceMs = reachCfg && this.opts.reachTargetPct == null && countdownMs > 0 ? reachCfg.practiceSeconds * 1000 : 0;
+        const practising = elapsed < practiceMs;
+        const total = countdownMs + practiceMs;
         const n = Math.ceil((total - elapsed) / 1000);
-        if (elapsed >= total) {
+        if (practising) {
+          if (!this.practiceAnnounced) {
+            this.practiceAnnounced = true;
+            events.push({ type: 'practice' });
+          }
+          if (this.reachNow !== null && (this.practiceMax === null || this.reachNow > this.practiceMax.reach)) {
+            this.practiceMax = { reach: this.reachNow, drop: this.reachDrop ?? 0 };
+          }
+        } else if (elapsed >= total) {
           this.phase = 'active';
           this.startMs = tMs;
           this.baseline = {
@@ -389,16 +471,22 @@ export class SessionEngine {
             heelRY: m.heelRY,
             ankleLY: m.ankleLY,
             ankleRY: m.ankleRY,
+            torsoLean: m.torsoLean,
           };
           this.applyRelativeRange(m);
+          this.finishReachTarget();
           events.push({ type: 'start' });
         } else if (n !== this.lastCountdown) {
           this.lastCountdown = n;
           events.push({ type: 'countdown', n });
         }
+        if (reachCfg && !practising && !this.reachTarget) this.setReachTarget();
       }
     } else if (this.phase === 'active' || this.phase === 'paused') {
       const visible = requiredVisible(landmarks, required, MIN_IN_SET_VISIBILITY);
+      // Tracking coverage: how long the camera could see what this exercise needs (explains a low count).
+      this.activeMs += dtMs ?? 0;
+      if (!visible) this.lostMs += dtMs ?? 0;
       if (this.phase === 'paused') {
         if (visible) {
           this.phase = 'active';
@@ -476,6 +564,9 @@ export class SessionEngine {
       visibility,
       trackedSide: this.side,
       timer: this.timerState(tMs),
+      setup: this.phase === 'calibrating' ? { required, missing: this.missingNow } : null,
+      target: this.phase === 'active' || this.phase === 'paused' || this.phase === 'countdown' ? this.targetView : null,
+      practising: this.practiceActive,
       events,
     };
   }
@@ -499,6 +590,9 @@ export class SessionEngine {
     if (!spec) {
       // Hold exercises: knee symmetry is not meaningful on one leg.
       return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
+    }
+    if ('metric' in spec && spec.metric === 'reach') {
+      return { primaryRaw: this.reachProgress, primaryAngle: this.reachProgress, symmetryPct: null };
     }
     if ('metric' in spec) {
       const b = this.baseline;
@@ -549,6 +643,86 @@ export class SessionEngine {
     return { primaryRaw: raw ? raw[key(side)] : null, primaryAngle: m[key(side)], symmetryPct: null };
   }
 
+  /**
+   * Chair stand: time the wrist spends away from the chest while standing up. A wrist off the chest
+   * is only a cue for review (it can happen without pushing off the chair).
+   */
+  private trackArms(state: RepState, _tMs: number): void {
+    if (!this.config.armsOnChest) return;
+    if (state === 'READY') {
+      this.armsOffMs = 0;
+      return;
+    }
+    if (state === 'LOWERING' || this.armsPoint === null) return;
+    const off = this.armsPoint.drop > ARMS_OFF_PCT || Math.abs(this.armsPoint.reach) > ARMS_OFF_PCT;
+    if (off) this.armsOffMs += this.dtMs ?? 0;
+  }
+
+  /** Seated reach, once per frame: wrist position in torso lengths, the target and progress towards it. */
+  private reachFrame(landmarks: Landmark[] | null, m: Record<MetricKey, number | null>, w: number, h: number): void {
+    this.reachNow = null;
+    this.reachDrop = null;
+    this.reachProgress = null;
+    this.targetView = null;
+    this.practiceActive = false;
+    this.armsPoint = null;
+    if (this.config.armsOnChest && landmarks && landmarks.length >= 33) {
+      const f0 = facingOf(landmarks, w) ?? this.facing;
+      const ap = reachPoint(landmarks, this.side ?? 'left', w, h, f0, MIN_IN_SET_VISIBILITY);
+      this.armsPoint = ap ? { reach: ap.reach, drop: ap.drop } : null;
+    }
+    const cfg = this.config.reach;
+    if (!cfg || !landmarks || landmarks.length < 33) return;
+    const f = facingOf(landmarks, w);
+    if (this.phase !== 'active' && this.phase !== 'paused' && f !== null) this.facing = f; // locked once counting starts
+    const pt = reachPoint(landmarks, this.side ?? 'left', w, h, this.facing, MIN_IN_SET_VISIBILITY);
+    if (!pt) return;
+    this.reachNow = this.primarySmooth.update('reach', pt.reach, this.dtMs);
+    this.reachDrop = this.primarySmooth.update('drop', pt.drop, this.dtMs);
+    const b = this.baseline;
+    this.trunkDeltaNow = m.torsoLean !== null && b?.torsoLean != null ? m.torsoLean - b.torsoLean : null;
+    const t = this.reachTarget;
+    this.practiceActive = this.phase === 'countdown' && this.practiceAnnounced && !t;
+    if (!t || this.reachNow === null || this.reachDrop === null) return;
+    const dist = Math.hypot(this.reachNow - t.tx, this.reachDrop - t.ty);
+    if (this.phase === 'active' && t.d0 > t.r) {
+      this.reachProgress = 100 * (1 - Math.min(1, Math.max(0, (dist - t.r) / (t.d0 - t.r))));
+    }
+    const hold = this.config.holdSeconds ?? 0;
+    this.targetView = {
+      x: (pt.shoulder.x + (this.facing * t.tx * pt.torsoPx) / 100) / w,
+      y: (pt.shoulder.y + (t.ty * pt.torsoPx) / 100) / h,
+      r: ((t.r * pt.torsoPx) / 100) / h,
+      hit: dist <= t.r,
+      holdProgress: hold > 0 && this.counter?.state === 'AT_TOP' ? Math.min(1, this.counter.holdElapsed / hold) : 0,
+    };
+  }
+
+  /** Target from the clinician's value, else 90 % of the practice reach, else the exercise default. */
+  private setReachTarget(): void {
+    const c = this.config.reach!;
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+    let tx = c.targetPct;
+    let ty = c.targetDropPct;
+    if (this.opts.reachTargetPct != null) {
+      tx = clamp(this.opts.reachTargetPct, c.minPct, c.maxPct);
+    } else if (this.practiceMax && this.practiceMax.reach >= c.minPct) {
+      // TUNE: aim a little inside the comfortable practice reach so the target is reachable.
+      tx = clamp(this.practiceMax.reach * 0.9, c.minPct, c.maxPct);
+      ty = clamp(this.practiceMax.drop, -30, 45);
+    }
+    this.reachTarget = { tx, ty, r: c.radiusPct, d0: 0 };
+  }
+
+  /** At the start of counting: distance from where the hand rests to the target. */
+  private finishReachTarget(): void {
+    if (!this.config.reach) return;
+    if (!this.reachTarget) this.setReachTarget();
+    const t = this.reachTarget!;
+    const rest = { reach: this.reachNow ?? 40, drop: this.reachDrop ?? 60 };
+    t.d0 = Math.max(Math.hypot(rest.reach - t.tx, rest.drop - t.ty), t.r * 2);
+  }
+
   private faultInput(
     m: Record<MetricKey, number | null>,
     repState: RepState,
@@ -586,6 +760,7 @@ export class SessionEngine {
       turnedBackEarly: this.turnedBack,
       bodyLine: this.bodyLineNow(m),
       kneeAngle: minN(m.kneeL, m.kneeR),
+      trunkLeanDelta: this.config.reach ? this.trunkDeltaNow : null,
     };
   }
 
@@ -622,6 +797,7 @@ export class SessionEngine {
     const counter = this.counter!;
     const kneeSide = this.opts.side ?? null;
     const inMovement = counter.state !== 'READY';
+    this.trackArms(counter.state, tMs);
     const results = this.faults.update(this.faultInput(m, counter.state, inMovement, symmetryPct, kneeSide), tMs);
     const active = results.filter((r) => r.active).map((r) => r.id);
     this.emitNewFaults(active, events);
@@ -666,7 +842,13 @@ export class SessionEngine {
           break;
         case 'rep': {
           const { type: _t, ...result } = e;
-          const record: RepRecord = { ...result, ...this.extremes, landingKneeMin: null };
+          const record: RepRecord = {
+            ...result,
+            ...this.extremes,
+            landingKneeMin: null,
+            armsUsed: !!this.config.armsOnChest && this.armsOffMs >= ARMS_USED_MS,
+          };
+          this.armsOffMs = 0;
           this.repRecords.push(record);
           if (this.config.primaryAngle && 'metric' in this.config.primaryAngle) {
             record.landingKneeMin = minN(m.kneeL, m.kneeR);
@@ -824,6 +1006,9 @@ export class SessionEngine {
     e.minKneeR = minN(e.minKneeR, m.kneeR);
     e.maxHipDrop = maxN(e.maxHipDrop, m.hipDrop);
     e.peakTorque = maxN(e.peakTorque, this.jointLoad(m));
+    e.peakReachPct = maxN(e.peakReachPct, this.reachNow);
+    e.maxTrunkDelta = maxN(e.maxTrunkDelta, this.trunkDeltaNow);
+    this.sessionTrunkDelta = maxN(this.sessionTrunkDelta, this.trunkDeltaNow);
     const bodyH = b?.bodyHeight;
     if (bodyH) {
       const rise = (base: number | null | undefined, now: number | null) =>
@@ -892,6 +1077,8 @@ export class SessionEngine {
         topCount = count;
       }
     }
+    const trackingCoverage = this.activeMs > 0 ? Math.round(100 * (1 - this.lostMs / this.activeMs)) : null;
+    const armsUsedReps = this.repRecords.filter((r) => r.armsUsed).length;
     return {
       exerciseId: this.config.id,
       exerciseName: this.config.name,
@@ -913,6 +1100,22 @@ export class SessionEngine {
       effort: this.config.effort
         ? summariseEffort(this.repRecords.map((r) => r.peakTorque), this.config.effort, this.opts.loadKg ?? 0)
         : null,
+      trackingCoverage,
+      trackingLostS: this.lostMs / 1000,
+      reach: this.config.reach && this.reachTarget
+        ? {
+            targetPct: this.reachTarget.tx,
+            avgPeakPct: mean(this.repRecords.map((r) => r.peakReachPct).filter((v): v is number => v !== null)),
+            avgHoldS: this.counter ? mean(this.counter.results.map((r) => r.holdS)) : null,
+            maxTrunkDeg: this.sessionTrunkDelta,
+          }
+        : null,
+      armsUsedReps,
+      protocol: this.protocol,
+      review: [
+        ...(trackingCoverage !== null && trackingCoverage < REVIEW_COVERAGE_PCT ? (['tracking_gaps'] as const) : []),
+        ...(this.protocol === 'assessment' && armsUsedReps > 0 ? (['arms_used'] as const) : []),
+      ],
     };
   }
 }

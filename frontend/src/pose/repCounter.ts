@@ -4,7 +4,8 @@
 //
 // Driven by `progress` = (angle - start) / (target - start), clamped to 0..1.2, so "up" means
 // progress → 1 whether the angle increases (abduction) or decreases (squat).
-// Every completed rep counts in `reps`; `correctReps` is tracked separately.
+// Every completed rep counts in `reps`; `correctReps` is tracked separately. Reaching the target
+// is what counts a rep. The pause at the top (`holdSeconds`) only decides whether it is correct.
 
 export type RepState = 'READY' | 'RAISING' | 'AT_TOP' | 'LOWERING';
 
@@ -39,6 +40,8 @@ export interface RepResult {
   topAngle: number;
   maxProgress: number;
   durationS: number;
+  /** Seconds the person stayed in the top zone (the longest pause in the rep). */
+  holdS: number;
 }
 
 export type RepEvent =
@@ -70,8 +73,12 @@ interface RepTracking {
   faultCounts: Map<string, number>;
   maxProgress: number;
   topAngle: number;
+  /** The pause at the top was held for `holdSeconds` (always true when no pause is asked for). */
+  holdMet: boolean;
+  /** The rep reached the top zone at all. Without it the rep is an abandoned attempt, not a rep. */
   topReached: boolean;
   turnedBack: boolean;
+  holdBestS: number;
 }
 
 export function computeProgress(angle: number, startAngle: number, targetAngle: number): number {
@@ -198,6 +205,7 @@ export class RepCounter {
     const rep = this.rep;
     if (rep && rep.maxProgress >= TIME_UP_COUNTS) {
       rep.topReached = true;
+      rep.holdMet = true;
       this.countRep(rep, tMs, events, false);
     }
     this.rep = null;
@@ -209,7 +217,9 @@ export class RepCounter {
   private updateHold(dt: number, p: number): void {
     if (!this.rep) return;
     if (p >= HOLD_ZONE) this.holdElapsed += dt / 1000;
-    if (this.holdElapsed * 1000 >= this.holdMs) this.rep.topReached = true;
+    this.rep.holdBestS = Math.max(this.rep.holdBestS, this.holdElapsed);
+    this.rep.topReached = true;
+    if (this.holdElapsed * 1000 >= this.holdMs) this.rep.holdMet = true;
   }
 
   private complete(tMs: number, events: RepEvent[]): void {
@@ -234,7 +244,7 @@ export class RepCounter {
     this.reps += 1;
     this.repsInSet += 1;
     const faultFraction = rep.frames > 0 ? rep.faultFrames / rep.frames : 0;
-    const correct = faultFraction < CORRECT_FAULT_FRACTION;
+    const correct = rep.holdMet && faultFraction < CORRECT_FAULT_FRACTION;
     if (correct) this.correctReps += 1;
     const quality = rep.scoreFrames > 0 ? rep.scoreSum / rep.scoreFrames : 100 * (1 - faultFraction);
     const faults = [...rep.faultCounts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
@@ -249,6 +259,7 @@ export class RepCounter {
       topAngle: rep.topAngle,
       maxProgress: rep.maxProgress,
       durationS,
+      holdS: rep.holdBestS,
     };
     this.results.push(result);
     events.push({ type: 'rep', ...result });
@@ -274,6 +285,8 @@ export class RepCounter {
       faultCounts: new Map(),
       maxProgress: 0,
       topAngle: 0,
+      holdMet: this.holdMs === 0,
+      holdBestS: 0,
       topReached: false,
       turnedBack: false,
     };

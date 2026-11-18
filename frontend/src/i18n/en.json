@@ -810,5 +810,32 @@
   "hud.time_left": "Time left",
   "hud.short_time": "TIME",
   "hud.left_elbow": "Left Elbow",
-  "hud.right_elbow": "Right Elbow"
+  "hud.right_elbow": "Right Elbow",
+
+  "sum.reach": "Reach",
+  "sum.reach_target": "Target: {n}% of torso length",
+  "sum.reach_hold": "Average hold",
+  "sum.seconds": "{n} s",
+  "sum.reach_trunk": "Most trunk lean",
+  "sum.reach_trunk_note": "Beyond your starting posture",
+  "sum.tracking": "Camera tracking",
+  "sum.tracking_lost": "The camera lost you for {n} s",
+  "sum.tracking_good": "Followed throughout",
+  "sum.review_title": "Worth a second look",
+  "sum.review.tracking_gaps": "The camera could only follow {pct}% of this session, so the count may be low.",
+  "sum.review.arms_used": "Arms came off the chest in {n} stand(s). In the CDC STEADI test, needing the arms is recorded for the clinician to review.",
+  "sum.arms_practice": "Arms came off the chest in {n} stand(s). Noted; every stand still counts in practice.",
+  "pd.review": "Review",
+  "pd.review_tracking_gaps": "camera followed {pct}%",
+  "pd.review_arms_used": "arms used in {n} stand(s)",
+  "pd.reach_line": "Reach {reached}% (target {target}%), trunk lean {lean}°",
+  "cam.protocol_label": "How to run this test",
+  "cam.protocol_practice": "Practice",
+  "cam.protocol_test": "CDC STEADI test",
+  "cam.protocol_hint_practice": "Counts every stand and notes when your arms come off your chest.",
+  "cam.protocol_hint_test": "Follows the CDC STEADI test. Needing your arms is recorded for your clinician to review.",
+
+  "prog.reach_target": "Reach target (% of torso length)",
+  "prog.reach_target_empty": "From the patient's practice reach",
+  "prog.reach_target_hint": "55–130. Leave empty and the target is set each session from a practice reach."
 }

@@ -68,6 +68,13 @@ class SessionIn(BaseModel):
     fatigue_form_points: Optional[int] = Field(default=None, ge=0, le=100)
     load_kg: Optional[float] = Field(default=None, ge=0, le=50)
     peak_torque_nm: Optional[float] = Field(default=None, ge=0, le=500)
+    tracking_coverage: Optional[int] = Field(default=None, ge=0, le=100)
+    review_flags: Optional[str] = Field(default=None, max_length=80, pattern=r"^[a-z_,]*$")
+    arms_used_reps: Optional[int] = Field(default=None, ge=0, le=500)
+    reach_target_pct: Optional[float] = Field(default=None, ge=0, le=300)
+    reach_peak_pct: Optional[float] = Field(default=None, ge=-100, le=400)
+    reach_hold_s: Optional[float] = Field(default=None, ge=0, le=600)
+    trunk_lean_max_deg: Optional[float] = Field(default=None, ge=-90, le=90)
 
 
 class ScreeningIn(BaseModel):
@@ -117,6 +124,13 @@ def session_out(s: ExerciseSession) -> dict[str, Any]:
         "fatigue_form_points": s.fatigue_form_points,
         "load_kg": s.load_kg,
         "peak_torque_nm": s.peak_torque_nm,
+        "tracking_coverage": s.tracking_coverage,
+        "review_flags": s.review_flags,
+        "arms_used_reps": s.arms_used_reps,
+        "reach_target_pct": s.reach_target_pct,
+        "reach_peak_pct": s.reach_peak_pct,
+        "reach_hold_s": s.reach_hold_s,
+        "trunk_lean_max_deg": s.trunk_lean_max_deg,
     }
 
 

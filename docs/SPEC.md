@@ -805,3 +805,21 @@ Seven live exercises (the six top picks of the research, with push-ups in two le
 - **Engine additions:** a `hip` joint (shoulder–hip–knee), a body-line metric (shoulder–hip–ankle), a `heelRise` primary metric, the `body_line` and `knee_bend` faults, and `uprightTorso: false` so push-ups are not scored down for a leaning torso.
 - **Timed test:** `timeLimitSeconds` ends the set when time is up. A stand more than halfway up at that moment counts, as in the CDC STEADI protocol (`RepCounter.timeUp`). The HUD shows the reps done and the time left instead of a target.
 - Not measurable reliably with one camera, so not added as live exercises: shoulder rotation, pelvic tilt, clamshell, most lying exercises (see the report).
+
+### 17.12 Live reach training, camera setup check and tracking coverage
+
+Added after review feedback. Built on the engine in §17.11.
+
+- **Counting rule (rule 4):** reaching the target counts the rep; the pause at the top (`holdSeconds`), tempo and visible movement observations only decide `correctReps`. (Before this change a hold that was cut short dropped the rep. `RepResult.holdS` now records the hold.)
+- **Camera setup check** (`pose/calibration.ts`): while calibrating, the joints the exercise needs (`requiredJoints`) are ringed on the video, green when seen and dashed amber when not. When only the arm is missing the cue is "turn sideways so your shoulder, elbow and hand are in view" (`show_arms`); when only the ankles are cut off, "move back until I can see both ankles" (`show_feet`). The check does not replace trying the framing on the real phone.
+- **Seated reach-to-target** (`seated_reach`, `reach` in `ExerciseConfig`): side view, shoulder–elbow–wrist–hip in view.
+  - Reach is the wrist's position relative to the shoulder in torso lengths (shoulder–hip distance), so it does not depend on distance to the camera: forward % and drop %.
+  - **Target:** a 5 s practice reach before the 3-2-1 sets it at 90 % of the comfortable reach; or the clinician's value (programme target, 55–130 % of torso length), which skips the practice; or a default of 100 %. The target is drawn as a circle on the video (dashed teal, green when the wrist is inside, a ring for the hold).
+  - The rep counter runs on progress towards the circle (0 % = hand at rest, 100 % = inside it).
+  - **Observations:** `trunk_lean` when the trunk leans more than 12° beyond its starting posture ("keep your back upright and reach with your arm"). Summary: target, mean furthest reach per rep, mean hold, most trunk lean.
+  - Every number is `// TUNE:`. A MediaPipe study showed reach tracking after stroke in seven people; this is a prototype for local validation, not a validated measure.
+- **Tracking coverage:** share of the active time the needed joints were in view, and seconds lost. Counting pauses when the person is lost, a timed test keeps its wall-clock deadline, and a result with coverage under 90 % (`REVIEW_COVERAGE_PCT`) is marked "worth a second look". Stored per session (`tracking_coverage`, `review_flags`) and shown to the clinician, so a low count can be told apart from poor capture.
+- **30-second chair stand, two protocols** (a choice on the intro screen):
+  - *Practice* counts every stand and records arm use.
+  - *CDC STEADI test* follows the protocol: a final rise more than halfway at 30 s counts, and arm use is recorded for the clinician to review. A wrist off the chest is a cue for review, never an automatic zero, because it can happen without pushing off the chair.
+- Pitch note: the ICC 0.812–0.995 for automated chair-stand, TUG and SPPB scoring is from a 2026 PLOS Digital Health study on a LiDAR-enabled iPad, not an RGB phone. RecoverLens must report its own agreement with a human count.

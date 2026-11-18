@@ -44,9 +44,15 @@ export default function Mirror() {
   const loadKg = Math.min(20, Math.max(0, Number(params.get('load')) || 0));
   // A recorded video cannot wait for the 3-2-1 countdown: start counting as soon as the person is in view.
   const fileMode = params.get('source') === 'file';
+  // Seated reach: the clinician's target (programme value, % of torso length); empty = from the practice reach.
+  const reachTargetPct = exercise && isLive(exercise) && exercise.reach ? program?.target_angle ?? undefined : undefined;
+  const protocol = params.get('protocol') === 'assessment' ? ('assessment' as const) : undefined;
   const options = useMemo(
-    () => ({ targetReps: reps, sets, side, loadKg, ...(fileMode ? { countdownMs: 0, calibrationHoldMs: 300 } : {}) }),
-    [reps, sets, side, loadKg, fileMode],
+    () => ({
+      targetReps: reps, sets, side, loadKg, reachTargetPct, protocol,
+      ...(fileMode ? { countdownMs: 0, calibrationHoldMs: 300 } : {}),
+    }),
+    [reps, sets, side, loadKg, fileMode, reachTargetPct, protocol],
   );
 
   // Full-screen routes sit outside AppShell, so they name the page themselves (WCAG 2.4.2).

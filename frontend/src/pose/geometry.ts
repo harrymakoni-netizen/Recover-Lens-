@@ -286,3 +286,54 @@ export function computeRawMetrics(
     armDownR: fromDown('right', 'shoulder'),
   };
 }
+
+
+/** Where the wrist is relative to the shoulder, in torso lengths (shoulder–hip distance) × 100. */
+export interface ReachPoint {
+  /** Forward (the way the person faces) of the shoulder, %. */
+  reach: number;
+  /** Below the shoulder, %. Negative = above shoulder height. */
+  drop: number;
+  /** Shoulder–hip distance in pixels (the unit of the two numbers above). */
+  torsoPx: number;
+  shoulder: Point;
+}
+
+/**
+ * Wrist position relative to the shoulder in torso lengths, for a seated reach seen from the side
+ * (pixel space, SPEC §5.2). `facing` is +1 when the person faces image-right, −1 image-left.
+ */
+export function reachPoint(
+  landmarks: Landmark[],
+  side: Side,
+  w: number,
+  h: number,
+  facing: number,
+  minVisibility?: number,
+): ReachPoint | null {
+  const s = SIDE_LANDMARKS[side];
+  const sh = landmarks[s.shoulder];
+  const hip = landmarks[s.hip];
+  const wr = landmarks[s.wrist];
+  if (!isVisible(sh, minVisibility) || !isVisible(hip, minVisibility) || !isVisible(wr, minVisibility)) return null;
+  const S = toPixels(sh, w, h);
+  const torsoPx = distance(S, toPixels(hip, w, h));
+  if (torsoPx < 1) return null;
+  const W = toPixels(wr, w, h);
+  return {
+    reach: (((W.x - S.x) * facing) / torsoPx) * 100,
+    drop: ((W.y - S.y) / torsoPx) * 100,
+    torsoPx,
+    shoulder: S,
+  };
+}
+
+/** Which way the person faces in a side view: nose ahead of the mid-shoulder. +1 = image-right. */
+export function facingOf(landmarks: Landmark[], w: number): number | null {
+  const nose = landmarks[LM.NOSE];
+  const ls = landmarks[LM.L_SHOULDER];
+  const rs = landmarks[LM.R_SHOULDER];
+  if (!isVisible(nose) || !isVisible(ls) || !isVisible(rs)) return null;
+  const dx = (nose.x - (ls.x + rs.x) / 2) * w;
+  return Math.abs(dx) < 2 ? null : Math.sign(dx);
+}

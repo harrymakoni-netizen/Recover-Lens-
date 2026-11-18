@@ -27,6 +27,8 @@ const CALIBRATION_KEYS: Record<string, string> = {
   move_closer: 'cal_move_closer',
   move_center: 'cal_move_center',
   low_light: 'cal_low_light',
+  show_feet: 'cal_show_feet',
+  show_arms: 'cal_show_arms',
 };
 
 /** Cues for one frame's events. Priority-1 cues in the same frame are merged into one utterance. */
@@ -54,6 +56,9 @@ export function cuesForEvents(events: EngineEvent[], ctx: CueContext): Cue[] {
         break;
       case 'ready':
         add(make('cal_ready', 1));
+        break;
+      case 'practice':
+        add(make('reach_practice', 1));
         break;
       case 'countdown':
         out.push({ text: String(e.n), pill: String(e.n), priority: 1, key: `count${e.n}` });

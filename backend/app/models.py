@@ -75,6 +75,14 @@ class ExerciseSession(SQLModel, table=True):
     # Weight held in the hand and the joint-load estimate (frontend pose/effort.ts), N·m.
     load_kg: Optional[float] = None
     peak_torque_nm: Optional[float] = None
+    # How well the camera could follow the session, and what a person should look at (SPEC §17.12).
+    tracking_coverage: Optional[int] = None  # % of the active time the needed joints were in view
+    review_flags: Optional[str] = None  # comma list: tracking_gaps, arms_used
+    arms_used_reps: Optional[int] = None  # chair stand: stands in which a wrist left the chest
+    reach_target_pct: Optional[float] = None  # seated reach: target, % of torso length
+    reach_peak_pct: Optional[float] = None  # seated reach: mean furthest reach per rep
+    reach_hold_s: Optional[float] = None
+    trunk_lean_max_deg: Optional[float] = None  # seated reach: most the trunk leaned beyond its start
 
 
 class Athlete(SQLModel, table=True):

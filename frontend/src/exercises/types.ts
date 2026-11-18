@@ -11,7 +11,7 @@ export type Region = 'shoulder' | 'elbow' | 'knee' | 'full_body';
  * What drives the rep counter. Usually a joint angle; jump landings use how far the hips rise and
  * heel raises how far the heels and ankles rise (both in percent of body height) instead.
  */
-export type PrimarySpec = AngleSpec | { metric: 'hipRise' | 'heelRise' };
+export type PrimarySpec = AngleSpec | { metric: 'hipRise' | 'heelRise' | 'reach' };
 
 /** Phrase keys (see voice/phrases.ts) spoken for each event (SPEC §6.2). */
 export interface CueSet {
@@ -83,6 +83,32 @@ export interface ExerciseConfig {
    * set ends when the time is up; a rep more than halfway up at that moment counts (CDC STEADI).
    */
   timeLimitSeconds?: number;
+  /**
+   * Seated reach-to-target (SPEC §17.12). The target sits at a point in torso lengths from the
+   * tracked shoulder: `targetPct` forward and `targetDropPct` below shoulder height. It is set from
+   * the person's own practice reach, or by the clinician (the programme's target value, in % of
+   * torso length). The wrist counts as "in the target" inside a circle of `radiusPct`.
+   */
+  reach?: {
+    targetPct: number;
+    targetDropPct: number;
+    radiusPct: number;
+    /** Practice reach is trusted only between these limits (% of torso length forward). */
+    minPct: number;
+    maxPct: number;
+    /** Practice time before the countdown: "reach as far as is comfortable". */
+    practiceSeconds: number;
+  };
+  /**
+   * Which joints of the tracked side must be visible (side view, `side: 'auto'`). Default: shoulder,
+   * hip, knee and ankle. A seated reach needs the arm instead of the feet.
+   */
+  requiredJoints?: Array<'shoulder' | 'elbow' | 'wrist' | 'hip' | 'knee' | 'ankle'>;
+  /**
+   * Arms are meant to stay crossed on the chest (30-second chair stand): a wrist that leaves the
+   * chest during a stand is recorded as arm use. It is a cue for review, never a block (rule 2).
+   */
+  armsOnChest?: boolean;
 }
 
 /**

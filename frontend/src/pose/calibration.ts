@@ -6,13 +6,19 @@ export type CalibrationIssue =
   | 'step_back'
   | 'move_closer'
   | 'move_center'
-  | 'low_light';
+  | 'low_light'
+  /** Only the ankles are out of view: "move back until I can see both ankles". */
+  | 'show_feet'
+  /** Only an arm (elbow or wrist) is out of view: "turn so I can see your arm". */
+  | 'show_arms';
 
 export interface CalibrationCheck {
   ok: boolean;
   issue: CalibrationIssue | null;
   /** Nose to mid-ankle as a fraction of frame height, when measurable. */
   bodyHeight: number | null;
+  /** Required landmarks that are not visible enough yet (shown as highlighted rings on screen). */
+  missing?: number[];
 }
 
 const EDGE_MIN = 0.03;
@@ -23,6 +29,8 @@ const CENTER_MIN = 0.2; // TUNE: mid-hip x must sit inside the middle 60 % of th
 const CENTER_MAX = 0.8; // TUNE:
 
 const LOWER_BODY: number[] = [LM.L_KNEE, LM.R_KNEE, LM.L_ANKLE, LM.R_ANKLE];
+const FEET: number[] = [LM.L_ANKLE, LM.R_ANKLE, LM.L_HEEL, LM.R_HEEL];
+const ARMS: number[] = [LM.L_ELBOW, LM.R_ELBOW, LM.L_WRIST, LM.R_WRIST];
 
 const inFrame = (v: number) => v >= EDGE_MIN && v <= EDGE_MAX;
 
@@ -39,7 +47,7 @@ export function checkCalibration(
   const bodyMin = opts.minBodyHeight ?? BODY_MIN;
   const bodyMax = opts.maxBodyHeight ?? BODY_MAX;
   if (!landmarks || landmarks.length < 33) {
-    return { ok: false, issue: 'no_person', bodyHeight: null };
+    return { ok: false, issue: 'no_person', bodyHeight: null, missing: [...required] };
   }
 
   const missing = required.filter((i) => visibilityOf(landmarks[i]) < MIN_CALIBRATION_VISIBILITY);
@@ -54,9 +62,12 @@ export function checkCalibration(
     const offSide = missing.some((i) => !inFrame(landmarks[i].x));
     const offVertical = missing.some((i) => !inFrame(landmarks[i].y));
     const lowerBodyMissing = missing.some((i) => LOWER_BODY.includes(i));
-    if (offSide && !offVertical) return { ok: false, issue: 'move_center', bodyHeight };
-    if (offVertical || lowerBodyMissing) return { ok: false, issue: 'step_back', bodyHeight };
-    return { ok: false, issue: 'low_light', bodyHeight };
+    if (offSide && !offVertical) return { ok: false, issue: 'move_center', bodyHeight, missing };
+    // Specific cues when only one body part is the problem (exercise-aware camera setup check).
+    if (missing.every((i) => ARMS.includes(i))) return { ok: false, issue: 'show_arms', bodyHeight, missing };
+    if (missing.every((i) => FEET.includes(i)) && (offVertical || lowerBodyMissing)) return { ok: false, issue: 'show_feet', bodyHeight, missing };
+    if (offVertical || lowerBodyMissing) return { ok: false, issue: 'step_back', bodyHeight, missing };
+    return { ok: false, issue: 'low_light', bodyHeight, missing };
   }
 
   if (bodyHeight !== null && bodyHeight > bodyMax) {
