@@ -189,6 +189,9 @@ export function SessionSummaryCard({
               tone={toneOf(cmp?.rangeDelta)}
             />
           )}
+          {!guided && summary.avgDescentS !== null && (
+            <Tile label={t('sum.descent')} value={t('sum.seconds', { n: round(summary.avgDescentS, 1) })} note={t('sum.descent_note')} />
+          )}
           {!guided && summary.reach && (
             <Tile
               label={t('sum.reach')}

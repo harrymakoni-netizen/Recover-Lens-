@@ -2,7 +2,7 @@ import { elbowCurl } from './elbow';
 import { kneeGuided, miniSquat, singleLegBalance, sitToStand } from './knee';
 import { jumpLanding, singleLegSquat, squatScreen } from './screening';
 import { shoulderAbduction, shoulderFlexion, shoulderGuided } from './shoulder';
-import { chairStand30, heelRaise, kneePushUp, scaption, seatedKneeExtension, seatedReach, standingKneeCurl, wallPushUp } from './strength';
+import { chairStand30, heelRaise, kneePushUp, scaption, seatedKneeExtension, seatedReach, standingKneeCurl, wallPushUp, wallSit, lateralStepDown, kneeToWall } from './strength';
 import { type AnyExercise, type ExerciseConfig, isLive } from './types';
 
 export * from './types';
@@ -23,6 +23,9 @@ export const EXERCISES: AnyExercise[] = [
   seatedKneeExtension,
   standingKneeCurl,
   heelRaise,
+  wallSit,
+  lateralStepDown,
+  kneeToWall,
   singleLegBalance,
   ...kneeGuided,
   squatScreen,
@@ -47,5 +50,6 @@ export const LIBRARY: AnyExercise[] = EXERCISES.filter((e) => !(isLive(e) && e.s
 
 export function defaultTargetAngle(id: string): number | null {
   const ex = byId.get(id);
+  if (ex && isLive(ex) && ex.programTarget) return ex.programTarget.default;
   return ex && isLive(ex) && ex.kind === 'reps' && ex.primaryAngle && 'joint' in ex.primaryAngle ? ex.targetAngle : null;
 }

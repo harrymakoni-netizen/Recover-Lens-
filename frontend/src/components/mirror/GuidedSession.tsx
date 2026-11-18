@@ -60,6 +60,7 @@ export function GuidedSession({ config, reps, sets, caregiver, onComplete, onBac
       trackingLostS: 0,
       reach: null,
       armsUsedReps: 0,
+      avgDescentS: null,
       protocol: null,
       review: [],
     });

@@ -11,7 +11,7 @@ export type Region = 'shoulder' | 'elbow' | 'knee' | 'full_body';
  * What drives the rep counter. Usually a joint angle; jump landings use how far the hips rise and
  * heel raises how far the heels and ankles rise (both in percent of body height) instead.
  */
-export type PrimarySpec = AngleSpec | { metric: 'hipRise' | 'heelRise' | 'reach' };
+export type PrimarySpec = AngleSpec | { metric: 'hipRise' | 'heelRise' | 'reach' | 'freeLegLower' | 'shinTilt' };
 
 /** Phrase keys (see voice/phrases.ts) spoken for each event (SPEC §6.2). */
 export interface CueSet {
@@ -24,6 +24,8 @@ export interface CueSet {
   faults: Partial<Record<FaultRuleId, string>>;
   onSetComplete: string;
   onSessionComplete: string;
+  /** Spoken when a descent was faster than `minDescentSeconds`. */
+  onTooFast?: string;
 }
 
 export interface ExerciseConfig {
@@ -103,12 +105,29 @@ export interface ExerciseConfig {
    * Which joints of the tracked side must be visible (side view, `side: 'auto'`). Default: shoulder,
    * hip, knee and ankle. A seated reach needs the arm instead of the feet.
    */
-  requiredJoints?: Array<'shoulder' | 'elbow' | 'wrist' | 'hip' | 'knee' | 'ankle'>;
+  requiredJoints?: Array<'shoulder' | 'elbow' | 'wrist' | 'hip' | 'knee' | 'ankle' | 'heel' | 'foot'>;
   /**
    * Arms are meant to stay crossed on the chest (30-second chair stand): a wrist that leaves the
    * chest during a stand is recorded as arm use. It is a cue for review, never a block (rule 2).
    */
   armsOnChest?: boolean;
+  /**
+   * Hold exercises timed while a joint stays inside a band (wall sit: the knee angle). The timer
+   * pauses, never resets, when the knee leaves `centerDeg ± halfWidthDeg`; `standingDeg` or more
+   * counts as standing up between sets. The clinician's target (`programTarget`) moves the centre.
+   */
+  holdGate?: { joint: 'knee'; centerDeg: number; halfWidthDeg: number; standingDeg: number };
+  /** The descent should take at least this long (step-down); a faster one gets a "slower" cue. */
+  minDescentSeconds?: number;
+  /** Heel lift is judged on the tracked side only (the back foot of a lunge stance may lift). */
+  heelCheck?: 'tracked';
+  /**
+   * The programme's target value replaces the default (clinician-set): the rep target, or the
+   * centre of the hold band. `default` is what a new programme starts with.
+   */
+  programTarget?: { default: number; min: number; max: number };
+  /** Ask which leg is the working (stance) leg on the intro screen. */
+  chooseSide?: boolean;
 }
 
 /**

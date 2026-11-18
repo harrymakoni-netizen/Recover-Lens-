@@ -32,6 +32,11 @@ export interface Pose {
   offsetX?: number;
   /** Elbow bend, degrees (0 = straight). */
   elbowBend?: number;
+  /** Lower (positive) or raise (negative) a foot by this fraction of body height, leg otherwise unchanged. */
+  dropL?: number;
+  dropR?: number;
+  /** Side view: knee flexion bends the knee forward in the image (x) instead of towards the lens. */
+  kneeSide?: boolean;
 }
 
 interface P3 {
@@ -71,6 +76,11 @@ export function makePose(pose: Pose = {}, noise = 0, rand: () => number = Math.r
     const valgus = ((side === 'L' ? pose.valgusL : pose.valgusR) ?? 0) * hipHalf * 2;
     const ankle: P3 = { x: cx + dir * hipHalf, y: floorY - lift - jumpPx, z: 0 };
     const b = rad(flex / 2);
+    if (pose.kneeSide) {
+      const kneeS: P3 = { x: ankle.x + shank * Math.sin(b) - dir * valgus, y: ankle.y - shank * Math.cos(b), z: 0 };
+      const hipS: P3 = { x: kneeS.x - thigh * Math.sin(b), y: kneeS.y - thigh * Math.cos(b), z: 0 };
+      return { ankle, knee: kneeS, hip: hipS };
+    }
     const knee: P3 = {
       x: ankle.x - dir * valgus,
       y: ankle.y - shank * Math.cos(b),
@@ -92,6 +102,11 @@ export function makePose(pose: Pose = {}, noise = 0, rand: () => number = Math.r
       legPts.knee = { x: hip.x, y: hip.y + thigh * 0.8, z: -thigh * 0.6 };
       legPts.ankle = { x: hip.x, y: legPts.knee.y + shank * 0.7, z: 0 };
     }
+  }
+
+  for (const [side, legPts] of [['L', l], ['R', r]] as const) {
+    const drop = (side === 'L' ? pose.dropL : pose.dropR) ?? 0;
+    if (drop) legPts.ankle = { ...legPts.ankle, y: legPts.ankle.y + drop * bodyPx };
   }
 
   const midHip = { x: (lHip.x + rHip.x) / 2, y: (lHip.y + rHip.y) / 2 };
@@ -138,7 +153,7 @@ export function makePose(pose: Pose = {}, noise = 0, rand: () => number = Math.r
   pts[LM.L_HEEL] = { x: l.ankle.x, y: l.ankle.y + 12 * s, z: 10 };
   pts[LM.R_HEEL] = { x: r.ankle.x, y: r.ankle.y + 12 * s, z: 10 };
   pts[LM.L_FOOT] = { x: l.ankle.x + 8 * s, y: l.ankle.y + 18 * s, z: -40 };
-  pts[LM.R_FOOT] = { x: r.ankle.x - 8 * s, y: r.ankle.y + 18 * s, z: -40 };
+  pts[LM.R_FOOT] = { x: r.ankle.x + (pose.kneeSide ? 8 : -8) * s, y: r.ankle.y + 18 * s, z: -40 };
   // Face/hand landmarks: put them near their parents.
   for (let i = 1; i <= 10; i++) pts[i] = { ...nose };
   for (const i of [17, 19, 21]) pts[i] = { ...la.wrist };

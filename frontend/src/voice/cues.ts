@@ -111,7 +111,10 @@ export function cuesForEvents(events: EngineEvent[], ctx: CueContext): Cue[] {
         add(make(config.cues.onTop, 3));
         break;
       case 'holdBroken':
-        add(make('hold_paused', 2));
+        add(make(e.reason === 'high' ? 'ws_lower' : e.reason === 'low' ? 'ws_higher' : 'hold_paused', 2));
+        break;
+      case 'tooFast':
+        if (config.cues.onTooFast) add(make(config.cues.onTooFast, 2));
         break;
       case 'holdRemaining':
         add(make('hold_seconds_left', 1, { n: e.seconds }));

@@ -13,7 +13,7 @@ const ctx = (id: string, extra: Partial<CueContext> = {}): CueContext => ({
 
 const rep = (n: number) => ({
   type: 'rep' as const, repNumber: n, totalReps: n, set: 1, correct: true, quality: 90, faults: [],
-  topAngle: 92, maxProgress: 1, durationS: 2, holdS: 0,
+  topAngle: 92, maxProgress: 1, durationS: 2, holdS: 0, raiseS: 0,
 });
 
 describe('cue mapping (SPEC §6.2)', () => {

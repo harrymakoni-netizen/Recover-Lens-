@@ -279,4 +279,146 @@ export const seatedReach: ExerciseConfig = {
   },
 };
 
-export const STRENGTH: ExerciseConfig[] = [wallPushUp, kneePushUp, chairStand30, seatedKneeExtension, standingKneeCurl, heelRaise, scaption, seatedReach];
+/**
+ * Wall sit (hold): time within a knee-angle band. The clinician sets the angle to hold; the timer
+ * pauses, never resets, when the knee leaves the band. Contact with the wall is not measured: the
+ * person is asked to keep their back flat on it, and the torso-lean observation checks the posture.
+ */
+export const wallSit: ExerciseConfig = {
+  tracking: 'live',
+  id: 'wall_sit',
+  name: 'Wall Sit',
+  region: 'knee',
+  kind: 'hold',
+  cameraView: 'side',
+  description: 'Slide down a wall until your knees are bent to about a right angle, hold, then slide back up.',
+  steps: [
+    'Stand side-on to the camera with your back flat against a wall and your feet a step in front of you.',
+    'Slide down until your knees are bent to about a right angle. Keep your back on the wall.',
+    'Hold, breathing normally, then slide back up to rest.',
+  ],
+  requiredLandmarks: [LM.NOSE],
+  side: 'auto',
+  startAngle: 0,
+  targetAngle: 0,
+  // TUNE: 90° ± 12° is a starting band; the clinician sets the angle that suits the patient.
+  holdGate: { joint: 'knee', centerDeg: 90, halfWidthDeg: 12, standingDeg: 150 },
+  programTarget: { default: 90, min: 60, max: 130 },
+  holdSeconds: 30,
+  defaultSets: 2,
+  defaultReps: 1,
+  minRepSeconds: 0,
+  faultRules: ['torso_lean'],
+  angleLabel: 'Knee',
+  calibration: { minBodyHeight: 0.4 },
+  cues: {
+    intro: 'ws_intro',
+    onRaising: 'ws_slide_up',
+    onTop: 'ws_holding',
+    onLowering: 'ws_holding',
+    onRep: 'ws_done',
+    faults: { torso_lean: 'ws_back' },
+    onSetComplete: 'ws_rest',
+    onSessionComplete: 'session_complete',
+  },
+};
+
+/**
+ * Lateral step-down: stand on a step on one leg, bend that knee to lower the other heel towards
+ * the floor, then push back up. Measures control on the way down (timed) and how far the free heel
+ * lowers; knee drift is an observation. Front view. Which leg is on the step is chosen on the intro.
+ */
+export const lateralStepDown: ExerciseConfig = {
+  tracking: 'live',
+  id: 'lateral_step_down',
+  name: 'Lateral Step-Down',
+  region: 'knee',
+  kind: 'reps',
+  cameraView: 'front',
+  description: 'Stand on a low step on one leg. Bend that knee slowly to lower the other heel towards the floor, then push back up.',
+  steps: [
+    'Face the camera, standing on a low step on one leg, with a wall or chair beside you for balance.',
+    'Bend the standing knee slowly (about two seconds) to lower the other heel towards the floor.',
+    'Push back up through the standing leg. Choose the leg on the step before you start.',
+  ],
+  requiredLandmarks: FULL_BODY,
+  chooseSide: true,
+  primaryAngle: { metric: 'freeLegLower' },
+  side: 'auto',
+  // TUNE: percent of body height the free heel lowers (a 10 cm step is about 6 %). The clinician can set it.
+  startAngle: 0,
+  targetAngle: 4,
+  programTarget: { default: 4, min: 2, max: 10 },
+  // TUNE: time from the start of the lowering to the heel nearly touching (25 %→90 % of the range), so a
+  // steady two-second lowering reads about 1.3 s. A descent faster than this gets a "slower" cue; the rep still counts.
+  minDescentSeconds: 1,
+  holdSeconds: 0,
+  defaultSets: 2,
+  defaultReps: 8,
+  minRepSeconds: 1,
+  faultRules: ['knee_valgus', 'pelvis_drop', 'not_high_enough'],
+  angleLabel: 'Heel lowering',
+  cues: {
+    intro: 'sd_intro',
+    onRaising: 'sd_lower',
+    onTop: 'sd_touch',
+    onLowering: 'sd_up',
+    onRep: 'rep_of',
+    faults: { knee_valgus: 'knee_over_toes_single', pelvis_drop: 'keep_hips_level', not_high_enough: 'sd_lower_more' },
+    onSetComplete: 'set_complete',
+    onSessionComplete: 'session_complete',
+    onTooFast: 'sd_slower',
+  },
+};
+
+/**
+ * Knee-to-wall ankle mobility, low side view. Progress is the forward tilt of the shin in degrees
+ * with the heel down. A knee-to-wall distance in centimetres would need a calibrated distance
+ * reference, so this reports degrees only, and only for a consistent camera set-up.
+ */
+export const kneeToWall: ExerciseConfig = {
+  tracking: 'live',
+  id: 'knee_to_wall',
+  name: 'Knee-to-Wall',
+  region: 'knee',
+  kind: 'reps',
+  cameraView: 'side',
+  description: 'Stand facing a wall with one foot forward. Keeping your heel down, bring your knee forward towards the wall, then return.',
+  steps: [
+    'Put the phone on the floor 1.5–2 metres away, side-on to you. Your hip, knee, ankle and foot must be in view.',
+    'Stand facing the wall, front foot a hand’s width from it. Keep the front heel down and bring your knee forward towards the wall.',
+    'Hold for a moment, then return. Choose the leg you are testing before you start.',
+  ],
+  requiredLandmarks: [],
+  requiredJoints: ['hip', 'knee', 'ankle', 'heel', 'foot'],
+  chooseSide: true,
+  primaryAngle: { metric: 'shinTilt' },
+  side: 'auto',
+  // TUNE: degrees of forward shin tilt from vertical. 30° is a starting target; the clinician sets it.
+  startAngle: 8,
+  targetAngle: 30,
+  programTarget: { default: 30, min: 15, max: 55 },
+  holdSeconds: 1,
+  defaultSets: 2,
+  defaultReps: 8,
+  minRepSeconds: 1.5,
+  faultRules: ['heel_rise', 'not_high_enough'],
+  heelCheck: 'tracked',
+  angleLabel: 'Shin tilt',
+  calibration: { minBodyHeight: 0, maxBodyHeight: 3 },
+  cues: {
+    intro: 'ktw_intro',
+    onRaising: 'ktw_forward',
+    onTop: 'hold',
+    onLowering: 'ktw_back',
+    onRep: 'rep_of',
+    faults: { heel_rise: 'keep_heels_down', not_high_enough: 'ktw_further' },
+    onSetComplete: 'set_complete',
+    onSessionComplete: 'session_complete',
+  },
+};
+
+export const STRENGTH: ExerciseConfig[] = [
+  wallPushUp, kneePushUp, chairStand30, seatedKneeExtension, standingKneeCurl, heelRaise, scaption, seatedReach,
+  wallSit, lateralStepDown, kneeToWall,
+];

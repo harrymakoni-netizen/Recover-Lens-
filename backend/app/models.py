@@ -76,6 +76,7 @@ class ExerciseSession(SQLModel, table=True):
     load_kg: Optional[float] = None
     peak_torque_nm: Optional[float] = None
     # How well the camera could follow the session, and what a person should look at (SPEC §17.12).
+    avg_descent_s: Optional[float] = None  # step-down: mean time to lower, seconds
     tracking_coverage: Optional[int] = None  # % of the active time the needed joints were in view
     review_flags: Optional[str] = None  # comma list: tracking_gaps, arms_used
     arms_used_reps: Optional[int] = None  # chair stand: stands in which a wrist left the chest

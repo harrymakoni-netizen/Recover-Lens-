@@ -48,6 +48,7 @@ export function MirrorSession({
   const [portraitHint, setPortraitHint] = useState(false);
   const startedRef = useRef(false);
   const [protocol, setProtocol] = useState<'practice' | 'assessment'>(options.protocol ?? 'practice');
+  const [legSide, setLegSide] = useState<'left' | 'right'>(options.side ?? 'left');
 
   const onModelReplaced = pose.replace;
   const running = camera.status === 'ready' && pose.status === 'ready' && !overlay;
@@ -69,6 +70,12 @@ export function MirrorSession({
     startedRef.current = true;
     void camera.start(caregiver ? 'environment' : 'user');
   }, [camera, caregiver]);
+
+  // The leg chosen on the intro (left unless changed) is the engine's working leg from the start.
+  useEffect(() => {
+    if (config.chooseSide) session.engine.setSide(legSide);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionKey]);
 
   // If the user already tapped Start on Home, speech is unlocked: open the camera directly.
   useEffect(() => {
@@ -224,11 +231,37 @@ export function MirrorSession({
           exerciseName={exerciseName(t, config.id)}
           steps={steps ?? exerciseSteps(t, config)}
           onStart={start}
-          protocol={config.timeLimitSeconds ? protocol : undefined}
-          onProtocol={(p) => {
-            setProtocol(p);
-            session.engine.setProtocol(p);
-          }}
+          choice={
+            config.timeLimitSeconds
+              ? {
+                  legend: t('cam.protocol_label'),
+                  value: protocol,
+                  options: [
+                    { value: 'practice', label: t('cam.protocol_practice') },
+                    { value: 'assessment', label: t('cam.protocol_test') },
+                  ],
+                  hint: t(protocol === 'practice' ? 'cam.protocol_hint_practice' : 'cam.protocol_hint_test'),
+                  onChange: (v) => {
+                    setProtocol(v as 'practice' | 'assessment');
+                    session.engine.setProtocol(v as 'practice' | 'assessment');
+                  },
+                }
+              : config.chooseSide
+                ? {
+                    legend: t(config.kind === 'reps' && config.cameraView === 'front' ? 'cam.side_stance' : 'cam.side_tested'),
+                    value: legSide,
+                    options: [
+                      { value: 'left', label: t('cam.side_left') },
+                      { value: 'right', label: t('cam.side_right') },
+                    ],
+                    hint: t('cam.side_hint'),
+                    onChange: (v) => {
+                      setLegSide(v as 'left' | 'right');
+                      session.engine.setSide(v as 'left' | 'right');
+                    },
+                  }
+                : undefined
+          }
           onRetry={fileMode ? camera.reset : start}
           onFile={
             fileMode

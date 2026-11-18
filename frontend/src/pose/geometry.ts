@@ -157,6 +157,12 @@ export interface RawMetrics {
   /** Shoulder–hip–ankle, degrees: the body line in a plank or push-up (180 = straight). */
   bodyLineL: number | null;
   bodyLineR: number | null;
+  /** Forward shin tilt from vertical, degrees (side view; see shinTilt). */
+  shinL: number | null;
+  shinR: number | null;
+  /** Knee-to-ankle distance in pixels, the scale for heel lift when the whole body is not in view. */
+  shinLenL: number | null;
+  shinLenR: number | null;
   torsoLean: number | null;
   valgusL: number | null;
   valgusR: number | null;
@@ -267,6 +273,10 @@ export function computeRawMetrics(
     hipR: jointAngle(landmarks, 'hip', 'right', w, h),
     bodyLineL: bodyLine('left'),
     bodyLineR: bodyLine('right'),
+    shinL: shinTilt(landmarks, 'left', w, h),
+    shinR: shinTilt(landmarks, 'right', w, h),
+    shinLenL: shinLength(landmarks, 'left', w, h),
+    shinLenR: shinLength(landmarks, 'right', w, h),
     torsoLean: midHip && midShoulder ? torsoLean(midHip, midShoulder) : null,
     valgusL: valgus('left'),
     valgusR: valgus('right'),
@@ -336,4 +346,33 @@ export function facingOf(landmarks: Landmark[], w: number): number | null {
   if (!isVisible(nose) || !isVisible(ls) || !isVisible(rs)) return null;
   const dx = (nose.x - (ls.x + rs.x) / 2) * w;
   return Math.abs(dx) < 2 ? null : Math.sign(dx);
+}
+
+
+/**
+ * Forward tilt of the shin from vertical, in degrees (pixel space, SPEC §5.2), seen from the side.
+ * Positive = the knee is ahead of the ankle, in the direction the foot points (heel to toe).
+ * Null when the foot direction cannot be told (heel and toe level), so no guess is made.
+ */
+export function shinTilt(landmarks: Landmark[], side: Side, w: number, h: number, minVisibility?: number): number | null {
+  const s = SIDE_LANDMARKS[side];
+  const knee = landmarks[s.knee];
+  const ankle = landmarks[s.ankle];
+  const heel = landmarks[s.heel];
+  const foot = landmarks[s.foot];
+  if (![knee, ankle, heel, foot].every((l) => isVisible(l, minVisibility))) return null;
+  const K = toPixels(knee, w, h);
+  const A = toPixels(ankle, w, h);
+  const facing = Math.sign((foot.x - heel.x) * w);
+  if (facing === 0 || Math.abs((foot.x - heel.x) * w) < 2) return null;
+  const rise = A.y - K.y; // the knee is above the ankle: positive
+  if (rise <= 1) return null;
+  return (Math.atan2((K.x - A.x) * facing, rise) * 180) / Math.PI;
+}
+
+/** Knee-to-ankle distance in pixels. */
+export function shinLength(landmarks: Landmark[], side: Side, w: number, h: number): number | null {
+  const s = SIDE_LANDMARKS[side];
+  if (!isVisible(landmarks[s.knee]) || !isVisible(landmarks[s.ankle])) return null;
+  return distance(toPixels(landmarks[s.knee], w, h), toPixels(landmarks[s.ankle], w, h));
 }

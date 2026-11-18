@@ -41,6 +41,8 @@ export interface EngineOptions {
    * STEADI protocol, where needing the arms to stand is a result for the clinician to review.
    */
   protocol?: 'practice' | 'assessment';
+  /** The clinician's target from the programme: rep target, or the centre of a hold band. */
+  targetValue?: number;
 }
 
 export type EngineEvent =
@@ -61,7 +63,8 @@ export type EngineEvent =
   | { type: 'timeUp' }
   | { type: 'practice' }
   | { type: 'holdStart' }
-  | { type: 'holdBroken' }
+  | { type: 'holdBroken'; reason?: 'high' | 'low' }
+  | { type: 'tooFast' }
   | { type: 'holdRemaining'; seconds: number }
   | { type: 'feetDown' };
 
@@ -176,6 +179,8 @@ export interface SessionSummary {
   reach: { targetPct: number; avgPeakPct: number | null; avgHoldS: number | null; maxTrunkDeg: number | null } | null;
   /** Chair stand: stands in which a wrist left the chest. */
   armsUsedReps: number;
+  /** Step-down: average time to lower, seconds. */
+  avgDescentS: number | null;
   protocol: 'practice' | 'assessment' | null;
   /** Reasons the result should be looked at by a person before it is relied on. */
   review: Array<'tracking_gaps' | 'arms_used'>;
@@ -191,6 +196,8 @@ const PHASE_LABELS: Record<string, Record<RepState, string>> = {
 
 const STANCE_LIFT_FRACTION = 0.05; // TUNE: lifted ankle must be this far (of body height) above the other
 const LANDING_WINDOW_MS = 600;
+// TUNE: body height is about this many shin lengths (knee to ankle), for heel lift in a low side view.
+const SHIN_TO_BODY = 4;
 // TUNE: a wrist this far (% of torso length) in front of, or below, the shoulder is off the chest.
 const ARMS_OFF_PCT = 70;
 // TUNE: time off the chest during one stand that counts as arm use.
@@ -210,6 +217,8 @@ interface Baseline {
   ankleLY: number | null;
   ankleRY: number | null;
   torsoLean: number | null;
+  /** Knee-to-ankle distance of the tracked side, px: the scale for heel lift. */
+  shinLenPx: number | null;
 }
 
 interface Extremes {
@@ -249,7 +258,7 @@ export class SessionEngine {
   private lostSince: number | null = null;
 
   private readonly smooth = new EmaBank<MetricKey>(0.35);
-  private readonly primarySmooth = new EmaBank<'L' | 'R' | 'hip' | 'heel' | 'reach' | 'drop'>(0.35);
+  private readonly primarySmooth = new EmaBank<'L' | 'R' | 'hip' | 'heel' | 'reach' | 'drop' | 'free'>(0.35);
   private readonly faults: FaultDetector;
   private readonly display = new DisplayScore(0.2);
   private readonly counter: RepCounter | null;
@@ -306,7 +315,7 @@ export class SessionEngine {
 
   constructor(
     readonly config: ExerciseConfig,
-    private readonly opts: EngineOptions = {},
+    private opts: EngineOptions = {},
   ) {
     this.targetReps = opts.targetReps ?? config.defaultReps;
     this.sets = opts.sets ?? config.defaultSets;
@@ -328,6 +337,13 @@ export class SessionEngine {
     if (opts.side) this.autoSide = opts.side;
   }
 
+  /** Step-down and similar: choose the working leg before the exercise starts. */
+  setSide(side: Side): void {
+    if (this.phase !== 'calibrating') return;
+    this.opts = { ...this.opts, side };
+    this.autoSide = side;
+  }
+
   /** Chair stand: choose practice or assessment before the test starts. */
   setProtocol(p: 'practice' | 'assessment'): void {
     if (this.config.timeLimitSeconds && this.phase === 'calibrating') this.protocol = p;
@@ -336,6 +352,14 @@ export class SessionEngine {
   /** Rest/target angles in use (config values, or measured from the person for relative ranges). */
   private range(): { start: number; target: number } {
     return this.counter?.range ?? { start: this.config.startAngle, target: this.config.targetAngle };
+  }
+
+  /** The clinician's target replaces the default rep target (hold bands use it in stepHold). */
+  private applyProgramTarget(): void {
+    const pt = this.config.programTarget;
+    if (!pt || this.opts.targetValue == null || !this.counter) return;
+    const v = Math.min(pt.max, Math.max(pt.min, this.opts.targetValue));
+    this.counter.setRange(this.counter.range.start, v);
   }
 
   /** Relative-range exercises: count depth from the person's own resting angle. */
@@ -366,13 +390,13 @@ export class SessionEngine {
   private get side(): Side | null {
     if (this.opts.side) return this.opts.side;
     if (this.config.side === 'left' || this.config.side === 'right') return this.config.side;
-    if (this.config.side === 'auto' && this.config.kind === 'reps') return this.autoSide;
+    if (this.config.side === 'auto' && (this.config.kind === 'reps' || !!this.config.holdGate)) return this.autoSide;
     return null;
   }
 
   private requiredFor(landmarks: Landmark[] | null): number[] {
     const req = [...this.config.requiredLandmarks];
-    if (this.config.side === 'auto' && this.config.kind === 'reps') {
+    if (this.config.side === 'auto' && (this.config.kind === 'reps' || !!this.config.holdGate)) {
       if (landmarks && !this.opts.side) this.pickAutoSide(landmarks);
       const s = SIDE_LANDMARKS[this.autoSide];
       const joints = this.config.requiredJoints ?? ['shoulder', 'hip', 'knee', 'ankle'];
@@ -472,8 +496,10 @@ export class SessionEngine {
             ankleLY: m.ankleLY,
             ankleRY: m.ankleRY,
             torsoLean: m.torsoLean,
+            shinLenPx: (this.side ?? 'left') === 'right' ? m.shinLenR : m.shinLenL,
           };
           this.applyRelativeRange(m);
+          this.applyProgramTarget();
           this.finishReachTarget();
           events.push({ type: 'start' });
         } else if (n !== this.lastCountdown) {
@@ -574,7 +600,7 @@ export class SessionEngine {
   private smoothMetrics(raw: RawMetrics | null): Record<MetricKey, number | null> {
     const out = {} as Record<MetricKey, number | null>;
     const keys: MetricKey[] = [
-      'shoulderL', 'shoulderR', 'elbowL', 'elbowR', 'kneeL', 'kneeR', 'hipL', 'hipR', 'bodyLineL', 'bodyLineR',
+      'shoulderL', 'shoulderR', 'elbowL', 'elbowR', 'kneeL', 'kneeR', 'hipL', 'hipR', 'bodyLineL', 'bodyLineR', 'shinL', 'shinR', 'shinLenL', 'shinLenR',
       'torsoLean', 'valgusL', 'valgusR', 'hipDrop', 'midHipX', 'midHipY', 'hipWidth', 'bodyHeight', 'heelLY', 'heelRY', 'ankleLY', 'ankleRY',
       'shoulderForward', 'forearmDownL', 'forearmDownR', 'armDownL', 'armDownR',
     ];
@@ -591,6 +617,10 @@ export class SessionEngine {
       // Hold exercises: knee symmetry is not meaningful on one leg.
       return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
     }
+    if ('metric' in spec && spec.metric === 'shinTilt') {
+      const k = (this.side ?? 'left') === 'right' ? 'shinR' : 'shinL';
+      return { primaryRaw: raw ? raw[k] : null, primaryAngle: m[k], symmetryPct: null };
+    }
     if ('metric' in spec && spec.metric === 'reach') {
       return { primaryRaw: this.reachProgress, primaryAngle: this.reachProgress, symmetryPct: null };
     }
@@ -598,6 +628,15 @@ export class SessionEngine {
       const b = this.baseline;
       if (!b || !b.bodyHeight) return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
       const bodyH = b.bodyHeight;
+      if (spec.metric === 'freeLegLower') {
+        // Step-down: how far the free foot lowers from where it hung at the start, % of body height.
+        const free: Side = (this.side ?? 'left') === 'left' ? 'right' : 'left';
+        const base = free === 'left' ? b.ankleLY : b.ankleRY;
+        const now = raw ? (free === 'left' ? raw.ankleLY : raw.ankleRY) : null;
+        const lower = base == null || now === null ? null : ((now - base) / bodyH) * 100;
+        const smoothed = this.primarySmooth.update('free', lower, this.dtMs);
+        return { primaryRaw: lower, primaryAngle: smoothed, symmetryPct: null };
+      }
       if (spec.metric === 'heelRise') {
         // Heels and ankles together: four points rise as one, which halves the jitter of one heel.
         const rises = (
@@ -731,7 +770,9 @@ export class SessionEngine {
     kneeSide: Side | null,
   ): FaultInput {
     const b = this.baseline;
-    const bodyH = b?.bodyHeight ?? m.bodyHeight;
+    // Low side view (knee-to-wall): the whole body is not in view, so heel lift is scaled by shin length.
+    const shinScale = b?.shinLenPx ? b.shinLenPx * SHIN_TO_BODY : null;
+    const bodyH = this.config.heelCheck === 'tracked' && shinScale ? shinScale : (b?.bodyHeight ?? m.bodyHeight ?? shinScale);
     const heelRise = (base: number | null | undefined, now: number | null) =>
       base == null || now === null || !bodyH ? null : (base - now) / bodyH;
     const side = this.side;
@@ -755,7 +796,10 @@ export class SessionEngine {
       midHipX: m.midHipX,
       hipWidth: m.hipWidth,
       baselineMidHipX: b?.midHipX ?? null,
-      heelRise: maxN(heelRise(b?.heelLY, m.heelLY), heelRise(b?.heelRY, m.heelRY)),
+      heelRise:
+        this.config.heelCheck === 'tracked'
+          ? (side ?? 'left') === 'right' ? heelRise(b?.heelRY, m.heelRY) : heelRise(b?.heelLY, m.heelLY)
+          : maxN(heelRise(b?.heelLY, m.heelLY), heelRise(b?.heelRY, m.heelRY)),
       hipDrop: m.hipDrop,
       turnedBackEarly: this.turnedBack,
       bodyLine: this.bodyLineNow(m),
@@ -855,6 +899,7 @@ export class SessionEngine {
             this.pendingLanding = { record, until: tMs + LANDING_WINDOW_MS };
           }
           events.push(e);
+          if (this.config.minDescentSeconds && e.raiseS < this.config.minDescentSeconds) events.push({ type: 'tooFast' });
           // Coach a slower pace once per set when the reps clearly tire (not on the set's last rep).
           if (!this.tiringSets.has(e.set) && e.repNumber < this.targetReps && !this.config.screeningOnly) {
             if (tiringInSet(counter.results.filter((r) => r.set === e.set))) {
@@ -879,14 +924,27 @@ export class SessionEngine {
 
   private stepHold(m: Record<MetricKey, number | null>, tMs: number, events: EngineEvent[]): void {
     const bodyH = this.baseline?.bodyHeight ?? m.bodyHeight;
+    const gate = this.config.holdGate;
     let standing: Side | null = null;
-    if (m.ankleLY !== null && m.ankleRY !== null && bodyH) {
-      const diff = (m.ankleLY - m.ankleRY) / bodyH; // positive = left ankle lower = standing on left
-      if (diff > STANCE_LIFT_FRACTION) standing = 'left';
-      else if (diff < -STANCE_LIFT_FRACTION) standing = 'right';
+    let valid: boolean;
+    let gateReason: 'high' | 'low' | undefined;
+    if (gate) {
+      // Wall sit: valid while the knee stays inside the band. Above `standingDeg` the person has stood up.
+      const gateSide = this.side ?? 'left';
+      const knee = gateSide === 'right' ? m.kneeR : m.kneeL;
+      const centre = this.opts.targetValue ?? gate.centerDeg;
+      valid = knee !== null && Math.abs(knee - centre) <= gate.halfWidthDeg;
+      standing = knee !== null && knee < gate.standingDeg ? gateSide : null;
+      if (knee !== null && !valid) gateReason = knee > centre ? 'high' : 'low';
+    } else {
+      if (m.ankleLY !== null && m.ankleRY !== null && bodyH) {
+        const diff = (m.ankleLY - m.ankleRY) / bodyH; // positive = left ankle lower = standing on left
+        if (diff > STANCE_LIFT_FRACTION) standing = 'left';
+        else if (diff < -STANCE_LIFT_FRACTION) standing = 'right';
+      }
+      const wanted = this.opts.side ?? (this.config.side === 'left' || this.config.side === 'right' ? this.config.side : null);
+      valid = standing !== null && (wanted === null || standing === wanted);
     }
-    const wanted = this.opts.side ?? (this.config.side === 'left' || this.config.side === 'right' ? this.config.side : null);
-    const valid = standing !== null && (wanted === null || standing === wanted);
     this.holdValidNow = valid;
 
     // Between sets: wait for both feet down before timing the next leg.
@@ -919,7 +977,7 @@ export class SessionEngine {
       this.holdStandingSide = standing;
       events.push({ type: 'holdStart' });
     }
-    if (u.justBroken) events.push({ type: 'holdBroken' });
+    if (u.justBroken) events.push({ type: 'holdBroken', ...(gateReason ? { reason: gateReason } : {}) });
 
     if (valid) {
       const score = frameScore({
@@ -1066,7 +1124,7 @@ export class SessionEngine {
       ? this.counter.results.map((r) => r.quality)
       : this.holdRecords.map((r) => r.quality);
     const topAngles =
-      this.counter && this.config.primaryAngle && 'joint' in this.config.primaryAngle
+      this.counter && this.config.primaryAngle && ('joint' in this.config.primaryAngle || this.config.primaryAngle.metric === 'shinTilt')
         ? this.counter.results.map((r) => r.topAngle)
         : [];
     let topFault: FaultRuleId | null = null;
@@ -1111,6 +1169,7 @@ export class SessionEngine {
           }
         : null,
       armsUsedReps,
+      avgDescentS: this.config.minDescentSeconds && this.counter ? mean(this.counter.results.map((r) => r.raiseS)) : null,
       protocol: this.protocol,
       review: [
         ...(trackingCoverage !== null && trackingCoverage < REVIEW_COVERAGE_PCT ? (['tracking_gaps'] as const) : []),

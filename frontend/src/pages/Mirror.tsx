@@ -46,13 +46,15 @@ export default function Mirror() {
   const fileMode = params.get('source') === 'file';
   // Seated reach: the clinician's target (programme value, % of torso length); empty = from the practice reach.
   const reachTargetPct = exercise && isLive(exercise) && exercise.reach ? program?.target_angle ?? undefined : undefined;
+  // Clinician-set target for other exercises (hold angle, heel lowering, shin tilt).
+  const targetValue = exercise && isLive(exercise) && exercise.programTarget ? program?.target_angle ?? undefined : undefined;
   const protocol = params.get('protocol') === 'assessment' ? ('assessment' as const) : undefined;
   const options = useMemo(
     () => ({
-      targetReps: reps, sets, side, loadKg, reachTargetPct, protocol,
+      targetReps: reps, sets, side, loadKg, reachTargetPct, targetValue, protocol,
       ...(fileMode ? { countdownMs: 0, calibrationHoldMs: 300 } : {}),
     }),
-    [reps, sets, side, loadKg, fileMode, reachTargetPct, protocol],
+    [reps, sets, side, loadKg, fileMode, reachTargetPct, targetValue, protocol],
   );
 
   // Full-screen routes sit outside AppShell, so they name the page themselves (WCAG 2.4.2).

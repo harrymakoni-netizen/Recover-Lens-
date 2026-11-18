@@ -25,8 +25,7 @@ export function CameraMessage({
   onRetry,
   caregiver,
   modelError,
-  protocol,
-  onProtocol,
+  choice,
 }: {
   status: CameraStatus | 'intro';
   exerciseName: string;
@@ -37,9 +36,8 @@ export function CameraMessage({
   modelError?: string | null;
   /** Test/demo mode: pick a recorded video instead of starting the camera. */
   onFile?: (file: File) => void;
-  /** Timed tests (chair stand): practice or the CDC STEADI test. */
-  protocol?: 'practice' | 'assessment';
-  onProtocol?: (p: 'practice' | 'assessment') => void;
+  /** A choice made before starting: practice or test (chair stand), or which leg (step-down). */
+  choice?: { legend: string; value: string; options: Array<{ value: string; label: string }>; hint?: string; onChange: (v: string) => void };
 }) {
   const { t } = useApp();
   const accent = caregiver ? 'text-orange-300' : 'text-good';
@@ -69,23 +67,23 @@ export function CameraMessage({
                 <span>{caregiver ? t('cam.stand_back_cg') : t('cam.stand_back')}</span>
               </li>
             </ol>
-            {protocol && onProtocol && (
+            {choice && (
               <fieldset className="mt-4">
-                <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/70">{t('cam.protocol_label')}</legend>
+                <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/70">{choice.legend}</legend>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['practice', 'assessment'] as const).map((p) => (
+                  {choice.options.map((o) => (
                     <button
-                      key={p}
+                      key={o.value}
                       type="button"
-                      aria-pressed={protocol === p}
-                      onClick={() => onProtocol(p)}
-                      className={`min-h-11 rounded-xl border px-3 text-sm font-medium ${protocol === p ? 'border-good bg-good/15 text-white' : 'border-white/15 text-white/80'}`}
+                      aria-pressed={choice.value === o.value}
+                      onClick={() => choice.onChange(o.value)}
+                      className={`min-h-11 rounded-xl border px-3 text-sm font-medium ${choice.value === o.value ? 'border-good bg-good/15 text-white' : 'border-white/15 text-white/80'}`}
                     >
-                      {t(p === 'practice' ? 'cam.protocol_practice' : 'cam.protocol_test')}
+                      {o.label}
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-sm text-white/75">{t(protocol === 'practice' ? 'cam.protocol_hint_practice' : 'cam.protocol_hint_test')}</p>
+                {choice.hint && <p className="mt-2 text-sm text-white/75">{choice.hint}</p>}
               </fieldset>
             )}
             <p className="mt-4 rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-200">

@@ -74,6 +74,8 @@ export interface SessionRecord {
   peak_torque_nm?: number | null;
   /** % of the active time the needed joints were in view; low values explain a low count. */
   tracking_coverage?: number | null;
+  /** Step-down: average time to lower, seconds. */
+  avg_descent_s?: number | null;
   /** Comma list of reasons a person should look at the result: tracking_gaps, arms_used. */
   review_flags?: string | null;
   arms_used_reps?: number | null;

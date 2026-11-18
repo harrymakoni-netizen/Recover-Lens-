@@ -86,14 +86,14 @@ export function allVisible(
 export type Side = 'left' | 'right';
 
 export const SIDE_LANDMARKS: Record<Side, {
-  shoulder: number; elbow: number; wrist: number; hip: number; knee: number; ankle: number; heel: number;
+  shoulder: number; elbow: number; wrist: number; hip: number; knee: number; ankle: number; heel: number; foot: number;
 }> = {
   left: {
     shoulder: LM.L_SHOULDER, elbow: LM.L_ELBOW, wrist: LM.L_WRIST,
-    hip: LM.L_HIP, knee: LM.L_KNEE, ankle: LM.L_ANKLE, heel: LM.L_HEEL,
+    hip: LM.L_HIP, knee: LM.L_KNEE, ankle: LM.L_ANKLE, heel: LM.L_HEEL, foot: LM.L_FOOT,
   },
   right: {
     shoulder: LM.R_SHOULDER, elbow: LM.R_ELBOW, wrist: LM.R_WRIST,
-    hip: LM.R_HIP, knee: LM.R_KNEE, ankle: LM.R_ANKLE, heel: LM.R_HEEL,
+    hip: LM.R_HIP, knee: LM.R_KNEE, ankle: LM.R_ANKLE, heel: LM.R_HEEL, foot: LM.R_FOOT,
   },
 };

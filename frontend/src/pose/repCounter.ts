@@ -42,6 +42,8 @@ export interface RepResult {
   durationS: number;
   /** Seconds the person stayed in the top zone (the longest pause in the rep). */
   holdS: number;
+  /** Seconds from the start of the rep to first reaching the top: the descent in a step-down. */
+  raiseS: number;
 }
 
 export type RepEvent =
@@ -79,6 +81,7 @@ interface RepTracking {
   topReached: boolean;
   turnedBack: boolean;
   holdBestS: number;
+  topAtMs: number | null;
 }
 
 export function computeProgress(angle: number, startAngle: number, targetAngle: number): number {
@@ -167,6 +170,7 @@ export class RepCounter {
         if (p >= ENTER_TOP) {
           this.holdElapsed = 0;
           this.go('AT_TOP', events);
+          if (this.rep && this.rep.topAtMs === null) this.rep.topAtMs = frame.tMs;
           this.updateHold(0, p);
         } else if (p < ABANDON) {
           this.rep = null;
@@ -260,6 +264,7 @@ export class RepCounter {
       maxProgress: rep.maxProgress,
       durationS,
       holdS: rep.holdBestS,
+      raiseS: rep.topAtMs === null ? durationS : (rep.topAtMs - rep.startMs) / 1000,
     };
     this.results.push(result);
     events.push({ type: 'rep', ...result });
@@ -287,6 +292,7 @@ export class RepCounter {
       topAngle: 0,
       holdMet: this.holdMs === 0,
       holdBestS: 0,
+      topAtMs: null,
       topReached: false,
       turnedBack: false,
     };

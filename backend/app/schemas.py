@@ -68,6 +68,7 @@ class SessionIn(BaseModel):
     fatigue_form_points: Optional[int] = Field(default=None, ge=0, le=100)
     load_kg: Optional[float] = Field(default=None, ge=0, le=50)
     peak_torque_nm: Optional[float] = Field(default=None, ge=0, le=500)
+    avg_descent_s: Optional[float] = Field(default=None, ge=0, le=60)
     tracking_coverage: Optional[int] = Field(default=None, ge=0, le=100)
     review_flags: Optional[str] = Field(default=None, max_length=80, pattern=r"^[a-z_,]*$")
     arms_used_reps: Optional[int] = Field(default=None, ge=0, le=500)
@@ -124,6 +125,7 @@ def session_out(s: ExerciseSession) -> dict[str, Any]:
         "fatigue_form_points": s.fatigue_form_points,
         "load_kg": s.load_kg,
         "peak_torque_nm": s.peak_torque_nm,
+        "avg_descent_s": s.avg_descent_s,
         "tracking_coverage": s.tracking_coverage,
         "review_flags": s.review_flags,
         "arms_used_reps": s.arms_used_reps,

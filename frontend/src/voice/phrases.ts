@@ -191,6 +191,24 @@ const en: Record<string, string> = {
   reach_further: "Try to reach a little further into the circle.",
   cal_show_feet: "Move back until I can see both ankles.",
   cal_show_arms: "I can't see your arm. Turn sideways so your shoulder, elbow and hand are in view.",
+  ws_intro: "Back flat against the wall. Slide down until your knees are bent to about a right angle, then hold.",
+  ws_holding: "Hold. Keep breathing.",
+  ws_back: "Keep your back flat against the wall.",
+  ws_lower: "Slide down a little lower.",
+  ws_higher: "Slide up a little.",
+  ws_slide_up: "Slide back down to the position, then hold.",
+  ws_rest: "Set complete. Slide up and rest, then go again.",
+  ws_done: "Well done.",
+  sd_intro: "Stand on the step on one leg. Bend that knee slowly to lower the other heel towards the floor, then push back up.",
+  sd_lower: "Lower slowly. Count to two.",
+  sd_touch: "Touch the floor lightly with your heel.",
+  sd_up: "Push back up through your standing leg.",
+  sd_lower_more: "Lower a little further.",
+  sd_slower: "Slower on the way down.",
+  ktw_intro: "Face the wall, front foot a hand's width away. Keep your heel down and bring your knee forward, then return.",
+  ktw_forward: "Bring your knee forward. Keep the heel down.",
+  ktw_back: "Now return slowly.",
+  ktw_further: "Try to bring your knee a little closer to the wall.",
 };
 
 // Short pill text for long phrases (the pill holds ~40 characters).
@@ -235,6 +253,9 @@ const pillEn: Record<string, string> = {
   reach_intro: "Hand into the circle, hold, return",
   cal_show_feet: "Move back: show both ankles",
   cal_show_arms: "Turn sideways: show your arm",
+  ws_intro: "Back on the wall, knees at 90°, hold",
+  sd_intro: "Lower the free heel slowly, push up",
+  ktw_intro: "Knee to the wall, heel down",
 };
 
 
@@ -408,6 +429,24 @@ const sn: Record<string, string> = {
   reach_further: "Edzai kutambanudza ruoko zvishoma zvakare mukati medenderedzwa.",
   cal_show_feet: "Dzokerai shure kusvikira ndaona mitezo yetsoka dzose.",
   cal_show_arms: "Handioni ruoko rwenyu. Tendeukai rutivi kuti pfudzi, gokora neruoko ruonekwe.",
+  ws_intro: "Musana wakatsiga pamadziro. Tsvedzerai pasi kusvikira mabvi akakotama pakona yakarurama, mozomira.",
+  ws_holding: "Mirai. Tsvagai mweya zvakanaka.",
+  ws_back: "Chengetai musana wakatsiga pamadziro.",
+  ws_lower: "Tsvedzerai pasi zvishoma zvakare.",
+  ws_higher: "Tsvedzerai kumusoro zvishoma.",
+  ws_slide_up: "Dzokerai pamamiriro iwayo, mozomira.",
+  ws_rest: "Seti yapera. Simukai muzorore, mozoenda zvakare.",
+  ws_done: "Maita zvakanaka.",
+  sd_intro: "Mirai pachikwiriso netsoka imwe. Kotamisai ibvi iro zvishoma nezvishoma muderedze chitsitsinho chimwe kunhivi, mozosundira kumusoro.",
+  sd_lower: "Dzikai zvishoma nezvishoma. Verengai kusvika pazviri zviviri.",
+  sd_touch: "Gunzai pasi nechitsitsinho zvishoma.",
+  sd_up: "Sundirai kumusoro nesoka rakamira.",
+  sd_lower_more: "Dzikai zvishoma zvakare.",
+  sd_slower: "Zvishoma nezvishoma pakudzika.",
+  ktw_intro: "Tarisai madziro, tsoka yekumberi yakasiyana nawo nehupamhi hweruoko. Chengetai chitsitsinho pasi mouya neibvi kumberi, mozodzoka.",
+  ktw_forward: "Unzai ibvi kumberi. Chengetai chitsitsinho pasi.",
+  ktw_back: "Zvino dzokai zvishoma nezvishoma.",
+  ktw_further: "Edzai kuunza ibvi padyo nemadziro zvishoma.",
 };
 
 // isiNdebele. Needs a native speaker's review.
@@ -580,6 +619,24 @@ const nd: Record<string, string> = {
   reach_further: "Zamani ukutshambisa isandla kancane futhi ngaphakathi kwesiyingi.",
   cal_show_feet: "Buyelani emuva kuze ngibone zombili izithende.",
   cal_show_arms: "Angiyiboni ingalo yenu. Phenduka icele ukuze ihlombe, indololwane lesandla kubonakale.",
+  ws_intro: "Umhlane uphelele odongeni. Tshelelani phansi kuze amadolo agoqeke cishe njengekhoneni elilungileyo, beselimisa.",
+  ws_holding: "Mismani. Qhubekani lisamela.",
+  ws_back: "Gcinani umhlane uphelele odongeni.",
+  ws_lower: "Tshelelani phansi kancane futhi.",
+  ws_higher: "Tshelelani phezulu kancane.",
+  ws_slide_up: "Buyelani endaweni, beselimisa.",
+  ws_rest: "Isethi iphelile. Phakamani liphumule, beselenza futhi.",
+  ws_done: "Lenze kuhle.",
+  sd_intro: "Yimani esitebhini ngomlenze owodwa. Goqani idolo lelo kancane kancane lehlise isithende esinye ngasephansi, beselisunduza liphakame.",
+  sd_lower: "Yehlani kancane. Balani kuze kube yimbili.",
+  sd_touch: "Thinta phansi kancane ngesithende.",
+  sd_up: "Sunduzani liphakame ngomlenze omile.",
+  sd_lower_more: "Yehlani kancane futhi.",
+  sd_slower: "Kancane ekwehleni.",
+  ktw_intro: "Khangelani udonga, unyawo lwangaphambili lukhatshana ngobubanzi besandla. Gcinani isithende phansi liletha idolo phambili, beselibuya.",
+  ktw_forward: "Letha idolo phambili. Gcina isithende phansi.",
+  ktw_back: "Khathesi buyani kancane.",
+  ktw_further: "Zamani ukusondeza idolo kancane odongeni.",
 };
 
 export const PHRASES: Record<Lang, Record<string, string>> = { en, sn, nd };
@@ -625,6 +682,9 @@ const pillSn: Record<string, string> = {
   reach_intro: "Ruoko mudenderedzwa, mumire, mudzoke",
   cal_show_feet: "Dzokerai shure: tsoka dzose",
   cal_show_arms: "Tendeukai rutivi: ruoko ruonekwe",
+  ws_intro: "Musana pamadziro, mabvi 90°, mumire",
+  sd_intro: "Dzikisai chitsitsinho, musundire",
+  ktw_intro: "Ibvi kumadziro, chitsitsinho pasi",
 };
 
 const pillNd: Record<string, string> = {
@@ -668,6 +728,9 @@ const pillNd: Record<string, string> = {
   reach_intro: "Isandla esiyingini, limise, libuye",
   cal_show_feet: "Buyelani emuva: izithende zombili",
   cal_show_arms: "Phenduka icele: ingalo ibonakale",
+  ws_intro: "Umhlane odongeni, amadolo 90°, limise",
+  sd_intro: "Yehlisa isithende kancane, usunduze",
+  ktw_intro: "Idolo odongeni, isithende phansi",
 };
 
 export const PILLS: Record<Lang, Record<string, string>> = { en: pillEn, sn: pillSn, nd: pillNd };

@@ -630,3 +630,157 @@ describe('camera setup check (SPEC §17.12)', () => {
     expect(d.last.setup?.missing).toEqual([]);
   });
 });
+
+describe('wall sit, lateral step-down and knee-to-wall', () => {
+  describe('wall sit: time inside a knee-angle band', () => {
+    const stand = { kneeSide: true };
+    const sit = (deg: number) => ({ kneeSide: true, kneeFlexL: 180 - deg, kneeFlexR: 180 - deg });
+
+    it('times the hold while the knee is in the band and completes the set', () => {
+      const d = make('wall_sit', { sets: 1, holdSeconds: 4 });
+      d.calibrate(stand);
+      d.move(stand, sit(90), 1);
+      d.frames(sit(90), 5);
+      expect(d.count('holdStart')).toBe(1);
+      expect(d.last.phase).toBe('complete');
+      expect(d.engine.summary().setsCompleted).toBe(1);
+    });
+
+    it('pauses (never resets) when the knee leaves the band, and says which way', () => {
+      const d = make('wall_sit', { sets: 1, holdSeconds: 6 });
+      d.calibrate(stand);
+      d.move(stand, sit(90), 1);
+      d.frames(sit(90), 2.5);
+      const before = d.last.hold!.elapsed;
+      expect(before).toBeGreaterThan(2);
+      d.move(sit(90), sit(125), 0.5); // sliding up: knee angle above the band
+      d.frames(sit(125), 1);
+      expect(d.events.some((e) => e.type === 'holdBroken' && e.reason === 'high')).toBe(true);
+      expect(d.last.hold!.elapsed).toBeLessThan(before + 0.6);
+      d.move(sit(125), sit(90), 0.5);
+      d.frames(sit(90), 1);
+      expect(d.last.hold!.elapsed).toBeGreaterThan(before); // continued, not restarted
+    });
+
+    it("uses the clinician's angle as the centre of the band", () => {
+      const d = make('wall_sit', { sets: 1, holdSeconds: 4, targetValue: 120 });
+      d.calibrate(stand);
+      d.move(stand, sit(120), 1);
+      d.frames(sit(120), 1);
+      expect(d.last.hold!.holding).toBe(true);
+      d.move(sit(120), sit(90), 0.5);
+      d.frames(sit(90), 1);
+      expect(d.events.some((e) => e.type === 'holdBroken' && e.reason === 'low')).toBe(true);
+    });
+  });
+
+  describe('lateral step-down: control on the way down', () => {
+    const hang = {};
+    const lowered = { dropR: 0.045 }; // just past the 4 % target, as a real step-down ends
+    const rep = (d: Driver, downS: number) => {
+      d.move(hang, lowered, downS);
+      d.frames(lowered, 0.4);
+      d.move(lowered, hang, 1.2);
+      d.frames(hang, 0.5);
+    };
+
+    it('counts reps from how far the free heel lowers and times the descent', () => {
+      const d = make('lateral_step_down', { targetReps: 3, sets: 1, side: 'left' });
+      d.calibrate(hang);
+      for (let i = 0; i < 3; i++) rep(d, 2);
+      expect(d.last.reps).toBe(3);
+      expect(d.count('tooFast')).toBe(0);
+      const s = d.engine.summary();
+      expect(s.avgDescentS).toBeGreaterThan(1.0);
+      expect(s.avgDescentS).toBeLessThan(2.0);
+    });
+
+    it('a rushed descent still counts, with a "slower" cue', () => {
+      const d = make('lateral_step_down', { targetReps: 2, sets: 1, side: 'left' });
+      d.calibrate(hang);
+      rep(d, 0.6);
+      expect(d.last.reps).toBe(1);
+      expect(d.count('tooFast')).toBe(1);
+      expect(d.engine.summary().avgDescentS).toBeLessThan(0.8);
+    });
+
+    it('the chosen leg decides which foot is the free one', () => {
+      const d = make('lateral_step_down', { targetReps: 1, sets: 1 });
+      d.engine.setSide('right'); // standing on the right: the left heel lowers
+      d.calibrate(hang);
+      d.move(hang, { dropL: 0.07 }, 2);
+      d.frames({ dropL: 0.07 }, 0.4);
+      d.move({ dropL: 0.07 }, hang, 1.2);
+      d.frames(hang, 0.5);
+      expect(d.last.reps).toBe(1);
+    });
+
+    it('does not count the standing foot moving', () => {
+      const d = make('lateral_step_down', { targetReps: 1, sets: 1, side: 'left' });
+      d.calibrate(hang);
+      d.move(hang, { dropL: 0.07 }, 2);
+      d.move({ dropL: 0.07 }, hang, 1.2);
+      expect(d.last.reps).toBe(0);
+    });
+  });
+
+  describe('knee-to-wall: forward shin tilt with the heel down', () => {
+    // Negative valgus moves the left knee forward of the ankle: ~29° of shin tilt.
+    const upright = { kneeSide: true };
+    const forward = { kneeSide: true, valgusL: -1 };
+
+    it('counts reps from the shin tilt in degrees and reports the angle reached', () => {
+      const d = make('knee_to_wall', { targetReps: 2, sets: 1 });
+      d.calibrate(upright);
+      for (let i = 0; i < 2; i++) {
+        d.move(upright, forward, 1);
+        d.frames(forward, 1.4);
+        d.move(forward, upright, 1);
+        d.frames(upright, 0.5);
+      }
+      expect(d.last.reps).toBe(2);
+      const s = d.engine.summary();
+      expect(s.avgTopAngle).toBeGreaterThan(25);
+      expect(s.avgTopAngle).toBeLessThan(33);
+    });
+
+    it("uses the clinician's target tilt", () => {
+      const d = make('knee_to_wall', { targetReps: 1, sets: 1, targetValue: 45 });
+      d.calibrate(upright);
+      d.move(upright, forward, 1);
+      d.frames(forward, 1.4); // ~29° is well short of 45°
+      d.move(forward, upright, 1);
+      d.frames(upright, 0.5);
+      expect(d.last.reps).toBe(0);
+    });
+
+    it('flags a lifted heel on the tracked side, as an observation', () => {
+      const d = make('knee_to_wall', { targetReps: 2, sets: 1 });
+      d.calibrate(upright);
+      const lifted = { ...forward, dropL: -0.04 };
+      d.move(upright, lifted, 1);
+      d.frames(lifted, 1.2);
+      expect(d.events.some((e) => e.type === 'fault' && e.id === 'heel_rise')).toBe(true);
+    });
+
+    it("ignores the back foot's heel (it may lift in a lunge stance)", () => {
+      const d = make('knee_to_wall', { targetReps: 2, sets: 1 });
+      d.calibrate(upright);
+      const backLifted = { ...forward, dropR: -0.05 };
+      d.move(upright, backLifted, 1);
+      d.frames(backLifted, 1.2);
+      expect(d.events.some((e) => e.type === 'fault' && e.id === 'heel_rise')).toBe(false);
+    });
+  });
+
+  it('all three have cues in every language', async () => {
+    const { PHRASES, PILLS } = await import('../../voice/phrases');
+    for (const id of ['wall_sit', 'lateral_step_down', 'knee_to_wall']) {
+      const c = getLiveExercise(id).cues;
+      const keys = [c.intro, c.onRaising, c.onTop, c.onLowering, c.onRep, c.onSetComplete, c.onSessionComplete, c.onTooFast, ...Object.values(c.faults)].filter(Boolean) as string[];
+      for (const lang of ['en', 'sn', 'nd'] as const) for (const k of keys) expect(PHRASES[lang][k], `${id} ${lang} ${k}`).toBeTruthy();
+      for (const lang of ['en', 'sn', 'nd'] as const) expect(PILLS[lang][c.intro], `${id} pill ${lang}`).toBeTruthy();
+    }
+    for (const k of ['ws_lower', 'ws_higher']) for (const lang of ['en', 'sn', 'nd'] as const) expect(PHRASES[lang][k]).toBeTruthy();
+  });
+});

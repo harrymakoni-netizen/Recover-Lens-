@@ -1,6 +1,6 @@
 // Pick exercises from the registry with sets/reps (Add Patient modal and Patient Detail).
 import { Plus, Trash2 } from 'lucide-react';
-import { LIBRARY, defaultTargetAngle } from '../../exercises';
+import { LIBRARY, defaultTargetAngle, isLive } from '../../exercises';
 import { exerciseName } from '../../i18n';
 import { useApp } from '../../lib/appContext';
 import { inputClass } from '../ui';
@@ -36,6 +36,25 @@ export function ProgramEditor({ value, onChange }: { value: ProgramDraft[]; onCh
             {t('prog.reps')}
             <input className={inputClass} type="number" min={1} max={50} value={p.reps} onChange={(e) => update(i, { reps: Number(e.target.value) })} />
           </label>
+          {(() => {
+            const ex = LIBRARY.find((e) => e.id === p.exercise_id);
+            const pt = ex && isLive(ex) ? ex.programTarget : undefined;
+            if (!pt) return null;
+            return (
+              <label className="col-span-full text-xs text-navy-soft">
+                {t(`prog.target.${p.exercise_id}`)}
+                <input
+                  className={inputClass}
+                  type="number"
+                  min={pt.min}
+                  max={pt.max}
+                  value={p.target_angle ?? pt.default}
+                  onChange={(e) => update(i, { target_angle: e.target.value === '' ? null : Number(e.target.value) })}
+                />
+                <span className="mt-1 block">{t(`prog.target_hint.${p.exercise_id}`, { min: pt.min, max: pt.max })}</span>
+              </label>
+            );
+          })()}
           {p.exercise_id === 'seated_reach' && (
             <label className="col-span-full text-xs text-navy-soft">
               {t('prog.reach_target')}

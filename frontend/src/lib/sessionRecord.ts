@@ -53,6 +53,7 @@ export function buildSessionRecord(args: {
     fatigue_form_points: s.fatigue?.formPoints ?? null,
     load_kg: s.effort ? s.effort.loadKg : null,
     peak_torque_nm: s.effort ? r(s.effort.peakNm) : null,
+    avg_descent_s: s.avgDescentS === null ? null : r(s.avgDescentS),
     tracking_coverage: s.trackingCoverage,
     review_flags: s.review.length ? s.review.join(',') : null,
     arms_used_reps: s.protocol ? s.armsUsedReps : null,

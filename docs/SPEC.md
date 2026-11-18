@@ -823,3 +823,17 @@ Added after review feedback. Built on the engine in §17.11.
   - *Practice* counts every stand and records arm use.
   - *CDC STEADI test* follows the protocol: a final rise more than halfway at 30 s counts, and arm use is recorded for the clinician to review. A wrist off the chest is a cue for review, never an automatic zero, because it can happen without pushing off the chair.
 - Pitch note: the ICC 0.812–0.995 for automated chair-stand, TUG and SPPB scoring is from a 2026 PLOS Digital Health study on a LiDAR-enabled iPad, not an RGB phone. RecoverLens must report its own agreement with a human count.
+
+### 17.13 Wall sit, lateral step-down and knee-to-wall (`exercises/strength.ts`)
+
+Three more live exercises, each measuring something the others do not. All thresholds are starting values marked `// TUNE:` and none has been checked on real patients yet.
+
+| Exercise | View | What is measured live | Clinician target (programme value) |
+|---|---|---|---|
+| Wall sit (hold) | side | Time with the tracked knee inside a band (`holdGate`: centre ± 12°). The timer pauses, never resets, when the knee leaves the band, and the cue says which way ("slide a little lower" / "slide up a little"). Torso lean is an observation. | Knee angle to hold, 60–130° (default 90°) |
+| Lateral step-down | front | The free heel's lowering from where it hung at the start, % of body height (`freeLegLower`); time to lower (`RepResult.raiseS`, 25 %→90 % of the range); stance-knee drift and hip level as observations. A descent faster than `minDescentSeconds` gets a "slower" cue and still counts. | Heel lowering, 2–10 % (default 4) |
+| Knee-to-wall | low side | Forward tilt of the shin from vertical in degrees (`shinTilt`, signed by the direction the foot points), with heel lift on the tracked side flagged (scaled by shin length, since the whole body is not in view). | Shin tilt, 15–55° (default 30°) |
+
+- **Limits, stated plainly:** the wall sit does not measure contact with the wall; the person is asked to keep their back flat on it and the torso-lean observation checks the visible posture. Knee-to-wall reports degrees only; a centimetre distance would need a calibrated reference. Step-down depth is a relative measure from the front view.
+- The working leg is chosen on the intro screen (`chooseSide`; `SessionEngine.setSide`). The clinician's value comes from the programme editor (`programTarget`) and replaces the default (`targetValue`).
+- Engine additions: `holdGate` in `stepHold`, `freeLegLower` and `shinTilt` primary metrics, signed shin tilt and shin length in `geometry.ts`, `heelCheck: 'tracked'`, descent timing in `RepCounter`, `avg_descent_s` stored per session.
