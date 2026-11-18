@@ -119,3 +119,17 @@ class CoachEvent(SQLModel, table=True):
     input_json: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     output_json: Optional[Any] = Field(default=None, sa_column=Column(JSON))
     error: Optional[str] = None
+
+
+class SharedHabitDay(SQLModel, table=True):
+    """A day of habit values the patient chose to share with their physiotherapist (SPEC §17.10).
+
+    Only habits switched to "share" ever arrive here; the patient's device sends its full shared set
+    each time, so turning sharing off (or deleting habit data) removes it here too.
+    """
+
+    id: str = Field(primary_key=True)  # f"{patient_id}:{day}"
+    patient_id: str = Field(index=True)
+    day: str  # YYYY-MM-DD in the patient's time zone
+    values_json: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
+    updated_at: datetime = Field(default_factory=utcnow)

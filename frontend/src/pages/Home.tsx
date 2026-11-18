@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import type { PatientDetail, SessionRecord } from '../api/types';
 import { CoachCheckIn } from '../components/coach/CoachCheckIn';
 import { ComebackCard } from '../components/coach/ComebackCard';
+import { HabitsCard } from '../components/coach/HabitsCard';
+import { HeadsUpCard } from '../components/coach/HeadsUpCard';
 import { InsightsCard } from '../components/dashboard/Insights';
 import { PainCheckIn } from '../components/dashboard/PainCheckIn';
 import { ScoreRing } from '../components/dashboard/ScoreRing';
@@ -12,7 +14,9 @@ import { Sparkline } from '../components/dashboard/TrendChart';
 import { Disclaimer } from '../components/layout/Disclaimer';
 import { Badge, Button, Card, CardTitle, Empty } from '../components/ui';
 import { type AnyExercise, LIBRARY, getExercise, isLive } from '../exercises';
-import { type Barrier, lapseStatus, libraryFor } from '../coach';
+import { type Barrier, driftStatus, habitSignals, lapseStatus, libraryFor } from '../coach';
+import { useHabits } from '../hooks/useHabits';
+import { readCheckIns } from '../lib/coachHistory';
 import { useApi } from '../hooks/useApi';
 import { useLocalSessions, useMerged } from '../hooks/useLocalData';
 import { loadPoseLandmarker } from '../hooks/usePoseLandmarker';
@@ -158,6 +162,29 @@ export default function Home() {
   const sessionTimes = useMemo(() => sessions.map((s) => s.started_at), [sessions]);
   const lapse = useMemo(() => lapseStatus(sessionTimes, programs.length > 0), [sessionTimes, programs.length]);
   const aiAllowed = patient?.coach_ai_allowed !== false;
+  const habits = useHabits(patientId);
+  // Early warning (SPEC §17.9): the person's own recent sessions, check-ins and habits.
+  const drift = useMemo(
+    () => driftStatus(sessions, { checkIns: readCheckIns(patientId), extra: habitSignals(habits.logs, habits.prefs, habits.today) }),
+    [sessions, patientId, habits.logs, habits.prefs, habits.today],
+  );
+  const driftKey = `rl.coach.driftDismissed.${patientId}`;
+  const [driftTick, setDriftTick] = useState(0);
+  const driftDismissed = useMemo(() => {
+    try {
+      return localStorage.getItem(driftKey) === new Date().toDateString();
+    } catch {
+      return false;
+    }
+  }, [driftKey, driftTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dismissDrift = () => {
+    try {
+      localStorage.setItem(driftKey, new Date().toDateString());
+    } catch {
+      // per visit only
+    }
+    setDriftTick((n) => n + 1);
+  };
   const [preset, setPreset] = useState<Barrier | null>(null);
   const dismissKey = `rl.coach.comebackDismissed.${patientId}`;
   const [dismissTick, setDismissTick] = useState(0);
@@ -290,6 +317,23 @@ export default function Home() {
         </div>
       )}
 
+      {lapse.state !== 'lapsed' && drift.level !== 'steady' && !driftDismissed && coachLibrary.length > 0 && (
+        <div className="mt-6">
+          <HeadsUpCard
+            key={patientId}
+            status={drift}
+            library={coachLibrary}
+            onDismiss={dismissDrift}
+            onUsual={() => {
+              dismissDrift();
+              const h = document.getElementById('todays-program');
+              h?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              h?.focus({ preventScroll: true });
+            }}
+          />
+        </div>
+      )}
+
       <div id="todays-checkin" className="mt-6">
         <CoachCheckIn
           key={patientId}
@@ -302,6 +346,10 @@ export default function Home() {
             h?.focus({ preventScroll: true });
           }}
         />
+      </div>
+
+      <div className="mt-6">
+        <HabitsCard habits={habits} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">

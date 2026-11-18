@@ -310,3 +310,21 @@ def test_nightly_reseed_keeps_the_demo_patients_current(client, monkeypatch):
     days = (datetime.now(timezone.utc) - last).total_seconds() / 86400
     assert 3.5 <= days <= 5.5
 
+
+
+def test_shared_habits_mirror_the_patients_choice(client):
+    days = [{"day": "2026-11-17", "values": {"sleep": 6.5}}, {"day": "2026-11-18", "values": {"sleep": 7, "water": 5}}]
+    assert client.put("/api/habits/tariro", json={"days": days}).json() == {"shared_days": 2}
+    assert client.get("/api/habits/tariro").json() == days
+    # The phone sends its whole shared set each time: turning water off removes it.
+    client.put("/api/habits/tariro", json={"days": [{"day": "2026-11-18", "values": {"sleep": 7}}]})
+    assert client.get("/api/habits/tariro").json() == [{"day": "2026-11-18", "values": {"sleep": 7}}]
+    assert client.delete("/api/habits/tariro").json() == {"deleted": True}
+    assert client.get("/api/habits/tariro").json() == []
+
+
+def test_shared_habits_are_validated(client):
+    assert client.put("/api/habits/tariro", json={"days": [{"day": "2026-11-18", "values": {"beer": 3}}]}).status_code == 422
+    assert client.put("/api/habits/tariro", json={"days": [{"day": "2026-11-18", "values": {"sleep": 30}}]}).status_code == 422
+    assert client.put("/api/habits/tariro", json={"days": [{"day": "18/11/2026", "values": {"sleep": 7}}]}).status_code == 422
+    assert client.put("/api/habits/nobody", json={"days": []}).status_code == 404

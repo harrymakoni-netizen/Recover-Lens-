@@ -752,3 +752,38 @@ The coach turns RecoverLens from a tracker into an adaptive recovery-adherence l
 - Run of 9 November 2026 (gemini-3.5-flash-lite): 9 red-flag stops (7 by the rules before any model call, 2 added by the model), 17 model plans, 1 changed by the validator (knee exercises removed for knee pain 7), 4 planned by the rules because the model was busy. The model kept to the prescribed limits even when asked for "5 sets of everything" or "double reps"; the validator's limits are also covered by unit tests with plans that break them.
 - Observed: the model flagged "shoulder hurts a lot" as a red flag in chiShona but read the isiNdebele equivalent as pain 6 (its plan left out the shoulder exercise). Both are safe, but the inconsistency is one more reason for native-speaker review.
 
+
+### 17.9 Early warning before a lapse (`coach/drift.ts`, `components/coach/HeadsUpCard.tsx`, `components/dashboard/EarlyWarningCard.tsx`)
+
+Added after reviewer feedback: spot strain or drop-off **before** the 2-day lapse, not only after it.
+
+- **Compared with the person's own usual pattern:** the last 3 sessions against up to 6 before them; with fewer than 5 sessions there is no comparison and no warning.
+- **Signals** (thresholds in `DRIFT`, all `// TUNE:`):
+  - tiring sooner: fatigue signs in most recent sessions, rare before;
+  - form slipping on one exercise: movement score down 5 or more points;
+  - pain after exercise rising: up 1.5 or more points on the 0–10 scale;
+  - sessions cut short: reps down 20% or more on one exercise;
+  - gaps between exercise days growing;
+  - low energy in 2 of the last 3 check-ins (within a week);
+  - short sleep and little water from the habit planner (§17.10), judged against the person's own goals.
+- **Levels:** 1 signal = "a small heads-up" (reps trimmed to about 85%); 2 or more = "a lighter day today" (one set fewer, reps about 80%). The lighter plan goes through the same validator as every other plan.
+- **Explainable:** every reason shows the numbers, "lately" against "usually" ("movement score 76 lately, usually 82"). "Why am I seeing this?" says it was planned by the rules without AI, names the technique (graded tasks) and lists every change.
+- **Never blocks** (CLAUDE.md rule 2): the card offers the lighter session, "Keep my usual programme" and "Not now" (closes it for the day). It is hidden while the comeback card shows.
+- **Physiotherapist:** Patient Detail shows the same reasons on an "Early warning" card, worded as observations for review (rule 9).
+- **Demo:** Liam's seeded sessions tire sooner, lose form and get more painful over the last three, so his Home shows the card.
+
+### 17.10 Daily habit planner (`coach/habits.ts`, `hooks/useHabits.ts`, `components/coach/HabitsCard.tsx`, `routes/habits.py`)
+
+Added after reviewer feedback: support recovery beyond the exercises.
+
+- **Habits:** sleep (hours), water (glasses), fruit and vegetables (portions) and a walk (minutes). The person chooses which to follow and their own daily goal; defaults are general guidance (`// TUNE:`), not a prescription.
+- **Logging:** a −/+ stepper per habit on Home, with the last 7 days as dots.
+- **Gentle streaks:** "days kept" only ever grows; a run pauses on one missed day ("resting today") instead of breaking (`RUN_REST_DAYS`); there is no streak to lose.
+- **Feeds the early warning:** 2 or more short nights (1 hour or more under the goal), or 2 days under half the water goal, count as a sign (§17.9).
+- **Privacy:**
+  - Habits are saved on the phone only (90 days).
+  - Each habit has its own "Share with my physiotherapist" switch, off by default.
+  - Only shared habits for the last 28 days are sent: `PUT /api/habits/{patient}` replaces the whole shared set, so switching sharing off removes that habit from the server.
+  - "Delete my habit data" clears the phone and calls `DELETE /api/habits/{patient}`.
+  - The server checks every value against limits (422 otherwise).
+- **Physiotherapist:** a "Shared habits" table on Patient Detail (last 7 days). When nothing is shared it says so.

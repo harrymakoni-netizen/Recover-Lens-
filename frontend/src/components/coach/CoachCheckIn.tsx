@@ -17,6 +17,7 @@ import {
 } from '../../coach';
 import { exerciseName } from '../../i18n';
 import { useApp } from '../../lib/appContext';
+import { recordCheckIn } from '../../lib/coachHistory';
 import { type CoachChoice, readCoachChoice, writeCoachChoice } from '../../lib/coachPrefs';
 import { cn } from '../../lib/format';
 import { voice } from '../../voice/voiceEngine';
@@ -113,6 +114,7 @@ export function CoachCheckIn({
       return;
     }
     const checkIn: CheckIn = { text, pain, redFlags: [], minutes, energy, barriers: preset ? [preset] : undefined };
+    recordCheckIn(patientId, energy); // date and energy only, on this device, for the early warning
     setBusy(true);
     try {
       const out = await runCheckIn(checkIn, {

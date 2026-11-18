@@ -11,7 +11,7 @@ from sqlmodel import Session
 
 from .db import make_engine, resolve_database_url
 from .models import DemoState
-from .routes import alerts, coach, patients, screenings, sessions
+from .routes import alerts, coach, habits, patients, screenings, sessions
 from .seed import reset_and_seed, seed_if_empty
 
 
@@ -93,6 +93,7 @@ def create_app(database_url: Optional[str] = None, seed: bool = True) -> FastAPI
     api.include_router(alerts.router)
     api.include_router(screenings.router)
     api.include_router(coach.router)
+    api.include_router(habits.router)
     app.include_router(api)
     return app
 

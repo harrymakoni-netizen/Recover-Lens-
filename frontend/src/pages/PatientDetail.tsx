@@ -6,6 +6,7 @@ import { Link, useParams } from 'react-router-dom';
 import { put } from '../api/client';
 import type { Alert, PatientDetail as Detail, Program } from '../api/types';
 import { CoachAuditCard } from '../components/dashboard/CoachAuditCard';
+import { EarlyWarningCard } from '../components/dashboard/EarlyWarningCard';
 import { InsightsCard } from '../components/dashboard/Insights';
 import { ProgramEditor, type ProgramDraft } from '../components/dashboard/ProgramEditor';
 import { TrendChart } from '../components/dashboard/TrendChart';
@@ -328,6 +329,10 @@ export default function PatientDetail() {
             </ul>
           )}
         </Card>
+      </div>
+
+      <div className="mt-6">
+        <EarlyWarningCard patientId={patient.id} sessions={patient.sessions} />
       </div>
 
       <div className="mt-6">

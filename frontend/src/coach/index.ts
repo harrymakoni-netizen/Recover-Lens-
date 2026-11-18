@@ -9,3 +9,5 @@ export * from './flow';
 export * from './lapse';
 export * from './bandit';
 export * from './comeback';
+export * from './drift';
+export * from './habits';

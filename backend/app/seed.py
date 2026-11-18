@@ -236,16 +236,21 @@ def reset_and_seed(engine: Engine, source: str = "start") -> None:
                     load_kg=0.5 if k >= 0.7 else 0.0,  # progressed to holding a 500 ml bottle
                 )
             )
-        # Liam: 8 knee sessions; pain jumps in the latest one → pain alert.
+        # Liam: 8 knee sessions. Improving, then over the last three: tiring sooner, form slipping and
+        # pain creeping up, with the latest pain jump → pain alert. He has not missed a session, so
+        # the app shows the early warning (SPEC §17.9), not the comeback.
         liam_days = [20, 17, 14, 11, 8, 6, 3, 0.4]
+        liam_scores = [76, 80, 82, 84, 85, 80, 76, 72]
+        liam_pain = [3, 3, 3, 3, 3, 4, 4, 6]
+        liam_fatigue = [("none", 8, 2, 2)] * 5 + [("slight", 17, 4, 3), ("slight", 21, 6, 4), ("clear", 31, 11, 9)]
         for i, d in enumerate(liam_days):
             k = i / (len(liam_days) - 1)
-            last = i == len(liam_days) - 1
+            score = round(liam_scores[i] + rng.uniform(-0.6, 0.6), 1)
             sessions.append(
                 _session(
-                    "liam", "mini_squat", at(d, 17), 30, round(20 + 6 * k), round(70 + 12 * k + rng.uniform(-1, 1), 1),
-                    round(142 - 8 * k, 1), 3, 6 if last else 3, "knee_valgus" if k < 0.6 or last else None,
-                    fatigue=("clear", 31, 11, 9) if last else (("slight", 19, 4, 3) if i == len(liam_days) - 2 else ("none", 8, 2, 2)),
+                    "liam", "mini_squat", at(d, 17), 30, round(30 * score / 100), score,
+                    round(142 - 8 * k, 1), 3, liam_pain[i], "knee_valgus" if k < 0.4 or i >= 6 else None,
+                    fatigue=liam_fatigue[i],
                 )
             )
         # Amina: near-daily, both exercises, high adherence.
