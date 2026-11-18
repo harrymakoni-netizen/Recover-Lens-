@@ -75,6 +75,18 @@ function statusColor(hud: HudState): string {
   return 'text-white/80';
 }
 
+function timerText(hud: HudState): string | null {
+  if (!hud.timer) return null;
+  const s = Math.ceil(hud.timer.left);
+  return `0:${String(s).padStart(2, '0')}`;
+}
+
+/** Reps against the target, or for a timed test the reps done so far (there is no target). */
+function RepsValue({ hud }: { hud: HudState }) {
+  if (hud.timer) return <span className="tabular-nums">{String(hud.repsInSet).padStart(2, '0')}</span>;
+  return <RepCount value={hud.repsInSet} total={hud.targetReps} />;
+}
+
 function holdText(hud: HudState): string | null {
   if (!hud.hold) return null;
   return `${Math.floor(hud.hold.elapsed)}s / ${hud.hold.target}s`;
@@ -109,11 +121,16 @@ export function HudStatusPanel({
         </span>
         {config.kind === 'reps' ? (
           <span>
-            {t('hud.rep')} <span className="font-semibold">{<RepCount value={hud.repsInSet} total={hud.targetReps} />}</span>
+            {t('hud.rep')} <span className="font-semibold">{<RepsValue hud={hud} />}</span>
           </span>
         ) : (
           <span>
             {t('hud.hold')} <span className="font-semibold tabular-nums">{hold}</span>
+          </span>
+        )}
+        {hud.timer && (
+          <span>
+            {t('hud.time_left')} <span className="font-semibold tabular-nums">{timerText(hud)}</span>
           </span>
         )}
         {hud.sets > 1 && <span className="text-white/70">{t('hud.set', { set: hud.set, sets: hud.sets })}</span>}
@@ -135,8 +152,8 @@ export function HudMetricsPanel({ hud, config }: { hud: HudState; config: Exerci
   const { t } = useApp();
   const m = hud.metrics;
   const joint = config.primaryAngle && 'joint' in config.primaryAngle ? config.primaryAngle.joint : 'knee';
-  const [l, r] = joint === 'shoulder' ? [m.shoulderL, m.shoulderR] : [m.kneeL, m.kneeR];
-  const short = joint === 'shoulder' ? 'shoulder' : 'knee';
+  const [l, r] = joint === 'shoulder' ? [m.shoulderL, m.shoulderR] : joint === 'elbow' ? [m.elbowL, m.elbowR] : [m.kneeL, m.kneeR];
+  const short = joint === 'shoulder' ? 'shoulder' : joint === 'elbow' ? 'elbow' : 'knee';
   const single = config.side !== 'both' && config.kind === 'reps';
   return (
     <div className="hud-panel max-h-[26vh] w-[min(16.25rem,38vw)] overflow-hidden rounded-xl px-4 py-3 text-sm text-white">
@@ -172,19 +189,26 @@ export function HudCompactBar({ hud, config, caregiver }: { hud: HudState; confi
       <div>
         <div className="text-xs text-white/75">{config.kind === 'reps' ? t('hud.short_rep') : t('hud.short_hold')}</div>
         <div className="text-sm font-semibold">
-          {config.kind === 'reps' ? <RepCount value={hud.repsInSet} total={hud.targetReps} /> : holdText(hud)}
+          {config.kind === 'reps' ? <RepsValue hud={hud} /> : holdText(hud)}
         </div>
       </div>
       <div>
         <div className="text-xs text-white/75">{t('hud.short_score')}</div>
         <div className="text-sm font-semibold tabular-nums">{hud.score === null ? '--' : Math.round(hud.score)}</div>
       </div>
-      <div>
-        <div className="text-xs text-white/75">{t('hud.short_symmetry')}</div>
-        <div className="text-sm font-semibold tabular-nums">
-          {hud.metrics.symmetry === null ? '—' : `${Math.round(hud.metrics.symmetry)}%`}
+      {hud.timer ? (
+        <div>
+          <div className="text-xs text-white/75">{t('hud.short_time')}</div>
+          <div className="text-sm font-semibold tabular-nums">{timerText(hud)}</div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <div className="text-xs text-white/75">{t('hud.short_symmetry')}</div>
+          <div className="text-sm font-semibold tabular-nums">
+            {hud.metrics.symmetry === null ? '—' : `${Math.round(hud.metrics.symmetry)}%`}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

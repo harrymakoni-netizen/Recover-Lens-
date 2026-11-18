@@ -58,6 +58,8 @@ export const LEAVE_TOP = 0.8;
 export const FINISH = 0.2;
 /** A rep is "correct" when fewer than this fraction of its frames had a fault. */
 export const CORRECT_FAULT_FRACTION = 0.25;
+/** Timed tests: progress a rep must have reached when time is up to still count (more than halfway). */
+export const TIME_UP_COUNTS = 0.5;
 
 interface RepTracking {
   startMs: number;
@@ -186,6 +188,24 @@ export class RepCounter {
     return events;
   }
 
+  /**
+   * Timed test over (30-second chair stand): a rep more than halfway up counts, as in the CDC
+   * STEADI protocol, then the session ends.
+   */
+  timeUp(tMs: number): RepEvent[] {
+    const events: RepEvent[] = [];
+    if (this.done) return events;
+    const rep = this.rep;
+    if (rep && rep.maxProgress >= TIME_UP_COUNTS) {
+      rep.topReached = true;
+      this.countRep(rep, tMs, events, false);
+    }
+    this.rep = null;
+    this.done = true;
+    events.push({ type: 'sessionComplete' });
+    return events;
+  }
+
   private updateHold(dt: number, p: number): void {
     if (!this.rep) return;
     if (p >= HOLD_ZONE) this.holdElapsed += dt / 1000;
@@ -202,12 +222,15 @@ export class RepCounter {
       events.push({ type: 'rejected', reason: 'hold_not_met' });
       return;
     }
-    const durationS = (tMs - rep.startMs) / 1000;
-    if (durationS < this.opts.minRepSeconds) {
+    if ((tMs - rep.startMs) / 1000 < this.opts.minRepSeconds) {
       events.push({ type: 'rejected', reason: 'too_fast' });
       return;
     }
+    this.countRep(rep, tMs, events, true);
+  }
 
+  private countRep(rep: RepTracking, tMs: number, events: RepEvent[], checkSetEnd: boolean): void {
+    const durationS = (tMs - rep.startMs) / 1000;
     this.reps += 1;
     this.repsInSet += 1;
     const faultFraction = rep.frames > 0 ? rep.faultFrames / rep.frames : 0;
@@ -230,7 +253,7 @@ export class RepCounter {
     this.results.push(result);
     events.push({ type: 'rep', ...result });
 
-    if (this.repsInSet >= this.opts.targetReps) {
+    if (checkSetEnd && this.repsInSet >= this.opts.targetReps) {
       this.completedSets += 1;
       this.setJustCompleted = true;
       events.push({ type: 'setComplete', set: this.completedSets, sets: this.sets });

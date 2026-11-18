@@ -15,7 +15,6 @@
   "offline": "Akula inthanethi",
   "waiting_to_sync": "{n} kulindele ukuthunyelwa",
   "disclaimer": "Lokhu kuyinguqulo yokubonisa. Imigomo yokuzivocavoca iyizibonelo njalo kayikaqinisekiswa ngodokotela.",
-
   "common.back": "Emuva",
   "common.close": "Vala",
   "common.cancel": "Yekela",
@@ -37,17 +36,14 @@
   "common.page_not_found": "Ikhasi kalitholakalanga",
   "common.confirmed_by_patient": "Kuqinisekiswe yisiguli",
   "common.caregiver_mode": "UMSIZI",
-
   "plan.sets_reps": "Amasethi {sets} × ukuphinda {reps}",
   "plan.sets_hold": "Amasethi {sets} × ukubamba imizuzwana {seconds}",
   "plan.target": "umgomo {angle}°",
   "plan.reps": "ukuphinda {n}",
-
   "time.never": "kakukenzeki",
   "time.today": "lamuhla",
   "time.yesterday": "izolo",
   "time.days_ago": "insuku ezingu-{n} ezedlulileyo",
-
   "pain.level": "Izinga lobuhlungu",
   "pain.scale": "(0 = akukho, 10 = kakhulu)",
   "pain.title": "Ukubuza ngobuhlungu · {exercise}",
@@ -64,7 +60,6 @@
   "pain.now": "Ubuhlungu benu khathesi",
   "pain.now_cg": "Ubuhlungu babo khathesi",
   "pain.red_flags": "Kukhona ukuvuvuka, ubundikindiki loba ubuhlungu obubukhali na?",
-
   "home.welcome": "Siyalamukela futhi, {name}",
   "home.welcome_anon": "Siyalamukela futhi",
   "home.todays_program": "Okwenziwa lamuhla",
@@ -85,7 +80,6 @@
   "home.no_sessions": "Akukabi lalutho olwenziweyo",
   "home.no_sessions_hint": "Okwenzayo kuzabonakala lapha nxa liqedile.",
   "home.with_caregiver": "lomsizi",
-
   "cg.title": "Ukusiza isiguli",
   "cg.helping": "Lisiza {name} ukuzivocavoca. Ilizwi lizakhuluma lani, msizi.",
   "cg.the_patient": "isiguli",
@@ -106,7 +100,6 @@
   "cg.log_pain": "Ubuhlungu babo ngemva",
   "cg.log_save": "Gcinani",
   "cg.log_saved": "Kubhaliwe: ukuphinda {n} kwe-{exercise}.",
-
   "mirror.not_found": "Isivocavoco kasitholakalanga.",
   "mirror.switch_camera": "Ntshintsha ikhamera",
   "mirror.mute": "Thulisa ilizwi",
@@ -114,7 +107,6 @@
   "mirror.stop": "Misa",
   "mirror.portrait_hint": "Phendulani ifoni ibe ngecele loba libuyele emuva ukuze umzimba wenu wonke ubonakale.",
   "mirror.loading_model": "Kulayishwa i-AI yomzimba…",
-
   "hud.starting_in": "Siqala ku",
   "hud.title": "ISIBUKO SOKULULAMA · AI",
   "hud.status": "ISIMO",
@@ -134,7 +126,6 @@
   "hud.short_hold": "UKUBAMBA",
   "hud.short_score": "AMAMAKI",
   "hud.short_symmetry": "UKULINGANA",
-
   "status.CALIBRATING": "KULUNGISWA",
   "status.GET READY": "ZILUNGISENI",
   "status.PAUSED": "KUMISIWE",
@@ -153,7 +144,6 @@
   "status.HOLDING": "LIYABAMBA",
   "status.HOLD PAUSED": "UKUBAMBA KUMISIWE",
   "status.LIFT ONE FOOT": "PHAKAMISANI UNYAWO OLULODWA",
-
   "cam.privacy": "Ividiyo yenu ihlala kule foni. Amamaki okuzivocavoca kuphela ayathunyelwa kudokotela wenu.",
   "cam.safety": "Yimani nxa lizwa ubuhlungu obubukhali, isiyezi loba ubundikindiki.",
   "cam.safety_cg": "Yimani nxa bezwa ubuhlungu obubukhali, isiyezi loba ubundikindiki.",
@@ -174,7 +164,6 @@
   "cam.error_title": "Ikhamera kayiqalanga",
   "cam.error_body": "Valani amanye ama-app okungenzeka ukuthi asebenzisa ikhamera, beselizama futhi.",
   "cam.model_error": "I-AI yomzimba kayilayishekanga: {error}",
-
   "sum.title": "KUPHELILE",
   "sum.exercise": "Isivocavoco",
   "sum.total_reps": "Ukuphinda konke",
@@ -192,7 +181,6 @@
   "sum.shared": "Kuthunyelwe",
   "sum.copied": "Kukopishiwe — kufakeni ku-WhatsApp",
   "sum.share_failed": "Akuthunyelwanga",
-
   "share.title": "Ukuzivocavoca nge-RecoverLens",
   "share.header": "Ukuzivocavoca nge-RecoverLens — {name}",
   "share.reps": "{exercise}: ukuphinda {reps} ({correct} kwenziwe kahle)",
@@ -201,7 +189,6 @@
   "share.pain": "Ubuhlungu ngemva: {pain}/10",
   "share.pain_cg": "Ubuhlungu ngemva: {pain}/10 (kubhalwe ngumsizi)",
   "share.focus": "Okufanele kusetshenzelwe: {fault}",
-
   "fault.torso_lean": "Ukutsheka komzimba",
   "fault.asymmetry": "Amacele angalinganiyo",
   "fault.elbow_bend": "Izindololwane ezigobileyo",
@@ -211,7 +198,6 @@
   "fault.heel_rise": "Izithende ziyaphakama",
   "fault.pelvis_drop": "Inqulu iyehla",
   "fault.not_high_enough": "Akufikanga phezulu ngokwaneleyo",
-
   "rec.torso_lean": "Gcinani umzimba uqondile. Zamani ukwenza lokhu limi umhlane useduze komduli.",
   "rec.asymmetry": "Yenzani kancane ukuze amacele womabili anyakaze ndawonye.",
   "rec.elbow_bend": "Gcinani izindololwane ziqondile kukho konke ukunyakaza.",
@@ -223,7 +209,6 @@
   "rec.not_high_enough": "Sebenzelani ukufika kude ngokukwazi kwenu, lingezwa buhlungu.",
   "rec.good": "Indlela enhle. Qhubekani kanjalo.",
   "rec.default": "Qhubekani lizivocavoca ngokucophelela.",
-
   "guided.badge": "ISIKHATHI SIYAKHOKHELA · IKHAMERA KAYIPHI MAMAKI",
   "guided.explain": "Ikhamera eyodwa kayikwazi ukulinganisa lokhu kunyakaza kahle, ngakho i-RecoverLens ilikhokhela ngesikhathi.",
   "guided.rest": "PHUMULANI",
@@ -233,7 +218,6 @@
   "guided.pause": "Misani",
   "guided.resume": "Qhubekani",
   "guided.finish": "Qedani",
-
   "sports.title": "Ukuhlolwa kwabadlali",
   "sports.intro": "Ukuhlola okufitshane kokunyakaza. Okutholakalayo kungokuhlolwa ngumqeqeshi loba udokotela, akusikho ukuhlolwa kwesifo.",
   "sports.choose": "1. Khethani umdlalo",
@@ -249,7 +233,6 @@
   "sports.none_hint": "Yenzani ukuhlola ukuze libone okutholakeleyo lapha.",
   "sports.recent": "Ukuhlolwa kwakamuva",
   "sports.to_review": "{n} okumele kuhlolwe",
-
   "sport.football": "Ibhola lezinyawo",
   "sport.football_blurb": "Ukugoba amadolo lokuma ngomlenze owodwa",
   "sport.basketball": "Ibhasikithibholo",
@@ -258,14 +241,12 @@
   "sport.running_blurb": "Ukugoba idolo ngomlenze owodwa lokuzilinganisa",
   "sport.general": "Impilo yomzimba",
   "sport.general_blurb": "Ukugoba amadolo",
-
   "step.squat": "Ukugoba amadolo ×5",
   "step.balance_left": "Ukuma ngomlenze wesokhohlo imizuzwana engu-{seconds}",
   "step.balance_right": "Ukuma ngomlenze wesokudla imizuzwana engu-{seconds}",
   "step.sls_left": "Ukugoba ngomlenze wesokhohlo ×5",
   "step.sls_right": "Ukugoba ngomlenze wesokudla ×5",
   "step.jump": "Ukweqa lokwehla ×3",
-
   "screen.title": "Ukuhlolwa {i}/{n} · {label}",
   "screen.slb_step1_left": "Yimani ngomlenze wenu wesokhohlo.",
   "screen.slb_step1_right": "Yimani ngomlenze wenu wesokudla.",
@@ -274,7 +255,6 @@
   "screen.some_review": "Kukhona okudinga ukuhlolwa",
   "screen.all_good": "Konke kuhle",
   "screen.note": "Lokhu kubonwe yikhamera, akusikho ukuhlolwa kwesifo. Kugcinwe ngokuzenzakalela.",
-
   "obs.none": "Akukho kuphinda okulinganisiweyo kulokhu kuhlolwa.",
   "obs.squat_valgus_left": "Ukuma kwedolo lesokhohlo",
   "obs.squat_valgus_left.bad": "Idolo lesokhohlo langena phakathi ekuphindeni okungu-{n} ku-{total}",
@@ -328,7 +308,6 @@
   "obs.landing_valgus": "Amadolo ekwehleni",
   "obs.landing_valgus.bad": "Amadolo angena phakathi ekwehleni okungu-{n} ku-{total}",
   "obs.landing_valgus.good": "Amadolo ahlala ekhangele amazwane ekwehleni",
-
   "obsrec.valgus": "Cabangani ngokuqinisa imisipha yenqulu lezinqe (isibonelo izivocavoco ze-FIFA 11+ zokuma ngomlenze owodwa lokugoba amadolo).",
   "obsrec.lean": "Cabangani ngezivocavoco zokunyakazisa amaqakala lokuqinisa isisu lomhlane (isibonelo FIFA 11+ Bench/Sideways Bench).",
   "obsrec.asymmetry": "Cabangani ngokulinganisa amandla omlenze ngamunye lokuziqeqesha ukuma ngomlenze owodwa (FIFA 11+ Single-Leg Stance).",
@@ -337,7 +316,6 @@
   "obsrec.fifa_balance": "FIFA 11+: Single-Leg Stance le-Sideways Bench.",
   "obsrec.fifa_landing": "FIFA 11+: Jumping (Vertical Jumps), lisehla kancane amadolo ekhangele amazwane.",
   "obsrec.fifa_core": "FIFA 11+: The Bench le-Sideways Bench.",
-
   "coach.subtitle": "Ukunyakaza kweqembu ekuhlolweni.",
   "coach.screened": "Abahloliweyo",
   "coach.filter": "Khetha ngomdlalo",
@@ -350,7 +328,6 @@
   "coach.col_last": "Ukuhlolwa kokucina",
   "coach.col_flags": "Okutholakeleyo",
   "coach.not_screened": "Kakahlolwa",
-
   "clin.subtitle": "{clinician} · iziguli ezingu-{n}",
   "clin.add_patient": "Engeza isiguli",
   "clin.patients": "Iziguli",
@@ -370,7 +347,6 @@
   "clin.assign": "Nika izivocavoco",
   "clin.save_patient": "Gcina isiguli",
   "clin.server_error": "Kasiyifinyelelanga iseva. Hlolani ukuxhumana beselizama futhi.",
-
   "alert.none": "Akukho zexwayiso",
   "alert.mark_reviewed": "Kuhloliwe",
   "alert.type.Score drop": "Amamaki ehlile",
@@ -382,7 +358,6 @@
   "alert.pain": "Ubuhlungu benyukele ku-{pain}/10 uma kuqhathaniswa lezikhathi zakuqala.",
   "alert.no_session": "Akukho kuzivocavoca ensukwini ezingu-{days} ezedlulileyo.",
   "alert.no_session_new": "Akukho kuzivocavoca selokhu bangezwa, insuku ezingu-{days} ezedlulileyo.",
-
   "pd.not_found": "Isiguli kasitholakalanga",
   "pd.back_to_portal": "Buyela ekhasini likadokotela",
   "pd.no_contact": "Akulanombolo",
@@ -415,7 +390,6 @@
   "pd.manual": "Kubhalwe ngesandla",
   "pd.program": "Uhlelo",
   "pd.save_program": "Gcina uhlelo",
-
   "prog.none": "Akukho zivocavoco ezinikiweyo.",
   "prog.sets": "Amasethi",
   "prog.reps": "Ukuphinda",
@@ -423,9 +397,7 @@
   "prog.add": "Engeza isivocavoco…",
   "prog.add_label": "Engeza isivocavoco",
   "prog.guided": "(ngesikhathi)",
-
   "chart.trend": "Inqubekela phambili ye-{name}",
-
   "ex.shoulder_abduction.name": "Ukuphakamisa izingalo eceleni",
   "ex.shoulder_abduction.desc": "Phakamisani izingalo zombili eceleni kuze kufike emahlombe, umzimba uqondile.",
   "ex.shoulder_abduction.step1": "Khangelani ikhamera, izingalo eceleni.",
@@ -501,7 +473,6 @@
   "ex.jump_landing.step1": "Khangelani ikhamera kulendawo eyaneleyo eceleni kwenu.",
   "ex.jump_landing.step2": "Eqani phezulu ngamandla enu wonke.",
   "ex.jump_landing.step3": "Ehlani kancane amadolo egobile. Yenzani kathathu.",
-
   "a11y.skip": "Yeqela kokuqukethwe okukhulu",
   "a11y.display": "Ukubona lokubala",
   "a11y.text_size": "Ubukhulu bezinhlamvu",
@@ -605,7 +576,6 @@
   "priv.choices_title": "Ukukhetha kwenu",
   "priv.choices_body": "Lingathulisa ilizwi njalo leqe ukuzivocavoca nxa lifuna. Kakukho okubhalwayo ngaphandle kokuthi liqale isivocavoco.",
   "priv.demo": "Lokhu kuyinguqulo yokutshengisa engela-akhawunti zomuntu. Sebenzisani amabizo enziweyo, hatshi imininingwane yeziguli zeqiniso.",
-
   "checkin.title": "Ukuzihlola kwalamuhla",
   "checkin.subtitle": "Tshelani umqeqeshi ukuthi lizizwa njani, njalo uzalungisa ukuvocavoca kwalamuhla kufanele lina.",
   "checkin.text_label": "Lizizwa njani lamuhla?",
@@ -673,7 +643,6 @@
   "checkin.ai_off": "Umqeqeshi we-AI uvaliwe",
   "priv.coach_title": "Umqeqeshi we-AI",
   "priv.coach_body": "Nxa livula umqeqeshi we-AI, amazwi elibhala ekuzihloleni kwansuku zonke athunyelwa ku-AI kaGoogle ethiwa nguGemini ukuze ihlele ukuvocavoca kwenu, imininingwane yokuxhumana isisusiwe. Ividiyo, izithombe lezilinganiso zomzimba akuthunyelwa. Isicelo ngasinye siyagcinwa ukuze udokotela asihlole. Nxa umqeqeshi we-AI evaliwe, uhlelo lwenziwa efonini yenu yimithetho yokuphepha.",
-
   "comeback.title": "Siyathokoza ukulibona futhi",
   "comeback.not_now": "Hatshi khathesi",
   "comeback.msg.gentle": "Ukuphuthelwa yizinsuku ezimbalwa kujwayelekile. Okuqakathekileyo yikubuyela, njalo selibuyile.",
@@ -700,11 +669,9 @@
   "comeback.whatsapp": "Thumelani isikhumbuzo ku-WhatsApp",
   "comeback.whatsapp_text": "Isikhumbuzo seRecoverLens · ukuvocavoca kwami: {time}. {url}",
   "checkin.ai_off_by_physio": "Umqeqeshi we-AI uvalwe ngudokotela wenu",
-
   "checkin.plan_minute": "Kungaba ngumzuzu o-1",
   "plan.one_set_reps": "Isethi e-1 × ukuphinda {reps}",
   "plan.one_set_hold": "Isethi e-1 × ukubamba imizuzwana {seconds}",
-
   "out.link": "Ukulinganisa imiphumela",
   "out.title": "Ukulinganisa imiphumela",
   "out.lead": "Abantu abangu-{people} abalinganiswayo emaqenjini amahlanu, belandelwa okwamaviki angu-12 ngezindlela ezintathu.",
@@ -744,7 +711,6 @@
   "out.a.lapse": "Ukuma yizinsuku ezingu-{days} ezilandelanayo ngaphandle kokuvocavoca.",
   "out.limits_title": "Okungatshengiswa lokungeke kutshengiswe yilokhu",
   "out.limits": "Kutshengisa ukuthi uhlelo lusebenza njengoba lwakhiwa, lokuthi imiphumela incike kangakanani kokucatshangwayo. Akungeke kutshengise ukuguquka kweqiniso kokuziphatha: izinombolo zivela kokucatshangwayo ngaphezulu. Ukuhlolwa (iziguli ezingu-50 labadlali abangu-60 okwamaviki angu-12) kuzalinganisa ukuqhubeka, ukubuya ngemva kokuma, ukuhlala, ukuguquka komzimba lokulingana ngendlela efanayo.",
-
   "pd.export_fhir": "Thwebula idatha (FHIR)",
   "pd.coach_title": "Umqeqeshi we-AI",
   "pd.coach_ai_on": "Umqeqeshi we-AI uvuliwe",
@@ -762,7 +728,6 @@
   "pd.coach_ms": "{n} ms",
   "pd.coach_sent": "Okuthunyelweyo:",
   "pd.coach_got": "Impendulo:",
-
   "priv.sharing_title": "Akwabelwana labaqashi loba izinkampani zomshuwalense",
   "priv.sharing_body": "I-RecoverLens kayabelani, kayithengisi njalo kayitshengisi ulwazi lwakho kubaqashi, izinkampani zomshuwalense, abakhangisi loba omunye umuntu. Ngudokotela wakho womzimba, umqeqeshi loba umnakekeli kuphela obonayo, ngaphakathi kwe-app. Uma umsebenzi wakho ukunika i-RecoverLens, umqashi wakho kasoze abone ukuzivocavoca kwakho, ubuhlungu loba okubhalayo.",
   "out.weeks_title": "Iviki 4, 8 le-12",
@@ -775,7 +740,6 @@
   "out.behind.gap": "Iviki {week}: umehluko phakathi kwamaqembu mkhulu nge-RecoverLens (amaphuzu angu-{rl}) kulo-{arm} (amaphuzu angu-{other}).",
   "out.behind_none": "Kulezi zilinganiso i-RecoverLens idlula kukho konke okutshengiswayo. Lokhu kuvela kulokho okucatshangwe ngaphezulu.",
   "out.cautious_run": "Isilinganiso sokuqaphela",
-
   "out.safety_title": "Ukuhlolwa kokuphepha nge-AI yangempela",
   "out.safety_intro": "Ukubhala kokuhlola okungu-{n} okubhalwe yiqembu (hatshi iziguli zangempela), ngesiNgisi, isiShona lesiNdebele, kuthunyelwe kumqeqeshi we-AI wangempela ({model}) ngomhla ka-{date} njalo kwahlolwa ngemithetho yokuphepha lesihloli esifanayo lese-app.",
   "out.safety.red": "Izingozi ezimisiweyo",
@@ -801,7 +765,6 @@
   "out.reason.hold_capped": "ukubamba kufinyeziwe",
   "out.reason.pain_reduced": "ukuphinda kwehlisiwe ngenxa yobuhlungu",
   "out.reason.time_trimmed": "kufinyeziwe ukuze kulingane lesikhathi",
-
   "demo.reset": "Buyisela idatha yokuhlola",
   "demo.title": "Buyisela idatha yokuhlola?",
   "demo.body": "Lokhu kubuyisela iziguli zokuhlola, ukuzivocavoca, izexwayiso labadlali njengoba bebenjalo, kulezinsuku eziqala lamuhla. Iziguli ezengeziweyo lezinguquko ezenziwe lapha ziyasuswa. Kulesi sixhobo kususa lokubhaliweyo kwansuku zonke lokwamukelwa futhi, ukuze ukuhlola kuqale kutsha. Kuzenzakalela ubusuku ngabunye.",
@@ -813,9 +776,7 @@
   "demo.resetting": "Kuyabuyiselwa…",
   "demo.too_soon": "Idatha yokuhlola ibuyiselwe khathesi nje. Zama futhi ngemva kwengxenye yomzuzu.",
   "demo.failed": "Akukhonanga ukubuyisela idatha yokuhlola. Hlola uxhumano uzame futhi.",
-
   "demo.note": "Idatha yokuhlola. Ibuyiselwa njengoba ibinjalo ubusuku ngabunye.",
-
   "drift.title_watch": "Isexwayiso esincane",
   "drift.title_act": "Isexwayiso: usuku olulula lamuhla",
   "drift.body_watch": "Kakulalutho olweqileyo. Uphawu olulodwa lutshengisa ukuthi wehlise kancane lamuhla.",
@@ -843,7 +804,6 @@
   "pd.habits_none": "Kakulalutho olwabelwanayo. Imikhuba ihlala efonini yesiguli ngaphandle kokuthi sikhethe ukwabelana.",
   "pd.habits_day": "Usuku",
   "pd.habits_note": "Imikhuba kuphela isiguli esikhethe ukuyabelana. Singayekisa kumbe siyisuse loba nini.",
-
   "habit.title": "Imikhuba yansuku zonke",
   "habit.intro": "Imikhuba emincane yansuku zonke incedisa umzimba wakho ukusila. Khetha loba yiphi ofuna ukuyilandela; ungantshintsha loba nini.",
   "habit.choose": "Yiphi imikhuba?",
@@ -885,6 +845,45 @@
   "habit.delete": "Susa idatha yami yemikhuba",
   "habit.delete_confirm": "Susa konke okubhaliweyo kwemikhuba lezilungiselelo kule fon lalokho okwabelwanayo?",
   "habit.delete_yes": "Yebo, susa",
+  "pd.early_limits": "Kulinganiswa lendlela ejwayelekileyo yalesi siguli, hatshi lezinye iziguli. Kuyabonwa ukuze ukuhlole, hatshi ukuhlolwa kwesifo. Isiguli sibona izizathu ezifanayo.",
+  "ex.wall_push_up.name": "Ukusunduza umduli",
+  "ex.wall_push_up.desc": "Yimani icele likhangele ikhamera, izandla emdulini, goqani izindololwane lisondeze isifuba emdulini, beselisunduza libuyele emuva.",
+  "ex.wall_push_up.step1": "Yimani icele likhangele ikhamera, khatshana lomduli ngobude bengalo, izandla emdulini ngokuphakama kwamahlombe.",
+  "ex.wall_push_up.step2": "Gcinani umzimba uqondile beligoqa izindololwane lisondeze isifuba emdulini.",
+  "ex.wall_push_up.step3": "Sunduzani libuyele emuva kuze kuqonde izingalo.",
+  "ex.knee_push_up.name": "Ukusunduza phansi liguqile",
+  "ex.knee_push_up.desc": "Liguqile icele likhangele ikhamera, gcinani umugqa oqondileyo kusukela emahlombe kusiya emadolweni, yehlisani isifuba, beselisunduza liphakame.",
+  "ex.knee_push_up.step1": "Beka ifoni phansi khatshana ngamamitha amabili, liguqe icele likhangele ifoni, izandla ngaphansi kwamahlombe.",
+  "ex.knee_push_up.step2": "Gcinani umugqa oqondileyo kusukela emahlombe kusiya emadolweni beligoqa izindololwane ukuze isifuba sehle.",
+  "ex.knee_push_up.step3": "Sunduzani liphakame kuze kuqonde izingalo.",
+  "ex.chair_stand_30s.name": "Ukusukuma esihlalweni imizuzwana engu-30",
+  "ex.chair_stand_30s.desc": "Ukuhlola amandla lokulinganisela: sukumani lihlale phansi kanengi ngokusemandleni enu ngokuphepha emizuzwaneni engu-30, izingalo ziphambanisiwe.",
+  "ex.chair_stand_30s.step1": "Beka isihlalo esiqinileyo esingelazibambo icele likhangele ikhamera, sisekele emdulini ukuze singatshelezi.",
+  "ex.chair_stand_30s.step2": "Hlalani phakathi kwesihlalo izingalo ziphambanisiwe esifubeni.",
+  "ex.chair_stand_30s.step3": "Nxa ukubala sekuqalile, sukumani liqonde beselihlala phansi kanengi ngokusemandleni enu emizuzwaneni engu-30.",
+  "ex.seated_knee_extension.name": "Ukuqondisa idolo lihlezi",
+  "ex.seated_knee_extension.desc": "Hlalani icele likhangele ikhamera beliqondisa idolo eliseduze lekhamera, limise, beselilehlisa kancane kancane.",
+  "ex.seated_knee_extension.step1": "Hlalani liqonde esihlalweni icele likhangele ikhamera, inyawo phansi.",
+  "ex.seated_knee_extension.step2": "Qondisani idolo eliseduze lekhamera kuze kube umlenze uphambili, limise kancane.",
+  "ex.seated_knee_extension.step3": "Lehliseni kancane kancane. Phendulani isihlalo ukuze lisebenzise omunye umlenze.",
+  "ex.standing_knee_curl.name": "Ukugoqa idolo limile",
+  "ex.standing_knee_curl.desc": "Bambani isihlalo, yimani icele likhangele ikhamera beligoqa idolo eliseduze lekhamera liphakamisele isithende ngemuva.",
+  "ex.standing_knee_curl.step1": "Yimani icele likhangele ikhamera libambe ngemuva kwesihlalo.",
+  "ex.standing_knee_curl.step2": "Goqani idolo eliseduze lekhamera liphakamisele isithende ngemuva. Ithanga likhangele phansi.",
+  "ex.standing_knee_curl.step3": "Lehliseni kancane kancane. Phendukani ukuze lisebenzise omunye umlenze.",
+  "ex.heel_raise.name": "Ukuphakamisa izithende",
+  "ex.heel_raise.desc": "Bambani isihlalo, phakamani lime ngamazwane, beselehlisa izithende kancane kancane.",
+  "ex.heel_raise.step1": "Yimani icele likhangele ikhamera libambe ngemuva kwesihlalo, inyawo zehlukene ngobubanzi benqulu.",
+  "ex.heel_raise.step2": "Gcinani amadolo eqondile beliphakama lime ngamazwane.",
+  "ex.heel_raise.step3": "Yehlisani izithende kancane kancane kuze kufike phansi.",
+  "ex.scaption.name": "Ukuphakamisa izingalo phambili kancane",
+  "ex.scaption.desc": "Phakamisani izingalo zombili phezulu langaphambili kancane, izithupha phezulu, kuze kufike emahlombe, amahlombe ephansi.",
+  "ex.scaption.step1": "Khangelani ikhamera, izingalo eceleni, izithupha zikhombe phambili.",
+  "ex.scaption.step2": "Phakamisani izingalo zombili phezulu langaphambili kancane (phakathi kwaphambili leceleni) kuze kufike emahlombe.",
+  "ex.scaption.step3": "Lehliseni kancane kancane, amahlombe ephansi.",
 
-  "pd.early_limits": "Kulinganiswa lendlela ejwayelekileyo yalesi siguli, hatshi lezinye iziguli. Kuyabonwa ukuze ukuhlole, hatshi ukuhlolwa kwesifo. Isiguli sibona izizathu ezifanayo."
+  "hud.time_left": "Isikhathi esiseleyo",
+  "hud.short_time": "ISIKHATHI",
+  "hud.left_elbow": "Indololwane yesokhohlo",
+  "hud.right_elbow": "Indololwane yesokudla"
 }

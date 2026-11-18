@@ -805,5 +805,10 @@
   "habit.delete_confirm": "Delete all habit logs and settings on this phone and anything shared?",
   "habit.delete_yes": "Yes, delete",
 
-  "pd.early_limits": "Compared with this patient's own usual pattern, not with other patients. Observations for your review, not a diagnosis. The patient sees the same reasons."
+  "pd.early_limits": "Compared with this patient's own usual pattern, not with other patients. Observations for your review, not a diagnosis. The patient sees the same reasons.",
+
+  "hud.time_left": "Time left",
+  "hud.short_time": "TIME",
+  "hud.left_elbow": "Left Elbow",
+  "hud.right_elbow": "Right Elbow"
 }

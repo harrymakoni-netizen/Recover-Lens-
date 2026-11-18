@@ -8,10 +8,10 @@ export type ExerciseKind = 'reps' | 'hold';
 export type Region = 'shoulder' | 'elbow' | 'knee' | 'full_body';
 
 /**
- * What drives the rep counter. Usually a joint angle; jump landings use how far the hips rise
- * (percent of body height) instead.
+ * What drives the rep counter. Usually a joint angle; jump landings use how far the hips rise and
+ * heel raises how far the heels and ankles rise (both in percent of body height) instead.
  */
-export type PrimarySpec = AngleSpec | { metric: 'hipRise' };
+export type PrimarySpec = AngleSpec | { metric: 'hipRise' | 'heelRise' };
 
 /** Phrase keys (see voice/phrases.ts) spoken for each event (SPEC §6.2). */
 export interface CueSet {
@@ -68,6 +68,21 @@ export interface ExerciseConfig {
   screeningOnly?: boolean;
   /** Estimate the load on this joint (pose/effort.ts) and offer a weight choice before starting. */
   effort?: EffortJoint;
+  /**
+   * The body line the `body_line` rule checks: shoulder–hip–ankle ('ankle', wall and floor
+   * push-ups) or shoulder–hip–knee ('knee', knee push-ups).
+   */
+  bodyLine?: 'ankle' | 'knee';
+  /**
+   * False when the torso is meant to lean or lie flat (push-ups): the score then leaves out torso
+   * alignment, which would otherwise read as a fault on every frame. Default true.
+   */
+  uprightTorso?: boolean;
+  /**
+   * Timed test: count as many reps as possible in this many seconds (30-second chair stand). The
+   * set ends when the time is up; a rep more than halfway up at that moment counts (CDC STEADI).
+   */
+  timeLimitSeconds?: number;
 }
 
 /**

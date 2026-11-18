@@ -158,6 +158,31 @@ const en: Record<string, string> = {
   'cg.slb_lift': 'Ask them to lift one foot.',
   'cg.slb_switch': 'Ask them to put their foot down and switch legs.',
   'cg.safety_stop': 'Stop if they feel sharp pain, dizziness or numbness.',
+
+  // Added exercises (reports/Live tracked rehab exercises.md)
+  pushup_wall_intro: 'Stand side-on to the camera with your hands on the wall. Bend your elbows to bring your chest towards the wall, then push back.',
+  pushup_knee_intro: 'Kneel side-on to the camera, hands under your shoulders. Keep your body straight from shoulders to knees, lower your chest, then push up.',
+  pushup_down: 'Bend your elbows slowly.',
+  pushup_bottom: 'Good. Now push back.',
+  pushup_push: 'Push until your arms are straight.',
+  pushup_body_straight: 'Keep your body in a straight line.',
+  pushup_lower_more: 'Bend your elbows a little more.',
+  chair30_intro: 'Arms crossed on your chest. When the count starts, stand up fully and sit down as many times as you safely can in 30 seconds.',
+  chair30_time_up: "Time's up. Well done.",
+  ske_intro: 'Sit tall. Straighten the knee nearer the camera, hold for a moment, then lower slowly.',
+  ske_straighten: 'Straighten your knee slowly.',
+  ske_straighten_more: 'Try to straighten your knee a little more.',
+  set_complete_turn: 'Set {set} of {sets} complete. Rest, then turn round to work the other leg.',
+  kc_intro: 'Hold the chair. Bend the knee nearer the camera to bring your heel up behind you, then lower slowly.',
+  kc_bend: 'Bend your knee and bring your heel up.',
+  kc_bend_more: 'Bring your heel up a little higher.',
+  hr_intro: 'Hold the chair. Rise up onto your toes, then lower your heels slowly.',
+  hr_up: 'Rise up onto your toes.',
+  hr_lower: 'Lower your heels slowly.',
+  hr_higher: 'Rise a little higher onto your toes.',
+  keep_knees_straight: 'Keep your knees straight.',
+  scap_intro: 'Thumbs up. Raise both arms up and slightly forward to shoulder height, keeping your shoulders down.',
+  scap_raising: 'Raise your arms slowly, slightly forward.',
 };
 
 // Short pill text for long phrases (the pill holds ~40 characters).
@@ -188,6 +213,16 @@ const pillEn: Record<string, string> = {
   'cg.slb_intro': 'Lift one foot and hold',
   'cg.abd_raise_higher': 'Help them raise a little higher',
   'cg.keep_torso_upright': 'Keep their back straight',
+
+  // Added exercises (reports/Live tracked rehab exercises.md)
+  pushup_wall_intro: 'Chest to the wall, then push back',
+  pushup_knee_intro: 'Lower your chest, then push up',
+  chair30_intro: 'Stand and sit as often as you can: 30 s',
+  ske_intro: 'Straighten your knee, then lower',
+  kc_intro: 'Bring your heel up behind you',
+  hr_intro: 'Rise onto your toes, lower slowly',
+  scap_intro: 'Arms up and slightly forward',
+  set_complete_turn: 'Set complete. Rest, then turn round',
 };
 
 
@@ -328,6 +363,31 @@ const sn: Record<string, string> = {
   'cg.slb_lift': 'Kumbirai vasimudze tsoka imwe.',
   'cg.slb_switch': 'Kumbirai vaise tsoka pasi vochinja gumbo.',
   'cg.safety_stop': 'Mirai kana vakanzwa marwadzo akapinza, dzungu kana kufa ganzu.',
+
+  // Added exercises (reports/Live tracked rehab exercises.md)
+  pushup_wall_intro: 'Mirai rutivi rwenyu rwakatarisa kamera, maoko ari pamadziro. Kotamisai magokora muswededze chipfuva kumadziro, mozosundira kudzoka.',
+  pushup_knee_intro: 'Pfugamai rutivi rwenyu rwakatarisa kamera, maoko ari pasi pemapfudzi. Chengetai muviri wakatwasuka kubva pamapfudzi kusvika pamabvi, dzikisai chipfuva, mozosundira kumusoro.',
+  pushup_down: 'Kotamisai magokora zvishoma nezvishoma.',
+  pushup_bottom: 'Zvakanaka. Zvino sundirai.',
+  pushup_push: 'Sundirai kusvikira maoko atwasuka.',
+  pushup_body_straight: 'Chengetai muviri wenyu wakatwasuka semutsetse.',
+  pushup_lower_more: 'Kotamisai magokora zvishoma zvakare.',
+  chair30_intro: 'Peterai maoko pachipfuva. Kana kuverenga kwatanga, simukai zvizere mogara pasi kakawanda sezvamunogona zvakachengeteka mumasekondi makumi matatu.',
+  chair30_time_up: 'Nguva yapera. Maita zvakanaka.',
+  ske_intro: 'Garai makatwasuka. Tambanudzai ibvi riri pedyo nekamera, mumbomira zvishoma, mozodzikisa zvishoma nezvishoma.',
+  ske_straighten: 'Tambanudzai ibvi zvishoma nezvishoma.',
+  ske_straighten_more: 'Edzai kutambanudza ibvi zvishoma zvakare.',
+  set_complete_turn: 'Seti {set} pa{sets} yapera. Zororai, mozotendeuka kuti mushandise rimwe gumbo.',
+  kc_intro: 'Batai chigaro. Kotamisai ibvi riri pedyo nekamera muunze chitsitsinho kumusoro kumashure, mozodzikisa zvishoma nezvishoma.',
+  kc_bend: 'Kotamisai ibvi muunze chitsitsinho kumusoro.',
+  kc_bend_more: 'Unzai chitsitsinho kumusoro zvishoma zvakare.',
+  hr_intro: 'Batai chigaro. Simukai mumire pamino, mozodzikisa zvitsitsinho zvishoma nezvishoma.',
+  hr_up: 'Simukai mumire pamino.',
+  hr_lower: 'Dzikisai zvitsitsinho zvishoma nezvishoma.',
+  hr_higher: 'Simukai zvishoma zvakare pamino.',
+  keep_knees_straight: 'Chengetai mabvi akatwasuka.',
+  scap_intro: 'Zvigunwe kumusoro. Simudzai maoko ose kumusoro uye zvishoma kumberi kusvika pamapfudzi, mapfudzi akadzikama pasi.',
+  scap_raising: 'Simudzai maoko zvishoma nezvishoma, zvishoma kumberi.',
 };
 
 // isiNdebele. Needs a native speaker's review.
@@ -467,6 +527,31 @@ const nd: Record<string, string> = {
   'cg.slb_lift': 'Bacelani baphakamise unyawo olulodwa.',
   'cg.slb_switch': 'Bacelani behlise unyawo bantshintshe umlenze.',
   'cg.safety_stop': 'Yimani nxa bezwa ubuhlungu obubukhali, isiyezi loba ubundikindiki.',
+
+  // Added exercises (reports/Live tracked rehab exercises.md)
+  pushup_wall_intro: 'Yimani icele lenu likhangele ikhamera, izandla zisemdulini. Goqani izindololwane lisondeze isifuba emdulini, beselisunduza libuyele emuva.',
+  pushup_knee_intro: 'Guqani icele lenu likhangele ikhamera, izandla ngaphansi kwamahlombe. Gcinani umzimba uqondile kusukela emahlombe kusiya emadolweni, yehlisani isifuba, beselisunduza liphakame.',
+  pushup_down: 'Goqani izindololwane kancane kancane.',
+  pushup_bottom: 'Kuhle. Khathesi sunduzani.',
+  pushup_push: 'Sunduzani kuze kuqonde izingalo.',
+  pushup_body_straight: 'Gcinani umzimba wenu uqondile njengomugqa.',
+  pushup_lower_more: 'Goqani izindololwane kancane futhi.',
+  chair30_intro: 'Phambanisani izingalo esifubeni. Nxa ukubala sekuqalile, sukumani liqonde beselihlala phansi kanengi ngokusemandleni enu ngokuphepha emizuzwaneni engamatshumi amathathu.',
+  chair30_time_up: 'Isikhathi siphelile. Lenze kuhle.',
+  ske_intro: 'Hlalani liqonde. Qondisani idolo eliseduze lekhamera, limise kancane, beselilehlisa kancane kancane.',
+  ske_straighten: 'Qondisani idolo kancane kancane.',
+  ske_straighten_more: 'Zamani ukuqondisa idolo kancane futhi.',
+  set_complete_turn: 'Isethi {set} ku-{sets} iphelile. Phumulani, beseliphenduka lisebenzise omunye umlenze.',
+  kc_intro: 'Bambani isihlalo. Goqani idolo eliseduze lekhamera liphakamisele isithende ngemuva, beselilehlisa kancane kancane.',
+  kc_bend: 'Goqani idolo liphakamise isithende.',
+  kc_bend_more: 'Phakamisani isithende kancane futhi.',
+  hr_intro: 'Bambani isihlalo. Phakamani lime ngamazwane, beselehlisa izithende kancane kancane.',
+  hr_up: 'Phakamani lime ngamazwane.',
+  hr_lower: 'Yehlisani izithende kancane kancane.',
+  hr_higher: 'Phakamani kancane futhi ngamazwane.',
+  keep_knees_straight: 'Gcinani amadolo eqondile.',
+  scap_intro: 'Izithupha phezulu. Phakamisani izingalo zombili phezulu langaphambili kancane kuze kufike emahlombe, amahlombe ephansi.',
+  scap_raising: 'Phakamisani izingalo kancane kancane, phambili kancane.',
 };
 
 export const PHRASES: Record<Lang, Record<string, string>> = { en, sn, nd };
@@ -498,6 +583,16 @@ const pillSn: Record<string, string> = {
   'cg.slb_intro': 'Vasimudze tsoka imwe vamire',
   'cg.abd_raise_higher': 'Vabatsirei kusimudza zvishoma',
   'cg.keep_torso_upright': 'Musana wavo ngaurambe wakatwasuka',
+
+  // Added exercises (reports/Live tracked rehab exercises.md)
+  pushup_wall_intro: 'Chipfuva kumadziro, mozosundira',
+  pushup_knee_intro: 'Dzikisai chipfuva, mozosundira',
+  chair30_intro: 'Simukai mogara kakawanda: 30 s',
+  ske_intro: 'Tambanudzai ibvi, mozodzikisa',
+  kc_intro: 'Unzai chitsitsinho kumashure',
+  hr_intro: 'Simukai pamino, dzikisai',
+  scap_intro: 'Maoko kumusoro uye kumberi',
+  set_complete_turn: 'Seti yapera. Zororai, motendeuka',
 };
 
 const pillNd: Record<string, string> = {
@@ -527,6 +622,16 @@ const pillNd: Record<string, string> = {
   'cg.slb_intro': 'Baphakamise unyawo olulodwa',
   'cg.abd_raise_higher': 'Basizeni baphakamise kancane',
   'cg.keep_torso_upright': 'Umhlane wabo kawuqonde',
+
+  // Added exercises (reports/Live tracked rehab exercises.md)
+  pushup_wall_intro: 'Isifuba emdulini, besisunduza',
+  pushup_knee_intro: 'Yehlisani isifuba, besisunduza',
+  chair30_intro: 'Sukumani lihlale kanengi: 30 s',
+  ske_intro: 'Qondisani idolo, beselehlisa',
+  kc_intro: 'Phakamisani isithende ngemuva',
+  hr_intro: 'Phakamani ngamazwane, lehlise',
+  scap_intro: 'Izingalo phezulu langaphambili',
+  set_complete_turn: 'Isethi iphelile. Phumula, uphenduke',
 };
 
 export const PILLS: Record<Lang, Record<string, string>> = { en: pillEn, sn: pillSn, nd: pillNd };

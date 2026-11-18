@@ -19,7 +19,9 @@ BASELINE_SESSIONS = 3
 
 # Exercises where a smaller angle means more range (a deeper squat). For these, range of motion
 # is measured as knee flexion = 180° - angle.
-DECREASING_ANGLE_EXERCISES = {"mini_squat", "squat_screen", "single_leg_squat"}
+DECREASING_ANGLE_EXERCISES = {
+    "mini_squat", "squat_screen", "single_leg_squat", "wall_push_up", "knee_push_up", "standing_knee_curl",
+}
 
 
 def range_of_motion(exercise_id: str, angle: float) -> float:

@@ -15,7 +15,6 @@
   "offline": "Hapana indaneti",
   "waiting_to_sync": "{n} zvakamirira kutumirwa",
   "disclaimer": "Iyi ishanduro yekuratidzira. Zvinangwa zvekurovedza muviri ndezvemuenzaniso uye hazvisati zvasimbiswa nemachiremba.",
-
   "common.back": "Dzokera",
   "common.close": "Vhara",
   "common.cancel": "Kanzura",
@@ -37,17 +36,14 @@
   "common.page_not_found": "Peji iri harina kuwanikwa",
   "common.confirmed_by_patient": "Zvasimbiswa nemurwere",
   "common.caregiver_mode": "MUBATSIRI",
-
   "plan.sets_reps": "Maseti {sets} × kudzokorora {reps}",
   "plan.sets_hold": "Maseti {sets} × kumira masekondi {seconds}",
   "plan.target": "chinangwa {angle}°",
   "plan.reps": "kudzokorora {n}",
-
   "time.never": "hazvisati zvaitika",
   "time.today": "nhasi",
   "time.yesterday": "nezuro",
   "time.days_ago": "mazuva {n} apfuura",
-
   "pain.level": "Mwero wemarwadzo",
   "pain.scale": "(0 = hapana, 10 = zvakanyanya)",
   "pain.title": "Kubvunza nezvemarwadzo · {exercise}",
@@ -64,7 +60,6 @@
   "pain.now": "Marwadzo enyu izvozvi",
   "pain.now_cg": "Marwadzo avo izvozvi",
   "pain.red_flags": "Pane kuzvimba, kufa ganzu kana marwadzo akapinza here?",
-
   "home.welcome": "Mauya zvakare, {name}",
   "home.welcome_anon": "Mauya zvakare",
   "home.todays_program": "Zvekuita nhasi",
@@ -85,7 +80,6 @@
   "home.no_sessions": "Hapasati pava nezvamaita",
   "home.no_sessions_hint": "Zvamunoita zvinoratidzwa pano kana mapedza.",
   "home.with_caregiver": "nemubatsiri",
-
   "cg.title": "Kubatsira murwere",
   "cg.helping": "Muri kubatsira {name} kurovedza muviri. Izwi richataura nemi, mubatsiri.",
   "cg.the_patient": "murwere",
@@ -106,7 +100,6 @@
   "cg.log_pain": "Marwadzo avo pashure",
   "cg.log_save": "Chengetedzai",
   "cg.log_saved": "Zvanyorwa: kudzokorora {n} kwe{exercise}.",
-
   "mirror.not_found": "Chirovedzo ichi hachina kuwanikwa.",
   "mirror.switch_camera": "Chinja kamera",
   "mirror.mute": "Dzima izwi",
@@ -114,7 +107,6 @@
   "mirror.stop": "Misa",
   "mirror.portrait_hint": "Tendeutsai foni yenyu kurutivi kana kudzokera shure kuti muviri wenyu wose uonekwe.",
   "mirror.loading_model": "Kurodha AI yemuviri…",
-
   "hud.starting_in": "Tinotanga mu",
   "hud.title": "GIRAZI REKUPORA · AI",
   "hud.status": "MAMIRIRO",
@@ -134,7 +126,6 @@
   "hud.short_hold": "KUMIRA",
   "hud.short_score": "MAMAKI",
   "hud.short_symmetry": "KUENZANA",
-
   "status.CALIBRATING": "KUGADZIRIRA",
   "status.GET READY": "GADZIRIRAI",
   "status.PAUSED": "TAMBOMIRA",
@@ -153,7 +144,6 @@
   "status.HOLDING": "MURI KUMIRA",
   "status.HOLD PAUSED": "KUMIRA KWAMBOMIRA",
   "status.LIFT ONE FOOT": "SIMUDZAI TSOKA IMWE",
-
   "cam.privacy": "Vhidhiyo yenyu inoramba iri pafoni ino. Mamaki ekurovedza chete ndiwo anotumirwa kuna chiremba wenyu.",
   "cam.safety": "Mirai kana mukanzwa marwadzo akapinza, dzungu kana kufa ganzu.",
   "cam.safety_cg": "Mirai kana vakanzwa marwadzo akapinza, dzungu kana kufa ganzu.",
@@ -174,7 +164,6 @@
   "cam.error_title": "Kamera haina kutanga",
   "cam.error_body": "Vharai mamwe maapp angave achishandisa kamera, mozoedza zvakare.",
   "cam.model_error": "AI yemuviri haina kurodha: {error}",
-
   "sum.title": "ZVAPERA",
   "sum.exercise": "Chirovedzo",
   "sum.total_reps": "Kudzokorora kwose",
@@ -192,7 +181,6 @@
   "sum.shared": "Zvagoverwa",
   "sum.copied": "Zvakopiwa — zviisei muWhatsApp",
   "sum.share_failed": "Hazvina kukwanisa kugoverwa",
-
   "share.title": "Kurovedza neRecoverLens",
   "share.header": "Kurovedza neRecoverLens — {name}",
   "share.reps": "{exercise}: kudzokorora {reps} ({correct} nemazvo)",
@@ -201,7 +189,6 @@
   "share.pain": "Marwadzo pashure: {pain}/10",
   "share.pain_cg": "Marwadzo pashure: {pain}/10 (zvanyorwa nemubatsiri)",
   "share.focus": "Zvekushandira: {fault}",
-
   "fault.torso_lean": "Kurerekera kwemuviri",
   "fault.asymmetry": "Mativi asina kuenzana",
   "fault.elbow_bend": "Magokora akakotama",
@@ -211,7 +198,6 @@
   "fault.heel_rise": "Zvitsitsinho zvichisimuka",
   "fault.pelvis_drop": "Chiuno chichidonha",
   "fault.not_high_enough": "Kusasvika kumusoro zvakakwana",
-
   "rec.torso_lean": "Chengetai muviri wakatwasuka. Edzai kuita chirovedzo makamira musana wenyu uri pedyo nemadziro.",
   "rec.asymmetry": "Itai zvishoma nezvishoma kuti mativi ose afambe pamwe chete.",
   "rec.elbow_bend": "Chengetai magokora akatambanudzwa muchirovedzo chose.",
@@ -223,7 +209,6 @@
   "rec.not_high_enough": "Shandai kusvika pamunogona kusvika, musingarwadziwi.",
   "rec.good": "Maitiro akanaka. Rambai makadaro.",
   "rec.default": "Rambai muchirovedza zvakadzikama.",
-
   "guided.badge": "NGUVA INOTUNGAMIRA · KAMERA HAIPI MAMAKI",
   "guided.explain": "Kamera imwe chete haigoni kuyera kufamba uku zvakanaka, saka RecoverLens inokutungamirai nenguva.",
   "guided.rest": "ZORORAI",
@@ -233,7 +218,6 @@
   "guided.pause": "Mbomirai",
   "guided.resume": "Endererai",
   "guided.finish": "Pedzai",
-
   "sports.title": "Kuongororwa kwevatambi",
   "sports.intro": "Kuongororwa kupfupi kwemafambiro. Zvinobuda zvinoonekwa kuti murairidzi kana chiremba azviongorore, hakusi kuongororwa kwechirwere.",
   "sports.choose": "1. Sarudzai mutambo",
@@ -249,7 +233,6 @@
   "sports.none_hint": "Itai kuongororwa kuti muone zvabuda pano.",
   "sports.recent": "Kuongororwa kwapfuura",
   "sports.to_review": "{n} zvekuongorora",
-
   "sport.football": "Nhabvu",
   "sport.football_blurb": "Kukotamisa mabvi nekumira negumbo rimwe",
   "sport.basketball": "Bhasikitibhora",
@@ -258,14 +241,12 @@
   "sport.running_blurb": "Kukotamisa ibvi negumbo rimwe nekumira negumbo rimwe",
   "sport.general": "Utano hwemuviri",
   "sport.general_blurb": "Kukotamisa mabvi",
-
   "step.squat": "Kukotamisa mabvi ×5",
   "step.balance_left": "Kumira negumbo reruboshwe masekondi {seconds}",
   "step.balance_right": "Kumira negumbo rerudyi masekondi {seconds}",
   "step.sls_left": "Kukotamisa negumbo reruboshwe ×5",
   "step.sls_right": "Kukotamisa negumbo rerudyi ×5",
   "step.jump": "Kusvetuka nekudzika ×3",
-
   "screen.title": "Bvunzo {i}/{n} · {label}",
   "screen.slb_step1_left": "Mirai negumbo renyu reruboshwe.",
   "screen.slb_step1_right": "Mirai negumbo renyu rerudyi.",
@@ -274,7 +255,6 @@
   "screen.some_review": "Pane zvinoda kuongororwa",
   "screen.all_good": "Zvose zvakanaka",
   "screen.note": "Izvi zvinoonekwa nekamera, hakusi kuongororwa kwechirwere. Zvachengetedzwa.",
-
   "obs.none": "Hapana kudzokorora kwakayerwa mukuongororwa uku.",
   "obs.squat_valgus_left": "Kumira kweibvi reruboshwe",
   "obs.squat_valgus_left.bad": "Ibvi reruboshwe rakapinda mukati pakudzokorora {n} pa{total}",
@@ -328,7 +308,6 @@
   "obs.landing_valgus": "Mabvi pakudzika",
   "obs.landing_valgus.bad": "Mabvi akapinda mukati pakudzika {n} pa{total}",
   "obs.landing_valgus.good": "Mabvi akaramba akatarisa zvigunwe pakudzika",
-
   "obsrec.valgus": "Funga nezvekusimbisa mhasuru dzechiuno nemagaro (semuenzaniso zvirovedzo zveFIFA 11+ zvekumira negumbo rimwe nekukotamisa mabvi).",
   "obsrec.lean": "Funga nezvezvirovedzo zvekufambisa tsoka nekusimbisa dumbu nemusana (semuenzaniso FIFA 11+ Bench/Sideways Bench).",
   "obsrec.asymmetry": "Funga nezvekuyera simba regumbo rimwe nerimwe nekudzidzira kumira negumbo rimwe (FIFA 11+ Single-Leg Stance).",
@@ -337,7 +316,6 @@
   "obsrec.fifa_balance": "FIFA 11+: Single-Leg Stance neSideways Bench.",
   "obsrec.fifa_landing": "FIFA 11+: Jumping (Vertical Jumps), muchidzika zvinyoronyoro mabvi akatarisa zvigunwe.",
   "obsrec.fifa_core": "FIFA 11+: The Bench neSideways Bench.",
-
   "coach.subtitle": "Mafambiro echikwata pakuongororwa.",
   "coach.screened": "Vaongororwa",
   "coach.filter": "Sarudza nemutambo",
@@ -350,7 +328,6 @@
   "coach.col_last": "Kuongororwa kwekupedzisira",
   "coach.col_flags": "Zvakaonekwa",
   "coach.not_screened": "Haasati aongororwa",
-
   "clin.subtitle": "{clinician} · varwere {n}",
   "clin.add_patient": "Wedzera murwere",
   "clin.patients": "Varwere",
@@ -370,7 +347,6 @@
   "clin.assign": "Ipai zvirovedzo",
   "clin.save_patient": "Chengetedza murwere",
   "clin.server_error": "Hatina kusvika pasevha. Tarisai indaneti moedza zvakare.",
-
   "alert.none": "Hapana yambiro",
   "alert.mark_reviewed": "Zvaongororwa",
   "alert.type.Score drop": "Mamaki adonha",
@@ -382,7 +358,6 @@
   "alert.pain": "Marwadzo awedzera kusvika pa{pain}/10 kana zvichienzaniswa nenguva dzapfuura.",
   "alert.no_session": "Hapana kurovedza mumazuva {days} apfuura.",
   "alert.no_session_new": "Hapana kurovedza kubva pavakawedzerwa mazuva {days} apfuura.",
-
   "pd.not_found": "Murwere haana kuwanikwa",
   "pd.back_to_portal": "Dzokera kupeji rechiremba",
   "pd.no_contact": "Hapana nhamba",
@@ -415,7 +390,6 @@
   "pd.manual": "Zvakanyorwa neruoko",
   "pd.program": "Purogiramu",
   "pd.save_program": "Chengetedza purogiramu",
-
   "prog.none": "Hapana zvirovedzo zvakapihwa.",
   "prog.sets": "Maseti",
   "prog.reps": "Kudzokorora",
@@ -423,9 +397,7 @@
   "prog.add": "Wedzera chirovedzo…",
   "prog.add_label": "Wedzera chirovedzo",
   "prog.guided": "(nenguva)",
-
   "chart.trend": "Mafambiro e{name}",
-
   "ex.shoulder_abduction.name": "Kusimudza maoko kurutivi",
   "ex.shoulder_abduction.desc": "Simudzai maoko ose kurutivi kusvika pamapfudzi, muviri wakatwasuka.",
   "ex.shoulder_abduction.step1": "Tarisai kamera, maoko ari parutivi.",
@@ -501,7 +473,6 @@
   "ex.jump_landing.step1": "Tarisai kamera pane nzvimbo yakakwana makakupoteredzai.",
   "ex.jump_landing.step2": "Svetukai kumusoro zvakanyanya sezvamunogona.",
   "ex.jump_landing.step3": "Dzikai zvinyoronyoro mabvi akakotama. Itai katatu.",
-
   "a11y.skip": "Svetukira kune zviri mukati",
   "a11y.display": "Kuona nekuverenga",
   "a11y.text_size": "Ukuru hwemavara",
@@ -605,7 +576,6 @@
   "priv.choices_title": "Sarudzo dzenyu",
   "priv.choices_body": "Munogona kunyaradza izwi uye kusiya kurovedza chero nguva. Hapana chinonyorwa kunze kwekunge matanga chirovedzo.",
   "priv.demo": "Iyi ishanduro yekuratidzira isina maakaundi emunhu. Shandisai mazita ekugadzira, kwete ruzivo rwechokwadi rwevarwere.",
-
   "checkin.title": "Kuzviongorora kwanhasi",
   "checkin.subtitle": "Udzai murairidzi kuti muri kunzwa sei, uye anogadzira rovedzo yanhasi kuti ikukodzerei.",
   "checkin.text_label": "Muri kunzwa sei nhasi?",
@@ -673,7 +643,6 @@
   "checkin.ai_off": "Murairidzi weAI akadzimwa",
   "priv.coach_title": "Murairidzi weAI",
   "priv.coach_body": "Mukabatidza murairidzi weAI, mazwi amunonyora pakuzviongorora kwezuva nezuva anotumirwa kuAI yeGoogle inonzi Gemini kuti irongere rovedzo yenyu, ruzivo rwekukubatai rwatobviswa. Vhidhiyo, mifananidzo uye zviyero zvemuviri hazvimbotumirwi. Chikumbiro chimwe nechimwe chinochengetwa kuti chiremba agone kuchiongorora. Kana murairidzi weAI akadzimwa, hurongwa hunogadzirwa parunhare rwenyu nemitemo yekuchengeteka.",
-
   "comeback.title": "Tafara kukuonai zvakare",
   "comeback.not_now": "Kwete izvozvi",
   "comeback.msg.gentle": "Kusarovedza kwemazuva mashoma zvakajairika. Chinokosha kudzoka, uye mauya.",
@@ -700,11 +669,9 @@
   "comeback.whatsapp": "Tumirai chiyeuchidzo paWhatsApp",
   "comeback.whatsapp_text": "Chiyeuchidzo cheRecoverLens · rovedzo yangu: {time}. {url}",
   "checkin.ai_off_by_physio": "Murairidzi weAI akadzimwa nachiremba wenyu",
-
   "checkin.plan_minute": "Anenge mineti 1",
   "plan.one_set_reps": "Seti 1 × kudzokorora {reps}",
   "plan.one_set_hold": "Seti 1 × kumira masekondi {seconds}",
-
   "out.link": "Kufananidzira mibairo",
   "out.title": "Kufananidzira mibairo",
   "out.lead": "Vanhu {people} vekufananidzira mumapoka mashanu, vakateverwa kwemavhiki 12 nenzira nhatu.",
@@ -744,7 +711,6 @@
   "out.a.lapse": "Kumbomira mazuva {days} akateedzana pasina rovedzo.",
   "out.limits_title": "Zvinogona nezvisingagone kuratidzwa nezvi",
   "out.limits": "Zvinoratidza kuti hurongwa hunoshanda sezvahwakagadzirwa, uye kuti mibairo inoenderana sei nezvinofungidzirwa. Hazvigoni kuratidza shanduko chaiyo yemaitiro: nhamba dzinobva pazvinofungidzirwa zviri pamusoro. Muedzo (varwere 50 nevatambi 60 kwemavhiki 12) uchayera kuramba uchirovedza, kudzoka mushure mekumbomira, kugara, shanduko yekushanda kwemuviri uye kuenzana nenzira imwe chete.",
-
   "pd.export_fhir": "Dhawunirodha data (FHIR)",
   "pd.coach_title": "Murairidzi weAI",
   "pd.coach_ai_on": "Murairidzi weAI akabatidzwa",
@@ -762,7 +728,6 @@
   "pd.coach_ms": "{n} ms",
   "pd.coach_sent": "Zvakatumirwa:",
   "pd.coach_got": "Mhinduro:",
-
   "priv.sharing_title": "Hazvimbopiwi vashandirwi kana makambani einishuwarenzi",
   "priv.sharing_body": "RecoverLens haigoveri, haitengesi uye haiendesi ruzivo rwenyu kuvashandirwi, makambani einishuwarenzi, vashambadziri kana mumwe munhu. Chiremba wenyu wemuviri, murairidzi kana muchengeti ndivo chete vanoruona, mukati meapp. Kana basa renyu richikupai RecoverLens, mushandirwi wenyu haamboone kurovedza kwenyu, marwadzo kana zvamunonyora.",
   "out.weeks_title": "Vhiki 4, 8 ne12",
@@ -775,7 +740,6 @@
   "out.behind.gap": "Vhiki {week}: musiyano pakati pemapoka wakakura neRecoverLens (mapoindi {rl}) kupfuura ne{arm} (mapoindi {other}).",
   "out.behind_none": "Mumashoko aya RecoverLens inopfuura pazvose zvinoratidzwa. Izvi zvinobva pane zvafungidzirwa pamusoro.",
   "out.cautious_run": "Mufananidzo wekungwarira",
-
   "out.safety_title": "Kuongorora kwekuchengeteka neAI chaiyo",
   "out.safety_intro": "Zvinyorwa zvekuedza {n} zvakanyorwa nechikwata (kwete varwere chaivo), muChirungu, chiShona neisiNdebele, zvakatumirwa kumurairidzi weAI chaiye ({model}) musi wa{date} uye zvikaongororwa nemitemo yekuchengeteka neyekuongorora yakafanana neiri muapp.",
   "out.safety.red": "Njodzi dzakamiswa",
@@ -801,7 +765,6 @@
   "out.reason.hold_capped": "kumira kwakapfupiswa",
   "out.reason.pain_reduced": "kudzokorora kwakaderedzwa nekuda kwemarwadzo",
   "out.reason.time_trimmed": "zvakapfupiswa kuti zvikwane nguva",
-
   "demo.reset": "Dzorera data yekuedza",
   "demo.title": "Dzorera data yekuedza here?",
   "demo.body": "Izvi zvinodzorera varwere vekuedza, kurovedza, yambiro nevatambi sezvavanga vakaita, zvine mazuva anotangira nhasi. Varwere vakawedzerwa neshanduko dzakaitwa pano zvinobviswa. Pachishandiso ichi zvinobvisawo zvanyorwa zvezuva nekugamuchira, kuitira kuti kuedza kutange patsva. Zvinozviitira pachazvo usiku hwega hwega.",
@@ -813,9 +776,7 @@
   "demo.resetting": "Kudzorera…",
   "demo.too_soon": "Data yekuedza yadzorerwa izvozvi. Edzai zvakare mushure mehafu yeminiti.",
   "demo.failed": "Hazvina kugoneka kudzorera data yekuedza. Tarisai kubatana muedze zvakare.",
-
   "demo.note": "Data yekuedza. Inodzorerwa sezvayanga yakaita usiku hwega hwega.",
-
   "drift.title_watch": "Yambiro duku",
   "drift.title_act": "Yambiro: zuva rakareruka nhasi",
   "drift.body_watch": "Hapana chamakasiya. Chiratidzo chimwe chinoratidza kuti mudzikise zvishoma nhasi.",
@@ -843,7 +804,6 @@
   "pd.habits_none": "Hapana chakagoverwa. Tsika dzinoramba parunhare rwemurwere kunze kwekunge vasarudza kugovera.",
   "pd.habits_day": "Zuva",
   "pd.habits_note": "Tsika chete dzakasarudzwa nemurwere kugovera. Vanogona kumisa kana kudzidzima chero nguva.",
-
   "habit.title": "Tsika dzezuva nezuva",
   "habit.intro": "Tsika duku dzezuva nezuva dzinobatsira muviri wenyu kupora. Sarudzai dzamunoda kutevera; munogona kuchinja chero nguva.",
   "habit.choose": "Ndedzipi tsika?",
@@ -885,6 +845,45 @@
   "habit.delete": "Dzima data yangu yetsika",
   "habit.delete_confirm": "Dzima zvose zvakanyorwa zvetsika uye zvirongwa parunhare urwu nezvose zvakagoverwa here?",
   "habit.delete_yes": "Hongu, dzima",
+  "pd.early_limits": "Zvinoenzaniswa nemaitiro emurwere uyu chete, kwete nevamwe varwere. Izvi zvinoonekwa kuti muongorore, kwete kuongororwa kwechirwere. Murwere anoona zvikonzero zvimwe chete.",
+  "ex.wall_push_up.name": "Kusundira madziro",
+  "ex.wall_push_up.desc": "Mirai rutivi rwakatarisa kamera, maoko pamadziro, kotamisai magokora muswededze chipfuva kumadziro, mozosundira kudzoka.",
+  "ex.wall_push_up.step1": "Mirai rutivi rwakatarisa kamera, kure nemadziro nehurefu hweruoko, maoko pamadziro pakakwirira semapfudzi.",
+  "ex.wall_push_up.step2": "Chengetai muviri wakatwasuka mokotamisa magokora muswededze chipfuva kumadziro.",
+  "ex.wall_push_up.step3": "Sundirai kudzoka kusvikira maoko atwasuka.",
+  "ex.knee_push_up.name": "Kusundira pasi makapfugama",
+  "ex.knee_push_up.desc": "Makapfugama rutivi rwakatarisa kamera, chengetai mutsetse wakatwasuka kubva pamapfudzi kusvika pamabvi, dzikisai chipfuva, mozosundira kumusoro.",
+  "ex.knee_push_up.step1": "Isai foni pasi ingangoita mamita maviri kure, mopfugama rutivi rwakatarisa foni, maoko pasi pemapfudzi.",
+  "ex.knee_push_up.step2": "Chengetai mutsetse wakatwasuka kubva pamapfudzi kusvika pamabvi mokotamisa magokora kuti chipfuva chidzike.",
+  "ex.knee_push_up.step3": "Sundirai kumusoro kusvikira maoko atwasuka.",
+  "ex.chair_stand_30s.name": "Kusimuka pachigaro kwemasekondi 30",
+  "ex.chair_stand_30s.desc": "Kuongorora simba nekuenzanisa muviri: simukai mogara pasi kakawanda sezvamunogona zvakachengeteka mumasekondi 30, maoko akapetwa.",
+  "ex.chair_stand_30s.step1": "Isai chigaro chakasimba chisina mavoko rutivi rwakatarisa kamera, chakasendamira madziro kuti chisatsvedza.",
+  "ex.chair_stand_30s.step2": "Garai pakati pechigaro maoko akapetwa pachipfuva.",
+  "ex.chair_stand_30s.step3": "Kuverenga kwatanga, simukai zvizere mogara pasi kakawanda sezvamunogona mumasekondi 30.",
+  "ex.seated_knee_extension.name": "Kutambanudza ibvi makagara",
+  "ex.seated_knee_extension.desc": "Garai rutivi rwakatarisa kamera motambanudza ibvi riri pedyo nekamera, mumbomira, mozodzikisa zvishoma nezvishoma.",
+  "ex.seated_knee_extension.step1": "Garai makatwasuka pachigaro rutivi rwakatarisa kamera, tsoka pasi.",
+  "ex.seated_knee_extension.step2": "Tambanudzai ibvi riri pedyo nekamera kusvikira gumbo rava kumberi, mumbomira zvishoma.",
+  "ex.seated_knee_extension.step3": "Dzikisai zvishoma nezvishoma. Tendeutsai chigaro kuti mushandise rimwe gumbo.",
+  "ex.standing_knee_curl.name": "Kukotamisa ibvi makamira",
+  "ex.standing_knee_curl.desc": "Batai chigaro, mirai rutivi rwakatarisa kamera mokotamisa ibvi riri pedyo nekamera muunze chitsitsinho kumusoro kumashure.",
+  "ex.standing_knee_curl.step1": "Mirai rutivi rwakatarisa kamera makabata kumashure kwechigaro.",
+  "ex.standing_knee_curl.step2": "Kotamisai ibvi riri pedyo nekamera muunze chitsitsinho kumusoro kumashure. Chidya chakatarisa pasi.",
+  "ex.standing_knee_curl.step3": "Dzikisai zvishoma nezvishoma. Tendeukai kuti mushandise rimwe gumbo.",
+  "ex.heel_raise.name": "Kusimudza zvitsitsinho",
+  "ex.heel_raise.desc": "Batai chigaro, simukai mumire pamino, mozodzikisa zvitsitsinho zvishoma nezvishoma.",
+  "ex.heel_raise.step1": "Mirai rutivi rwakatarisa kamera makabata kumashure kwechigaro, tsoka dzakaparadzana sehudyu.",
+  "ex.heel_raise.step2": "Chengetai mabvi akatwasuka mosimuka mumire pamino.",
+  "ex.heel_raise.step3": "Dzikisai zvitsitsinho zvishoma nezvishoma kusvika pasi.",
+  "ex.scaption.name": "Kusimudza maoko kumberi zvishoma",
+  "ex.scaption.desc": "Simudzai maoko ose kumusoro uye zvishoma kumberi, zvigunwe kumusoro, kusvika pamapfudzi, mapfudzi akadzikama pasi.",
+  "ex.scaption.step1": "Tarisai kamera, maoko ari parutivi, zvigunwe zvakanongedza kumberi.",
+  "ex.scaption.step2": "Simudzai maoko ose kumusoro uye zvishoma kumberi (pakati pemberi neparutivi) kusvika pamapfudzi.",
+  "ex.scaption.step3": "Dzikisai zvishoma nezvishoma, mapfudzi akadzikama pasi.",
 
-  "pd.early_limits": "Zvinoenzaniswa nemaitiro emurwere uyu chete, kwete nevamwe varwere. Izvi zvinoonekwa kuti muongorore, kwete kuongororwa kwechirwere. Murwere anoona zvikonzero zvimwe chete."
+  "hud.time_left": "Nguva yasara",
+  "hud.short_time": "NGUVA",
+  "hud.left_elbow": "Gokora reruboshwe",
+  "hud.right_elbow": "Gokora rerudyi"
 }

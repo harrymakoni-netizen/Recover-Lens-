@@ -787,3 +787,21 @@ Added after reviewer feedback: support recovery beyond the exercises.
   - "Delete my habit data" clears the phone and calls `DELETE /api/habits/{patient}`.
   - The server checks every value against limits (422 otherwise).
 - **Physiotherapist:** a "Shared habits" table on Patient Detail (last 7 days). When nothing is shared it says so.
+
+### 17.11 Added exercises (`exercises/strength.ts`, from `reports/Live tracked rehab exercises.md`)
+
+Seven live exercises (the six top picks of the research, with push-ups in two levels), each needing only a wall or a chair. All thresholds are starting values marked `// TUNE:` until they are checked against real recordings (`?debug=1` fixtures).
+
+| Exercise | Drives the count | View | Rest → target | Faults |
+|---|---|---|---|---|
+| Wall push-up | elbow (shoulder–elbow–wrist), side facing the camera | side | 155° → 105° | body line, not deep enough |
+| Knee push-up | elbow | side, phone on the floor | 155° → 95° (sourced: push-up counters use > 160° / < 90°) | body line (shoulder–hip–knee), not deep enough |
+| 30-second chair stand | knee, as sit-to-stand | side | 95° → 165° | torso lean, not standing tall |
+| Seated knee extension (Otago) | knee, from the person's own seated angle | side | +65°, 1 s hold | not straight enough |
+| Standing knee curl (Otago) | knee, from the person's own standing angle | side | −70° | torso lean, not bent enough |
+| Heel raise (Otago) | rise of both heels and ankles, % of body height | side | 0 → 2 % | knees bending, not high enough |
+| Scaption | shoulder elevation, as abduction | front | 20° → 80° | as abduction |
+
+- **Engine additions:** a `hip` joint (shoulder–hip–knee), a body-line metric (shoulder–hip–ankle), a `heelRise` primary metric, the `body_line` and `knee_bend` faults, and `uprightTorso: false` so push-ups are not scored down for a leaning torso.
+- **Timed test:** `timeLimitSeconds` ends the set when time is up. A stand more than halfway up at that moment counts, as in the CDC STEADI protocol (`RepCounter.timeUp`). The HUD shows the reps done and the time left instead of a target.
+- Not measurable reliably with one camera, so not added as live exercises: shoulder rotation, pelvic tilt, clamshell, most lying exercises (see the report).

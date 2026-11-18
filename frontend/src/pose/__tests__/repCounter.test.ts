@@ -143,3 +143,30 @@ describe('RepCounter (SPEC §5.4 / §12.2)', () => {
     expect(counter.reps).toBe(1);
   });
 });
+
+describe('timed tests (30-second chair stand)', () => {
+  it('counts a rep more than halfway up when time runs out, then ends', () => {
+    const angles = [...cleanRep(), ...cleanRep(), ...ramp(20, 60, 0.5)]; // third rep ~57 % up
+    const { counter } = run(angles);
+    expect(counter.reps).toBe(2);
+    const events = counter.timeUp(angles.length * FRAME_MS);
+    expect(counter.reps).toBe(3);
+    expect(counter.done).toBe(true);
+    expect(events.map((e) => e.type)).toEqual(['rep', 'sessionComplete']);
+  });
+
+  it('does not count a rep that is less than halfway up', () => {
+    const angles = [...cleanRep(), ...ramp(20, 45, 0.4)]; // ~36 % up
+    const { counter } = run(angles);
+    counter.timeUp(angles.length * FRAME_MS);
+    expect(counter.reps).toBe(1);
+    expect(counter.done).toBe(true);
+  });
+
+  it('ignores frames after time is up', () => {
+    const { counter } = run(cleanRep());
+    counter.timeUp(3000);
+    cleanRep().forEach((angle, i) => counter.update({ angle, tMs: 3000 + i * FRAME_MS }));
+    expect(counter.reps).toBe(1);
+  });
+});

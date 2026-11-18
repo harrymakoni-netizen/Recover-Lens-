@@ -98,7 +98,7 @@ export function hipDrop(leftHip: Point, rightHip: Point, hipWidth: number): numb
   return Math.abs(leftHip.y - rightHip.y) / hipWidth;
 }
 
-export type Joint = 'shoulder' | 'elbow' | 'knee';
+export type Joint = 'shoulder' | 'elbow' | 'knee' | 'hip';
 
 export interface AngleSpec {
   joint: Joint;
@@ -119,6 +119,8 @@ export function jointTriplet(joint: Joint, side: Side): [number, number, number]
       return [s.shoulder, s.elbow, s.wrist];
     case 'knee':
       return [s.hip, s.knee, s.ankle];
+    case 'hip':
+      return [s.shoulder, s.hip, s.knee];
   }
 }
 
@@ -149,6 +151,12 @@ export interface RawMetrics {
   elbowR: number | null;
   kneeL: number | null;
   kneeR: number | null;
+  /** Shoulder–hip–knee, degrees (180 = straight at the hip). */
+  hipL: number | null;
+  hipR: number | null;
+  /** Shoulder–hip–ankle, degrees: the body line in a plank or push-up (180 = straight). */
+  bodyLineL: number | null;
+  bodyLineR: number | null;
   torsoLean: number | null;
   valgusL: number | null;
   valgusR: number | null;
@@ -237,6 +245,11 @@ export function computeRawMetrics(
     return vis(s[proximal], s.wrist) ? angleFromDown(p(s[proximal]), p(s.wrist)) : null;
   };
 
+  const bodyLine = (side: Side): number | null => {
+    const s = SIDE_LANDMARKS[side];
+    return vis(s.shoulder, s.hip, s.ankle) ? angle(p(s.shoulder), p(s.hip), p(s.ankle)) : null;
+  };
+
   let shoulderForward: number | null = null;
   if (midHip && midShoulder && vis(LM.NOSE)) {
     const facing = Math.sign(p(LM.NOSE).x - midShoulder.x) || 1;
@@ -250,6 +263,10 @@ export function computeRawMetrics(
     elbowR: jointAngle(landmarks, 'elbow', 'right', w, h),
     kneeL: opts.kneeDepth ? kneeAngle3d(landmarks, 'left', w, h, opts.world) : jointAngle(landmarks, 'knee', 'left', w, h),
     kneeR: opts.kneeDepth ? kneeAngle3d(landmarks, 'right', w, h, opts.world) : jointAngle(landmarks, 'knee', 'right', w, h),
+    hipL: jointAngle(landmarks, 'hip', 'left', w, h),
+    hipR: jointAngle(landmarks, 'hip', 'right', w, h),
+    bodyLineL: bodyLine('left'),
+    bodyLineR: bodyLine('right'),
     torsoLean: midHip && midShoulder ? torsoLean(midHip, midShoulder) : null,
     valgusL: valgus('left'),
     valgusR: valgus('right'),

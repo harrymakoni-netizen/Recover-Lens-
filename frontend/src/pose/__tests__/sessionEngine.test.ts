@@ -377,3 +377,86 @@ describe('single-arm shoulder abduction', () => {
     expect(d.last.reps).toBe(0);
   });
 });
+
+describe('added exercises (reports/Live tracked rehab exercises.md)', () => {
+  const up = { armL: 70, armR: 70, elbowBend: 0 };
+  const down = { armL: 70, armR: 70, elbowBend: 80 };
+
+  it('counts wall push-ups from the elbow and keeps a straight body unflagged', () => {
+    const d = make('wall_push_up', { targetReps: 3, sets: 1 });
+    d.calibrate(up);
+    for (let i = 0; i < 3; i++) {
+      d.move(up, down, 1);
+      d.frames(down, 0.2);
+      d.move(down, up, 1);
+      d.frames(up, 0.4);
+    }
+    expect(d.last.reps).toBe(3);
+    expect(d.last.correctReps).toBe(3);
+    expect(d.events.some((e) => e.type === 'fault' && e.id === 'body_line')).toBe(false);
+    // Torso alignment is left out of the score for push-ups, so the score stays high.
+    expect(d.last.metrics.torsoAlignment).toBeNull();
+  });
+
+  it('flags a broken body line during push-ups but still counts the rep', () => {
+    const d = make('wall_push_up', { targetReps: 2, sets: 1 });
+    const bentUp = { ...up, lean: 30 };
+    const bentDown = { ...down, lean: 30 };
+    d.calibrate(up);
+    d.move(up, bentUp, 0.5);
+    d.move(bentUp, bentDown, 1);
+    d.frames(bentDown, 0.3);
+    d.move(bentDown, bentUp, 1);
+    d.frames(bentUp, 0.4);
+    expect(d.events.some((e) => e.type === 'fault' && e.id === 'body_line')).toBe(true);
+    expect(d.last.reps).toBe(1);
+    expect(d.last.correctReps).toBe(0);
+  });
+
+  it('counts heel raises from how far the heels and ankles rise', () => {
+    const d = make('heel_raise', { targetReps: 3, sets: 1 });
+    d.calibrate({});
+    for (let i = 0; i < 3; i++) {
+      d.move({ jump: 0 }, { jump: 0.03 }, 0.7);
+      d.frames({ jump: 0.03 }, 0.2);
+      d.move({ jump: 0.03 }, { jump: 0 }, 0.7);
+      d.frames({}, 0.4);
+    }
+    expect(d.last.reps).toBe(3);
+  });
+
+  it('does not count a heel lift that is too small', () => {
+    const d = make('heel_raise', { targetReps: 3, sets: 1 });
+    d.calibrate({});
+    d.move({ jump: 0 }, { jump: 0.006 }, 0.7);
+    d.move({ jump: 0.006 }, { jump: 0 }, 0.7);
+    d.frames({}, 0.4);
+    expect(d.last.reps).toBe(0);
+  });
+
+  it('ends a timed test when time is up and shows the time left', () => {
+    const config = { ...getLiveExercise('wall_push_up'), timeLimitSeconds: 6 };
+    const d = new Driver(new SessionEngine(config, { targetReps: 30, sets: 1 }));
+    d.calibrate(up);
+    expect(d.last.timer?.total).toBe(6);
+    d.move(up, down, 1);
+    d.move(down, up, 1);
+    d.frames(up, 0.4);
+    expect(d.last.timer!.left).toBeLessThan(4);
+    d.move(up, down, 1); // second push-up still on the way down when time runs out
+    d.frames(down, 3);
+    expect(d.last.phase).toBe('complete');
+    expect(d.count('timeUp')).toBe(1);
+    expect(d.last.reps).toBe(2);
+    expect(d.last.timer?.left).toBe(0);
+  });
+
+  it('every added exercise has its cues in all three languages', async () => {
+    const { PHRASES } = await import('../../voice/phrases');
+    for (const id of ['wall_push_up', 'knee_push_up', 'chair_stand_30s', 'seated_knee_extension', 'standing_knee_curl', 'heel_raise', 'scaption']) {
+      const c = getLiveExercise(id).cues;
+      const keys = [c.intro, c.onRaising, c.onTop, c.onLowering, c.onRep, c.onSetComplete, c.onSessionComplete, ...Object.values(c.faults)];
+      for (const lang of ['en', 'sn', 'nd'] as const) for (const k of keys) expect(PHRASES[lang][k!], `${id} ${lang} ${k}`).toBeTruthy();
+    }
+  });
+});

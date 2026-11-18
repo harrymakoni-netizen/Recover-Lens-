@@ -2,6 +2,7 @@ import { elbowCurl } from './elbow';
 import { kneeGuided, miniSquat, singleLegBalance, sitToStand } from './knee';
 import { jumpLanding, singleLegSquat, squatScreen } from './screening';
 import { shoulderAbduction, shoulderFlexion, shoulderGuided } from './shoulder';
+import { chairStand30, heelRaise, kneePushUp, scaption, seatedKneeExtension, standingKneeCurl, wallPushUp } from './strength';
 import { type AnyExercise, type ExerciseConfig, isLive } from './types';
 
 export * from './types';
@@ -10,10 +11,17 @@ export * from './types';
 export const EXERCISES: AnyExercise[] = [
   shoulderAbduction,
   shoulderFlexion,
+  scaption,
   ...shoulderGuided,
+  wallPushUp,
+  kneePushUp,
   elbowCurl,
   miniSquat,
   sitToStand,
+  chairStand30,
+  seatedKneeExtension,
+  standingKneeCurl,
+  heelRaise,
   singleLegBalance,
   ...kneeGuided,
   squatScreen,

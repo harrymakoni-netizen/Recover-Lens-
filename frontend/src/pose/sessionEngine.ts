@@ -15,7 +15,7 @@ import { FaultDetector, type FaultInput, type FaultRuleId } from './formRules';
 import { type RawMetrics, computeRawMetrics, symmetry, torsoAlignment } from './geometry';
 import { HoldTimer } from './holdTimer';
 import { type Landmark, SIDE_LANDMARKS, type Side, visibilityOf } from './landmarks';
-import { RepCounter, type RepResult, type RepState, computeProgress } from './repCounter';
+import { RepCounter, type RepEvent, type RepResult, type RepState, computeProgress } from './repCounter';
 import { DisplayScore, frameScore, mean } from './scoring';
 import { EmaBank } from './smoothing';
 
@@ -51,6 +51,7 @@ export type EngineEvent =
   | { type: 'sessionComplete' }
   | { type: 'paused' }
   | { type: 'resumed' }
+  | { type: 'timeUp' }
   | { type: 'holdStart' }
   | { type: 'holdBroken' }
   | { type: 'holdRemaining'; seconds: number }
@@ -121,6 +122,8 @@ export interface EngineFrame {
   /** Average visibility of the required landmarks (debug panel). */
   visibility: number;
   trackedSide: Side | null;
+  /** Timed tests: seconds left and the total, once counting has started. */
+  timer: { left: number; total: number } | null;
   events: EngineEvent[];
 }
 
@@ -167,6 +170,8 @@ interface Baseline {
   bodyHeight: number | null;
   heelLY: number | null;
   heelRY: number | null;
+  ankleLY: number | null;
+  ankleRY: number | null;
 }
 
 interface Extremes {
@@ -203,7 +208,7 @@ export class SessionEngine {
   private lostSince: number | null = null;
 
   private readonly smooth = new EmaBank<MetricKey>(0.35);
-  private readonly primarySmooth = new EmaBank<'L' | 'R' | 'hip'>(0.35);
+  private readonly primarySmooth = new EmaBank<'L' | 'R' | 'hip' | 'heel'>(0.35);
   private readonly faults: FaultDetector;
   private readonly display = new DisplayScore(0.2);
   private readonly counter: RepCounter | null;
@@ -382,6 +387,8 @@ export class SessionEngine {
             bodyHeight: m.bodyHeight,
             heelLY: m.heelLY,
             heelRY: m.heelRY,
+            ankleLY: m.ankleLY,
+            ankleRY: m.ankleRY,
           };
           this.applyRelativeRange(m);
           events.push({ type: 'start' });
@@ -411,6 +418,12 @@ export class SessionEngine {
       if (this.phase === 'active') {
         if (this.counter) this.stepReps(m, primaryAngle, symmetryPct, tMs, events);
         else this.stepHold(m, tMs, events);
+      }
+      // Timed test: time runs on through a pause, as with a stopwatch.
+      const limit = this.config.timeLimitSeconds;
+      if (limit && this.counter && !this.counter.done && tMs - (this.startMs ?? tMs) >= limit * 1000) {
+        this.handleRepEvents(this.counter.timeUp(tMs), m, symmetryPct, tMs, events);
+        events.push({ type: 'timeUp' });
       }
     }
 
@@ -443,7 +456,7 @@ export class SessionEngine {
         kneeL: m.kneeL,
         kneeR: m.kneeR,
         torsoLean: m.torsoLean,
-        torsoAlignment: m.torsoLean === null ? null : torsoAlignment(m.torsoLean),
+        torsoAlignment: m.torsoLean === null || this.config.uprightTorso === false ? null : torsoAlignment(m.torsoLean),
         symmetry: symmetryPct,
       },
       reps: this.counter?.reps ?? this.holdRecords.length,
@@ -462,6 +475,7 @@ export class SessionEngine {
           : null,
       visibility,
       trackedSide: this.side,
+      timer: this.timerState(tMs),
       events,
     };
   }
@@ -469,8 +483,8 @@ export class SessionEngine {
   private smoothMetrics(raw: RawMetrics | null): Record<MetricKey, number | null> {
     const out = {} as Record<MetricKey, number | null>;
     const keys: MetricKey[] = [
-      'shoulderL', 'shoulderR', 'elbowL', 'elbowR', 'kneeL', 'kneeR', 'torsoLean', 'valgusL', 'valgusR',
-      'hipDrop', 'midHipX', 'midHipY', 'hipWidth', 'bodyHeight', 'heelLY', 'heelRY', 'ankleLY', 'ankleRY',
+      'shoulderL', 'shoulderR', 'elbowL', 'elbowR', 'kneeL', 'kneeR', 'hipL', 'hipR', 'bodyLineL', 'bodyLineR',
+      'torsoLean', 'valgusL', 'valgusR', 'hipDrop', 'midHipX', 'midHipY', 'hipWidth', 'bodyHeight', 'heelLY', 'heelRY', 'ankleLY', 'ankleRY',
       'shoulderForward', 'forearmDownL', 'forearmDownR', 'armDownL', 'armDownR',
     ];
     for (const k of keys) out[k] = this.smooth.update(k, raw ? raw[k] : null, this.dtMs);
@@ -488,8 +502,26 @@ export class SessionEngine {
     }
     if ('metric' in spec) {
       const b = this.baseline;
-      if (!b || b.midHipY === null || !b.bodyHeight) return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
-      const rise = (y: number | null) => (y === null ? null : ((b.midHipY! - y) / b.bodyHeight!) * 100);
+      if (!b || !b.bodyHeight) return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
+      const bodyH = b.bodyHeight;
+      if (spec.metric === 'heelRise') {
+        // Heels and ankles together: four points rise as one, which halves the jitter of one heel.
+        const rises = (
+          [
+            [b.heelLY, raw?.heelLY],
+            [b.heelRY, raw?.heelRY],
+            [b.ankleLY, raw?.ankleLY],
+            [b.ankleRY, raw?.ankleRY],
+          ] as const
+        )
+          .filter(([base, now]) => base != null && now != null)
+          .map(([base, now]) => ((base! - now!) / bodyH) * 100);
+        const rise = rises.length >= 2 ? mean(rises) : null;
+        const smoothed = this.primarySmooth.update('heel', rise, this.dtMs);
+        return { primaryRaw: rise, primaryAngle: smoothed, symmetryPct: null };
+      }
+      if (b.midHipY === null) return { primaryRaw: null, primaryAngle: null, symmetryPct: null };
+      const rise = (y: number | null) => (y === null ? null : ((b.midHipY! - y) / bodyH) * 100);
       const smoothed = this.primarySmooth.update('hip', rise(raw?.midHipY ?? null), this.dtMs);
       return { primaryRaw: rise(raw?.midHipY ?? null), primaryAngle: smoothed, symmetryPct: null };
     }
@@ -552,7 +584,32 @@ export class SessionEngine {
       heelRise: maxN(heelRise(b?.heelLY, m.heelLY), heelRise(b?.heelRY, m.heelRY)),
       hipDrop: m.hipDrop,
       turnedBackEarly: this.turnedBack,
+      bodyLine: this.bodyLineNow(m),
+      kneeAngle: minN(m.kneeL, m.kneeR),
     };
+  }
+
+  private timerState(tMs: number): { left: number; total: number } | null {
+    const total = this.config.timeLimitSeconds;
+    if (!total) return null;
+    if (this.phase === 'calibrating' || this.phase === 'countdown') return { left: total, total };
+    if (this.phase === 'complete') return { left: 0, total };
+    return { left: Math.max(0, total - (tMs - (this.startMs ?? tMs)) / 1000), total };
+  }
+
+  /** Body line on the tracked side (push-ups): shoulder–hip–ankle, or shoulder–hip–knee on the knees. */
+  private bodyLineNow(m: Record<MetricKey, number | null>): number | null {
+    const to = this.config.bodyLine;
+    if (!to) return null;
+    const side = this.side ?? 'left';
+    if (to === 'knee') return side === 'right' ? m.hipR : m.hipL;
+    return side === 'right' ? m.bodyLineR : m.bodyLineL;
+  }
+
+  /** Torso alignment for the score; push-ups lean or lie flat by design, so they score 100. */
+  private alignmentOf(m: Record<MetricKey, number | null>): number {
+    if (this.config.uprightTorso === false || m.torsoLean === null) return 100;
+    return torsoAlignment(m.torsoLean);
   }
 
   private stepReps(
@@ -573,7 +630,7 @@ export class SessionEngine {
     if (inMovement) {
       score = frameScore({
         progress: counter.progress,
-        torsoAlignment: m.torsoLean === null ? 100 : torsoAlignment(m.torsoLean),
+        torsoAlignment: this.alignmentOf(m),
         symmetry: symmetryPct ?? 100,
         activeFaults: active.length,
       });
@@ -582,7 +639,17 @@ export class SessionEngine {
       this.trackExtremes(m, symmetryPct, this.baseline);
     }
 
-    const repEvents = counter.update({ angle: primaryAngle, tMs, faults: active, frameScore: score });
+    this.handleRepEvents(counter.update({ angle: primaryAngle, tMs, faults: active, frameScore: score }), m, symmetryPct, tMs, events);
+  }
+
+  private handleRepEvents(
+    repEvents: RepEvent[],
+    m: Record<MetricKey, number | null>,
+    symmetryPct: number | null,
+    tMs: number,
+    events: EngineEvent[],
+  ): void {
+    const counter = this.counter!;
     for (const e of repEvents) {
       switch (e.type) {
         case 'state':
@@ -742,7 +809,7 @@ export class SessionEngine {
   }
 
   private recordMovementFrame(m: Record<MetricKey, number | null>, sym: number | null, active: FaultRuleId[]): void {
-    if (m.torsoLean !== null) this.alignSamples.push(torsoAlignment(m.torsoLean));
+    if (m.torsoLean !== null && this.config.uprightTorso !== false) this.alignSamples.push(torsoAlignment(m.torsoLean));
     if (sym !== null) this.symSamples.push(sym);
     for (const f of active) this.faultFrameCounts.set(f, (this.faultFrameCounts.get(f) ?? 0) + 1);
   }

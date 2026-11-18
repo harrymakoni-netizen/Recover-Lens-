@@ -11,11 +11,13 @@ export type FaultRuleId =
   | 'weight_shift'
   | 'heel_rise'
   | 'pelvis_drop'
-  | 'not_high_enough';
+  | 'not_high_enough'
+  | 'body_line'
+  | 'knee_bend';
 
 export const ALL_FAULTS: FaultRuleId[] = [
   'torso_lean', 'asymmetry', 'elbow_bend', 'back_arch', 'knee_valgus',
-  'weight_shift', 'heel_rise', 'pelvis_drop', 'not_high_enough',
+  'weight_shift', 'heel_rise', 'pelvis_drop', 'not_high_enough', 'body_line', 'knee_bend',
 ];
 
 export const THRESHOLDS = {
@@ -27,6 +29,10 @@ export const THRESHOLDS = {
   weightShiftFraction: 0.08, // TUNE: of hip width
   heelRiseFraction: 0.02, // TUNE: of body height
   hipDrop: 0.12, // TUNE:
+  // TUNE: gym push-up counters flag a shoulder–hip–ankle line under 170°; rehab users get 10° more room.
+  bodyLineDeg: 160,
+  // TUNE: a straight leg reads ~170–178° side-on in 2D; under this the knees are bending.
+  kneeBendDeg: 155,
 } as const;
 
 export const DEBOUNCE_MS = 300;
@@ -53,6 +59,10 @@ export interface FaultInput {
   heelRise: number | null;
   hipDrop: number | null;
   turnedBackEarly: boolean;
+  /** Body line (shoulder–hip–ankle, or shoulder–hip–knee for knee push-ups) on the tracked side. */
+  bodyLine?: number | null;
+  /** Smallest knee angle of both legs (2D, side view). */
+  kneeAngle?: number | null;
 }
 
 export interface FaultResult {
@@ -111,6 +121,18 @@ export function evaluateRule(id: FaultRuleId, f: FaultInput): { triggered: boole
 
     case 'not_high_enough':
       return { triggered: f.turnedBackEarly, severity: f.turnedBackEarly ? 0.5 : 0 };
+
+    case 'body_line': {
+      if (f.bodyLine == null) return off;
+      const triggered = f.bodyLine < THRESHOLDS.bodyLineDeg;
+      return { triggered, severity: triggered ? Math.min(1, (THRESHOLDS.bodyLineDeg - f.bodyLine) / 30) : 0 };
+    }
+
+    case 'knee_bend': {
+      if (f.kneeAngle == null || !f.inMovement) return off;
+      const triggered = f.kneeAngle < THRESHOLDS.kneeBendDeg;
+      return { triggered, severity: triggered ? Math.min(1, (THRESHOLDS.kneeBendDeg - f.kneeAngle) / 40) : 0 };
+    }
   }
 }
 
